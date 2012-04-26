@@ -1,0 +1,54 @@
+#TODO: Maybe the makefile should not produce both 32 and 64 bits library,
+#only the one requested, as in PilatusLoader.
+Osbits2dirname = $(subst 64,linux-x86_64,$(subst 32,linux-x86,$(1)))
+
+LIBDIR=lib
+#OSDIRnn = Osbits2dirname(...)
+OSDIR32=linux-x86
+OSDIR64=linux-x86_64
+LIBDIR32=lib/$(OSDIR32)
+LIBDIR64=lib/$(OSDIR64)
+MAKE32=Makefile_LINUX_gcc42
+MAKE64=Makefile_LINUX_64
+NOFORTRAN=yes
+OSBITS=$(shell uname -m)
+
+.PHONY: all
+all : .dirs
+	$(MAKE) -C $(OSDIR32) -f $(MAKE32) NOFORTRAN=$(NOFORTRAN) all
+	cp -pf $(OSDIR32)/$(LIBDIR)/libcbf.a $(LIBDIR32)/libcbf.a
+ifeq ($(NOFORTRAN),)
+	cp -pf $(OSDIR32)/$(LIBDIR)/libfcb.a $(LIBDIR32)/libfcb.a
+endif
+	cp -pf $(OSDIR32)/$(LIBDIR)/libimg.a $(LIBDIR32)/libimg.a
+	cp -pf $(OSDIR32)/$(LIBDIR)/getopt.o $(LIBDIR32)/getopt.o
+ifneq ($(OSBITS), i686)
+	$(MAKE) -C $(OSDIR64) -f $(MAKE64) NOFORTRAN=$(NOFORTRAN) all
+	cp -pf $(OSDIR64)/$(LIBDIR)/libcbf.a $(LIBDIR64)/libcbf.a
+ifeq ($(NOFORTRAN),)
+	cp -pf $(OSDIR64)/$(LIBDIR)/libfcb.a $(LIBDIR64)/libfcb.a
+endif
+	cp -pf $(OSDIR64)/$(LIBDIR)/libimg.a $(LIBDIR64)/libimg.a
+	cp -pf $(OSDIR64)/$(LIBDIR)/getopt.o $(LIBDIR64)/getopt.o
+endif
+
+.PHONY: .dirs
+.dirs:
+	mkdir -p $(LIBDIR32) $(LIBDIR64)
+
+.PHONY: clean clean32 clean64
+clean : clean32 clean64
+clean32 clean64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst clean,,$@)) -f $(MAKE$(subst clean,,$@)) clean
+	rm -rf $(LIBDIR$(subst clean,,$@))/*
+
+.PHONY: empty empty32 empty64
+empty : empty32 empty64
+empty32 empty64 :
+	$(MAKE) -C $(subst clean,,$@) -f $(MAKE$(subst clean,,$@)) empty
+
+.PHONY: distclean distclean32 distclean64
+#distclean = clean and empty
+distclean : distclean32 distclean64
+distclean32 distclean64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst clean,,$@)) -f $(MAKE$(subst clean,,$@)) distclean

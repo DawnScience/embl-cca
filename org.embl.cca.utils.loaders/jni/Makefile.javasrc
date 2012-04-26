@@ -1,0 +1,46 @@
+#
+# Makefile for PilatusLoader.jar
+#
+include Makefile.env
+
+JAVASRC_DIR := ../src
+JPACKDIR := loaders/pilatus
+JAVAFILES := $(JAVASRC_DIR)/$(JPACKDIR)/PilatusLoader.java \
+$(JAVASRC_DIR)/$(JPACKDIR)/PilatusData.java \
+$(JAVASRC_DIR)/$(JPACKDIR)/PilatusHeader.java
+JARFILE := jPilatusLoader.jar
+JNIFILES := loaders_pilatus_PilatusLoader.h
+ALLJARFILES := $(JARFILE) $(JNIFILES)
+
+# Building configuration
+JAVACFLAGS := -source 1.6 -d .
+JAVAC := $(JAVA)/bin/javac
+JAR := $(JAVA)/bin/jar
+JAVAH := $(JAVA)/bin/javah
+JAVADOC := $(JAVA)/bin/javadoc
+JAVARUN := $(JAVA)/bin/java
+
+#================================================================
+# Actions
+#================================================================
+
+.PHONY: all
+all : $(ALLJARFILES)
+
+.PHONY: clean
+clean :
+	rm -rf $(ALLJARFILES)
+
+#================================================================
+# Building binaries
+#================================================================
+
+$(JARFILE) : $(JAVAFILES)
+	$(JAVAC) $(JAVACFLAGS) $(JAVAFILES)
+	$(JAR) cvf $@ $(JPACKDIR)/*.class
+
+$(JNIFILES) : $(JARFILE)
+	CLASSPATH=$< $(JAVAH) -jni loaders.pilatus.PilatusLoader
+	rm -rf loaders
+
+# END OF FILE
