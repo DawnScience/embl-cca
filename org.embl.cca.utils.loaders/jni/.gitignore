@@ -1,0 +1,13 @@
+/convert_minicbf
+/loaders_pilatus_PilatusLoader.h
+/jPilatusLoader32.o
+/jPilatusLoader64.o
+/libjPilatusLoader32.so
+/libjPilatusLoader32.so.1
+/libjPilatusLoader32.so.1.0.0
+/libjPilatusLoader64.so
+/libjPilatusLoader64.so.1
+/libjPilatusLoader64.so.1.0.0
+/jPilatusLoader.jar
+/output32
+/output64
