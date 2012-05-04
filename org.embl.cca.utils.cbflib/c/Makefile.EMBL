@@ -1,0 +1,59 @@
+#
+# Makefile for CBFlib library
+#
+
+include Makefile.shared
+
+Osbits2dirname = $(subst 64,linux-x86_64,$(subst 32,linux-x86,$(1)))
+
+OBJ_DIR := lib
+OBJ_DIR_OSBITS := $(call Osbits2dirname,$(OSBITS))/$(OBJ_DIR)
+
+# Targets
+LIBFILES := libcbf.a libimg.a getopt.o
+LIBFILES_OSBITS := $(addprefix $(OBJ_DIR_OSBITS)/,$(LIBFILES))
+LIBFILES_TARGET_DIR := ../lib
+LIBFILES_TARGET := $(addprefix $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))/,$(LIBFILES))
+
+MAKE32 := Makefile_LINUX_gcc42
+MAKE64 := Makefile_LINUX_64
+NOFORTRAN := yes
+
+.PHONY: all all32 all64
+all : dirs all$(OSBITS)
+all32 all64 : $(LIBFILES_TARGET)
+
+$(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))/%.a : $(addprefix $(OBJ_DIR_OSBITS)/,%.a)
+	@mkdir -p $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))
+	cp -df -t $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS)) $<
+
+$(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))/%.o : $(addprefix $(OBJ_DIR_OSBITS)/,%.o)
+	@mkdir -p $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))
+	cp -df -t $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS)) $<
+
+$(OBJ_DIR_OSBITS)/$(LIBFILES) :
+	$(MAKE) -C $(call Osbits2dirname,$(OSBITS)) -f $(MAKE$(OSBITS)) NOFORTRAN=$(NOFORTRAN) all
+
+.PHONY: dirs
+dirs:
+	mkdir -p $(call Osbits2dirname,32)/$(OBJ_DIR) $(call Osbits2dirname,64)/$(OBJ_DIR)
+
+.PHONY: clean clean32 clean64
+clean : clean32 clean64
+clean32 clean64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst clean,,$@)) -f $(MAKE$(subst clean,,$@)) clean
+	rm -rf \
+	$(addprefix $(call Osbits2dirname,$(subst clean,,$@))/$(OBJ_DIR)/,$(LIBFILES)) \
+	$(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(subst clean,,$@))/*.a \
+	$(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(subst clean,,$@))/*.o
+
+.PHONY: empty empty32 empty64
+empty : empty32 empty64
+empty32 empty64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst empty,,$@)) -f $(MAKE$(subst empty,,$@)) empty
+
+.PHONY: distclean distclean32 distclean64
+#distclean = clean and empty
+distclean : clean32 clean64 distclean32 distclean64
+distclean32 distclean64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst distclean,,$@)) -f $(MAKE$(subst distclean,,$@)) distclean

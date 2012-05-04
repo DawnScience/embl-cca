@@ -1,0 +1,22 @@
+#
+# Makefile shared stuff for other makefiles
+#
+
+OSMACHINE := $(shell uname -m)
+ifneq ($(OSMACHINE), i686)
+	OSBITS := 64
+else
+	OSBITS := 32
+endif
+ifeq ($(MAKECMDGOALS),)
+	MAKECMDGOALS = all
+endif
+ifeq ($(MAKECMDGOALS),all32)
+	OSBITS := 32
+else
+ifeq ($(MAKECMDGOALS),all64)
+	OSBITS := 64
+endif
+endif
+
+# END OF FILE
