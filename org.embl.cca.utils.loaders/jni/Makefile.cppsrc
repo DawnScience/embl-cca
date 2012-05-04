@@ -36,13 +36,13 @@ TEST_TARGET_OSBITS := $(OBJ_DIR_OSBITS)/test
 CC := gcc
 CFLAGS := -std=c99
 CXXFLAGS :=
-CPPFLAGS := -I$(JAVA_INCLUDE) -I$(JAVA_LINUXINCLUDE) -I../CBFlib/$(call Osbits2dirname,$(OSBITS))/include -I$(BOOST_INCLUDE) -I$(EMBLUTILS)/cpp -I. \
+CPPFLAGS := -I$(JAVA_INCLUDE) -I$(JAVA_LINUXINCLUDE) -I$(CBFLIB)/c/$(call Osbits2dirname,$(OSBITS))/include -I$(BOOST_INCLUDE) -I$(EMBLUTILS)/cpp -I. \
 -Wall -fPIC -fsigned-char -O2 -D_GNU_SOURCE=1
 ALL_CFLAGS := $(CXXFLAGS) $(CPPFLAGS) -m$(OSBITS) -I$(INC_DIR)
 MAKEOBJECT = $(CC) -c $(ALL_CFLAGS) -o $@ $<
 
 LIBS := -lz -lpthread -lm -lc -lcbf -lstdc++ -lboost_regex -lemblutils
-LIBDIR := -L../CBFlib/lib/$(call Osbits2dirname,$(OSBITS)) -L$(EMBLUTILS)/lib/$(call Osbits2dirname,$(OSBITS))
+LIBDIR := -L$(CBFLIB)/lib/$(call Osbits2dirname,$(OSBITS)) -L$(EMBLUTILS)/lib/$(call Osbits2dirname,$(OSBITS))
 LDFLAGS := $(LIBDIR)
 LDENV :=
 
