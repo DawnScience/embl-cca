@@ -29,7 +29,12 @@ public class Histogram {
 		this( binValues, minimumValue, binWidth, valueAmountTotal, true );
 	}
 
-	public boolean getReadOnly() {
+    public Histogram clone() {
+    	Histogram clone = new Histogram( binValues == null ? null : binValues.clone(), minimumValue, binWidth, valueAmountTotal, readOnly );
+    	return clone;
+    }
+
+    public boolean getReadOnly() {
 		return readOnly;
 	}
 

@@ -14,7 +14,7 @@ import org.eclipse.swt.graphics.Rectangle;
  * @version 1.00 07/12/2011
  * @since   20111207
  */
-public class Statistics {
+public class Statistics implements Cloneable {
 	boolean readOnly;
 	float min = Float.MAX_VALUE;
 	float max = -Float.MAX_VALUE;
@@ -26,14 +26,14 @@ public class Statistics {
 	Point2DWithValue[] psfPoints = null;
 
 	public Statistics( float min, float max, float mean, float suggestedMin, float suggestedMax,
-			Histogram histogram, Point2DWithValue[] PSFPoints, boolean readOnly ) {
+			Histogram histogram, Point2DWithValue[] psfPoints, boolean readOnly ) {
 		setMinimum( min );
 		setMaximum( max );
 		setMean( mean );
 		setSuggestedMinimum( suggestedMin );
 		setSuggestedMaximum( suggestedMax );
 		setHistogram( histogram );
-		setPSFPoints( PSFPoints );
+		setPSFPoints( psfPoints );
 		setReadOnly( readOnly );
 	}
 
@@ -53,6 +53,12 @@ public class Statistics {
 	public Statistics( float min, float max, float mean ) {
 		this( min, max, mean, min, max, null, null, true );
 	}
+
+    public Statistics clone() {
+    	Statistics clone = new Statistics( min, max, mean, suggestedMin, suggestedMax,
+    			histogram == null ? null : histogram.clone(), psfPoints == null ? null : psfPoints.clone(), readOnly );
+    	return clone;
+    }
 
 	public boolean getReadOnly() {
 		return readOnly;
