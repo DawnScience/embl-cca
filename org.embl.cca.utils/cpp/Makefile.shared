@@ -19,4 +19,6 @@ ifeq ($(MAKECMDGOALS),all64)
 endif
 endif
 
+IsMakeVersion = $(filter $(1),$(firstword $(sort $(MAKE_VERSION) \ $(1))))
+
 # END OF FILE
