@@ -1,0 +1,14 @@
+output64/jPilatusLoader.d2 : jPilatusLoader.cpp loaders_pilatus_PilatusLoader.h \
+ /opt/sun-jdk-1.6.0.31/include/jni.h \
+ /opt/sun-jdk-1.6.0.31/include/linux/jni_md.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf_tree.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf_context.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf_file.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/global.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/md5.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf_simple.h \
+ ../../../embl-cca/org.embl.cca.utils.cbflib/c/linux-x86_64/include/cbf.h \
+ JCBridge.h ../../../embl-cca/org.embl.cca.utils/cpp/String.h \
+ JNIException.h ../../../embl-cca/org.embl.cca.utils/cpp/CallTrace.h \
+ ../../../embl-cca/org.embl.cca.utils/cpp/String.h
