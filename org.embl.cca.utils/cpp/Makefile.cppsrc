@@ -43,8 +43,8 @@ ALL_CFLAGS := $(CXXFLAGS) $(CPPFLAGS) -m$(OSBITS) -I$(INC_DIR)
 MAKEOBJECT = $(CC) -c $(ALL_CFLAGS) -o $@ $<
 
 LIBS := -lz -lpthread -lm -lc -lstdc++ -lboost_regex
-#LIBDIR := ../CBFlib/lib/$(call Osbits2dirname,$(OSBITS))
-LDFLAGS := -L$(LIBDIR)
+#LIBDIR := -L../CBFlib/lib/$(call Osbits2dirname,$(OSBITS))
+LDFLAGS := $(LIBDIR)
 LDENV :=
 
 LIBLDFLAGS = -shared -Wl,-rpath,$(OBJ_DIR_OSBITS)
