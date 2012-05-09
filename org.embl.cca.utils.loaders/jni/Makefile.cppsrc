@@ -47,12 +47,21 @@ LIBDIR := -L$(CBFLIB)/lib/$(call Osbits2dirname,$(OSBITS)) -L$(EMBLUTILS)/lib/$(
 LDFLAGS := $(LIBDIR)
 LDENV :=
 
+LIBLDFLAGS = -shared -Wl,-rpath,$(OBJ_DIR_OSBITS)
+
+ifneq (,$(filter all32 all64 all, $(MAKECMDGOALS)))
+-include $(DEP1FILES_OSBITS)
+endif
+
+ifneq (,$(filter all32 all64 all, $(MAKECMDGOALS)))
+-include $(DEP2FILES_OSBITS)
+endif
 #================================================================
 # Actions
 #================================================================
 
 .PHONY: all all32 all64
-all : all$(OSBITS)
+all : dirs all$(OSBITS)
 all32 all64 : $(SOFILES_TARGET) $(TEST_TARGET_OSBITS)
 
 $(SOFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))/%.so.$(LIBVER).$(LIBREV).0 : $(addprefix $(OBJ_DIR_OSBITS)/,%.so.$(LIBVER).$(LIBREV).0)
@@ -104,19 +113,19 @@ dirs :
 #This pattern rule generates a dependency(1) file of rule without recipe.
 #For example: name.d1 from a C++ source file called name.cpp.
 $(OBJ_DIR_OSBITS)/%.d1: %.cpp
+#	@echo Debug: START creating d1 from $<
 	@mkdir -p $(@D)
 	@set -e; rm -f $@; \
 	$(CC) -MM $(ALL_CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,$@ : ,g' < $@.$$$$ > $@; \
+		sed 's,\($*\)\.o[ :]*,$(@D)\1.d2 : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-ifneq (,$(filter all32 all64 all, $(MAKECMDGOALS)))
--include $(DEP1FILES_OSBITS)
-endif
+#	@echo Debug: END creating d1 from $<
 
 #This pattern rule generates a dependency(2) file of rule without recipe.
 #For example: name.d2 from a C++ source file called name.cpp.
 $(OBJ_DIR_OSBITS)/%.d2: $(OBJ_DIR_OSBITS)/%.d1
+#	@echo Debug: START creating d2 from $<
 	@mkdir -p $(@D)
 	@set -e; rm -f $@; \
 	$(CC) -MM $(ALL_CFLAGS) $(subst .d1,.cpp,$(<F)) > $@.$$$$; \
@@ -124,9 +133,7 @@ $(OBJ_DIR_OSBITS)/%.d2: $(OBJ_DIR_OSBITS)/%.d1
 	sed 's,\($*\)\.o[ :]*,$(@D)/\1.o : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-ifneq (,$(filter all32 all64 all, $(MAKECMDGOALS)))
--include $(DEP2FILES_OSBITS)
-endif
+#	@echo Debug: END creating d2 from $<
 
 #This pattern rule contains the real action for C++ source files.
 $(OBJ_DIR_OSBITS)/%.o: %.cpp
