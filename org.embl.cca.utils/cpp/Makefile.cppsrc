@@ -117,8 +117,8 @@ $(OBJ_DIR_OSBITS)/%.d1: %.cpp
 #	@echo Debug: START creating d1 from $<
 	@mkdir -p $(@D)
 	@set -e; rm -f $@; \
-		$(CC) -MM $(ALL_CFLAGS) $< > $@.$$$$ && \
-		sed 's,\($*\)\.o[ :]*,$(@D)\1.d2 : ,g' < $@.$$$$ > $@ && \
+		$(CC) -MM $(ALL_CFLAGS) $< > $@.$$$$; \
+		sed 's,\($*\)\.o[ :]*,$(@D)\1.d2 : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 #	@echo Debug: END creating d1 from $<
 
