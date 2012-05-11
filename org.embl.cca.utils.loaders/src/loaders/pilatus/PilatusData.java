@@ -1,26 +1,11 @@
 package loaders.pilatus;
 
-public class PilatusData {
-	int width;
-	int height;
-	float data[];
+import org.embl.cca.utils.imageviewer.TwoDimFloatArrayData;
+
+public class PilatusData extends TwoDimFloatArrayData {
 
 	public PilatusData( int width, int height, float[] data ) {
-		this.width = width;
-		this.height = height;
-		this.data = data;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
-	public float[] getData() {
-		return data;
+		super( width, height, data );
 	}
 
 }
