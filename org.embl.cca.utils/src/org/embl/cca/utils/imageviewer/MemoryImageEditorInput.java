@@ -1,46 +1,15 @@
 package org.embl.cca.utils.imageviewer;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
-public class MemoryImageEditorInput implements IEditorInput {
+public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEditorInput {
 	String name;
-	int width;
-	int height;
-	float[] floatData;
 
 	public MemoryImageEditorInput(String name, int width, int height, float [] data) {
+		super( width, height, data );
 		this.name = name;
-		this.width = width;
-		this.height = height;
-		this.floatData = data;
-	}
-	
-	/**
-	 * The first dimension of the image
-	 * @return
-	 */
-	public int getWidth() {
-		return width;
-	}
-
-	/**
-	 * The second dimension of the image
-	 * @return
-	 */
-	public int getHeight() {
-		return height;
-	}
-
-	public void setFloatArray(float [] data) {
-		this.floatData=data;
-	}
-
-	public float [] getFloatArray() {
-		return floatData;
 	}
 	
 	@Override
