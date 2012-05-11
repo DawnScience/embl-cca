@@ -8,7 +8,7 @@ OBJ_DIR := class
 EMBLUTILS_JAVAPKG := org.embl.cca.utils
 EMBLUTILS_DIR := ../../$(EMBLUTILS_JAVAPKG)/src
 EMBLUTILS_INPKGROOTDIR := $(subst .,/,$(EMBLUTILS_JAVAPKG))
-EMBLUTILS_INPKGFILES := imageviewer/TwoDimFloatArrayData.java
+EMBLUTILS_INPKGFILES := imageviewer/TwoDimFloatArrayData.java imageviewer/HeaderData.java
 EMBLUTILS_PACKFILES := $(foreach file, $(EMBLUTILS_INPKGFILES:.java=.class), -C $(OBJ_DIR) $(EMBLUTILS_INPKGROOTDIR)/$(file))
 
 THIS_JAVAPKG := org.embl.cca.utils.loaders
