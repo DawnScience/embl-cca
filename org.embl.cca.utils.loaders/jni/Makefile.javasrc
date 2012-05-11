@@ -3,17 +3,26 @@
 #
 include Makefile.env
 
-JAVASRC_DIR := ../src
-JPACKDIR := loaders/pilatus
-JAVAFILES := $(JAVASRC_DIR)/$(JPACKDIR)/PilatusLoader.java \
-$(JAVASRC_DIR)/$(JPACKDIR)/PilatusData.java \
-$(JAVASRC_DIR)/$(JPACKDIR)/PilatusHeader.java
+OBJ_DIR := class
+
+EMBLUTILS_JAVAPKG := org.embl.cca.utils
+EMBLUTILS_DIR := ../../$(EMBLUTILS_JAVAPKG)/src
+EMBLUTILS_INPKGROOTDIR := $(subst .,/,$(EMBLUTILS_JAVAPKG))
+EMBLUTILS_INPKGFILES := imageviewer/TwoDimFloatArrayData.java
+EMBLUTILS_PACKFILES := $(foreach file, $(EMBLUTILS_INPKGFILES:.java=.class), -C $(OBJ_DIR) $(EMBLUTILS_INPKGROOTDIR)/$(file))
+
+THIS_JAVAPKG := org.embl.cca.utils.loaders
+THIS_DIR := ../../$(THIS_JAVAPKG)/src
+THIS_INPKGROOTDIR := loaders/pilatus
+THIS_INPKGFILES := PilatusLoader.java PilatusData.java PilatusHeader.java
+THIS_PACKFILES := $(foreach file, $(THIS_INPKGFILES:.java=.class), -C $(OBJ_DIR) $(THIS_INPKGROOTDIR)/$(file))
+THIS_FILES := $(addprefix $(THIS_DIR)/$(THIS_INPKGROOTDIR)/,$(THIS_INPKGFILES))
 JARFILE := jPilatusLoader.jar
 JNIFILES := loaders_pilatus_PilatusLoader.h
 ALLJARFILES := $(JARFILE) $(JNIFILES)
 
 # Building configuration
-JAVACFLAGS := -source 1.6 -d .
+JAVACFLAGS := -source 1.6 -d $(OBJ_DIR) -classpath $(EMBLUTILS_DIR)
 JAVAC := $(JAVA)/bin/javac
 JAR := $(JAVA)/bin/jar
 JAVAH := $(JAVA)/bin/javah
@@ -36,11 +45,12 @@ clean :
 #================================================================
 
 $(JARFILE) : $(JAVAFILES)
-	$(JAVAC) $(JAVACFLAGS) $(JAVAFILES)
-	$(JAR) cvf $@ $(JPACKDIR)/*.class
+	mkdir -p $(OBJ_DIR)
+	$(JAVAC) $(JAVACFLAGS) $(THIS_FILES)
+	$(JAR) cvf $@ $(THIS_PACKFILES) $(EMBLUTILS_PACKFILES)
 
 $(JNIFILES) : $(JARFILE)
 	CLASSPATH=$< $(JAVAH) -jni loaders.pilatus.PilatusLoader
-	rm -rf loaders
+	rm -rf $(OBJ_DIR)
 
 # END OF FILE
