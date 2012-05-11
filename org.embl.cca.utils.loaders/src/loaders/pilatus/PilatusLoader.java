@@ -44,4 +44,10 @@ public class PilatusLoader {
 //	public static synchronized PilatusHeader loadHeader(String filePath) {
 //	  return new PilatusHeader( new String[0], new String[0] );
 //	}
+	
+	public static boolean supports( String filePath ) {
+		if( filePath.toLowerCase().endsWith(".cbf"))
+			return true;
+		return false;
+	}
 }
