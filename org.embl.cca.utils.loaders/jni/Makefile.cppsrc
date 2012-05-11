@@ -78,7 +78,9 @@ clean32 clean64 :
 	$(SOFILES_TARGET_DIR)/$(call Osbits2dirname,$(subst clean,,$@))/*.so* \
 	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,$(OBJFILES)) \
 	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,$(DEP1FILES)) \
-	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,$(DEP2FILES))
+	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,*.d1.*) \
+	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,$(DEP2FILES)) \
+	$(addprefix $(OBJ_DIR)$(subst clean,,$@)/,*.d2.*)
 
 .PHONY: dirs
 dirs :
