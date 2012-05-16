@@ -11,12 +11,14 @@ endif
 ifeq ($(MAKECMDGOALS),)
 	MAKECMDGOALS = all
 endif
-ifeq ($(MAKECMDGOALS),all32)
+ifneq ($(filter %32,$(MAKECMDGOALS)),)
 	OSBITS := 32
 else
-ifeq ($(MAKECMDGOALS),all64)
+ifneq ($(filter %64,$(MAKECMDGOALS)),)
 	OSBITS := 64
 endif
 endif
+
+IsMakeVersion = $(filter $(1),$(firstword $(sort $(MAKE_VERSION) \ $(1))))
 
 # END OF FILE
