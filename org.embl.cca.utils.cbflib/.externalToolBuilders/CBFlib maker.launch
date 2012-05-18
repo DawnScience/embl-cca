@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.ui.externaltools.ProgramBuilderLaunchConfigurationType">
 <stringAttribute key="org.eclipse.debug.core.ATTR_REFRESH_SCOPE" value="${resource}"/>
 <booleanAttribute key="org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND" value="false"/>
-<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_BUILDER_ENABLED" value="true"/>
+<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_BUILDER_ENABLED" value="false"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_BUILD_SCOPE" value="${working_set:&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;resources&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86/Makefile_LINUX_gcc42&quot; type=&quot;1&quot;/&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86/include&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86/src&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86_64/Makefile_LINUX_64&quot; type=&quot;1&quot;/&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86_64/include&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/org.embl.cca.utils.cbflib/c/linux-x86_64/src&quot; type=&quot;2&quot;/&gt;&#10;&lt;/resources&gt;}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="/usr/bin/make"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="full,incremental,clean"/>
