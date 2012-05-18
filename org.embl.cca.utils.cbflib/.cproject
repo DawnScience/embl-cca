@@ -36,6 +36,8 @@
 								</option>
 								<option id="gnu.c.compiler.option.include.paths.800963878" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/c/linux-${target.arch}/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${JDK_HOME}/include/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${JDK_HOME}/include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.138787019" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -52,7 +54,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c/linux-x86_64/src|c/linux-x86_64/getopt-1.1.4_cbf|c/linux-x86_64/examples|c/linux-x86/getopt-1.1.4_cbf|c/linux-x86/examples|c/linux-x86/pycbf|c/linux-x86_64/pycbf" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c/linux-x86/src/test.cpp|c/linux-x86/src/md5c.c|c/linux-x86/src/cbf.c|c/linux-x86/src/cbf_write.c|c/linux-x86/src/cbf_write_binary.c|c/linux-x86/src/cbf_wrap.c|c/linux-x86/src/cbf_uncompressed.c|c/linux-x86/src/cbf_tree.c|c/linux-x86/src/cbf_stx.c|c/linux-x86/src/cbf_string.c|c/linux-x86/src/cbf_simple.c|c/linux-x86/src/cbf_read_mime.c|c/linux-x86/src/cbf_read_binary.c|c/linux-x86/src/cbf_predictor.c|c/linux-x86/src/cbf_packed.c|c/linux-x86/src/cbf_lex.c|c/linux-x86/src/cbf_file.c|c/linux-x86/src/cbf_context.c|c/linux-x86/src/cbf_compress.c|c/linux-x86/src/cbf_codes.c|c/linux-x86/src/cbf_canonical.c|c/linux-x86/src/cbf_byte_offset.c|c/linux-x86/src/cbf_binary.c|c/linux-x86/src/cbf_ascii.c|c/linux-x86/src/cbf_alloc.c|c/linux-x86_64/src|c/linux-x86_64/getopt-1.1.4_cbf|c/linux-x86_64/examples|c/linux-x86/getopt-1.1.4_cbf|c/linux-x86/examples|c/linux-x86/pycbf|c/linux-x86_64/pycbf|c/linux-x86_64/src/cbf_alloc.c|c/linux-x86_64/src/cbf_ascii.c|c/linux-x86_64/src/cbf_binary.c|c/linux-x86_64/src/cbf_byte_offset.c|c/linux-x86_64/src/cbf_canonical.c|c/linux-x86_64/src/cbf_codes.c|c/linux-x86_64/src/cbf_compress.c|c/linux-x86_64/src/cbf_context.c|c/linux-x86_64/src/cbf_file.c|c/linux-x86_64/src/cbf_lex.c|c/linux-x86_64/src/cbf_packed.c|c/linux-x86_64/src/cbf_predictor.c|c/linux-x86_64/src/cbf_read_binary.c|c/linux-x86_64/src/cbf_read_mime.c|c/linux-x86_64/src/cbf_simple.c|c/linux-x86_64/src/cbf_string.c|c/linux-x86_64/src/cbf_stx.c|c/linux-x86_64/src/cbf_tree.c|c/linux-x86_64/src/cbf_uncompressed.c|c/linux-x86_64/src/cbf_wrap.c|c/linux-x86_64/src/cbf_write_binary.c|c/linux-x86_64/src/cbf_write.c|c/linux-x86_64/src/cbf.c|c/linux-x86_64/src/cbf.i|c/linux-x86_64/src/cbf.stx.y|c/linux-x86_64/src/fcb_atol_wcnt.f90|c/linux-x86_64/src/fcb_ci_strncmparr.f90|c/linux-x86_64/src/fcb_exit_binary.f90|c/linux-x86_64/src/fcb_nblen_array.f90|c/linux-x86_64/src/fcb_next_binary.f90|c/linux-x86_64/src/fcb_open_cifin.f90|c/linux-x86_64/src/fcb_packed.f90|c/linux-x86_64/src/fcb_read_bits.f90|c/linux-x86_64/src/fcb_read_byte.f90|c/linux-x86_64/src/fcb_read_image.f90|c/linux-x86_64/src/fcb_read_line.f90|c/linux-x86_64/src/fcb_read_xds_i2.f90|c/linux-x86_64/src/fcb_skip_whitespace.f90|c/linux-x86_64/src/md5c.c|c/linux-x86_64/src/test.cpp|c/linux-x86/src/|c/linux-x86/src/cbf.i|c/linux-x86/src/cbf.stx.y|c/linux-x86/src/fcb_atol_wcnt.f90|c/linux-x86/src/fcb_ci_strncmparr.f90|c/linux-x86/src/fcb_exit_binary.f90|c/linux-x86/src/fcb_nblen_array.f90|c/linux-x86/src/fcb_next_binary.f90|c/linux-x86/src/fcb_open_cifin.f90|c/linux-x86/src/fcb_packed.f90|c/linux-x86/src/fcb_read_bits.f90|c/linux-x86/src/fcb_read_byte.f90|c/linux-x86/src/fcb_read_image.f90|c/linux-x86/src/fcb_read_line.f90|c/linux-x86/src/fcb_read_xds_i2.f90|c/linux-x86/src/fcb_skip_whitespace.f90" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -100,7 +102,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c/linux-x86_64/src|c/linux-x86_64/getopt-1.1.4_cbf|c/linux-x86_64/examples|c/linux-x86/getopt-1.1.4_cbf|c/linux-x86/examples|c/linux-x86/pycbf|c/linux-x86_64/pycbf" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c/linux-x86/src/test.cpp|c/linux-x86/src/md5c.c|c/linux-x86/src/cbf.c|c/linux-x86/src/cbf_write.c|c/linux-x86/src/cbf_write_binary.c|c/linux-x86/src/cbf_wrap.c|c/linux-x86/src/cbf_uncompressed.c|c/linux-x86/src/cbf_tree.c|c/linux-x86/src/cbf_stx.c|c/linux-x86/src/cbf_string.c|c/linux-x86/src/cbf_simple.c|c/linux-x86/src/cbf_read_mime.c|c/linux-x86/src/cbf_read_binary.c|c/linux-x86/src/cbf_predictor.c|c/linux-x86/src/cbf_packed.c|c/linux-x86/src/cbf_lex.c|c/linux-x86/src/cbf_file.c|c/linux-x86/src/cbf_context.c|c/linux-x86/src/cbf_compress.c|c/linux-x86/src/cbf_codes.c|c/linux-x86/src/cbf_canonical.c|c/linux-x86/src/cbf_byte_offset.c|c/linux-x86/src/cbf_binary.c|c/linux-x86/src/cbf_ascii.c|c/linux-x86/src/cbf_alloc.c|c/linux-x86_64/src|c/linux-x86_64/getopt-1.1.4_cbf|c/linux-x86_64/examples|c/linux-x86/getopt-1.1.4_cbf|c/linux-x86/examples|c/linux-x86/pycbf|c/linux-x86_64/pycbf" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
