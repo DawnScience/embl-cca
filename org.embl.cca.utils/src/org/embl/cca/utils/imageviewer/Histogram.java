@@ -13,9 +13,9 @@ package org.embl.cca.utils.imageviewer;
  */
 public class Histogram {
 	boolean readOnly;
-	int[] binValues = null;
+	int[] binValues = null; //TODO Not used yet, concept requires tuning
 	float minimumValue;
-	float binWidth;
+	float binWidth; //TODO Not used yet, concept requires tuning
 	int valueAmountTotal;
 
 	public Histogram( int[] binValues, float minimumValue, float binWidth, int valueAmountTotal, boolean readOnly ) {
