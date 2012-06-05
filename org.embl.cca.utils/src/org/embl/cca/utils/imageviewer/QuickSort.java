@@ -16,13 +16,41 @@ package org.embl.cca.utils.imageviewer;
 
 import java.util.Vector;
 
-/**
- * QuickSort - adapted from Doug Lea's Public Domain collection library.
- * 
- * @author <a href="mailto:mbryson@mindspring.com">Dave Bryson</a>
- */
 public class QuickSort {
+
+	public static void quickSort(float arr[], int left, int right) {
+	      int i = left, j = right;
+	      float tmp;
+	      float pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
+	}
+
 	/**
+	 * QuickSort - adapted from Doug Lea's Public Domain collection library.
+	 * 
+	 * @author <a href="mailto:mbryson@mindspring.com">Dave Bryson</a>
+	 */
+/**
 	 * Sort array of Objects using the QuickSort algorithm.
 	 * 
 	 * @param s
@@ -32,7 +60,7 @@ public class QuickSort {
 	 * @param hi
 	 *            The current upper bound.
 	 */
-	public static void quickSort(float s[], int lo, int hi) {
+	public static void quickSortBad(float s[], int lo, int hi) {
 		if (lo >= hi)
 			return;
 
@@ -88,7 +116,9 @@ public class QuickSort {
 			} else
 				break;
 		}
+		System.out.println( "quickSort1(s, lo, left): " + lo + ", " + left );
 		quickSort(s, lo, left);
+		System.out.println( "quickSort2(s, left + 1, hi): " + (left + 1) + ", " + hi );
 		quickSort(s, left + 1, hi);
 	}
 
