@@ -18,6 +18,13 @@ import java.util.Vector;
 
 public class QuickSort {
 
+	/**
+	 * Sort array of Objects using the QuickSort algorithm.
+	 * 
+	 * @param s A float[].
+	 * @param lo The current lower bound.
+	 * @param hi The current upper bound.
+	 */
 	public static void quickSort(float arr[], int left, int right) {
 	      int i = left, j = right;
 	      float tmp;
@@ -45,81 +52,31 @@ public class QuickSort {
 	            quickSort(arr, i, right);
 	}
 
-	/**
-	 * QuickSort - adapted from Doug Lea's Public Domain collection library.
-	 * 
-	 * @author <a href="mailto:mbryson@mindspring.com">Dave Bryson</a>
-	 */
-/**
-	 * Sort array of Objects using the QuickSort algorithm.
-	 * 
-	 * @param s
-	 *            A float[].
-	 * @param lo
-	 *            The current lower bound.
-	 * @param hi
-	 *            The current upper bound.
-	 */
-	public static void quickSortBad(float s[], int lo, int hi) {
-		if (lo >= hi)
-			return;
-
-		/*
-		 * Use median-of-three(lo, mid, hi) to pick a partition. Also swap them
-		 * into relative order while we are at it.
-		 */
-		int mid = (lo + hi) / 2;
-
-		if (s[lo] > s[mid]) { // Swap.
-			float tmp = s[lo];
-			s[lo] = s[mid];
-			s[mid] = tmp;
-		}
-
-		if (s[mid] > s[hi]) { // Swap.
-			float tmp = s[mid];
-			s[mid] = s[hi];
-			s[hi] = tmp;
-
-			if (s[lo] > s[mid]) { // Swap.
-				float tmp2 = s[lo];
-				s[lo] = s[mid];
-				s[mid] = tmp2;
-			}
-		}
-
-		// Start one past lo since already handled lo.
-		int left = lo + 1;
-
-		// Similarly, end one before hi since already handled hi.
-		int right = hi - 1;
-
-		// If there are three or fewer elements, we are done.
-		if (left >= right)
-			return;
-
-		float partition = s[mid];
-
-		for (;;) {
-			while (s[right] > partition)
-				--right;
-
-			while (left < right && s[left] <= partition)
-				++left;
-
-			if (left < right) { // Swap.
-				float tmp = s[left];
-				s[left] = s[right];
-				s[right] = tmp;
-
-				--right;
-			} else
-				break;
-		}
-		System.out.println( "quickSort1(s, lo, left): " + lo + ", " + left );
-		quickSort(s, lo, left);
-		System.out.println( "quickSort2(s, left + 1, hi): " + (left + 1) + ", " + hi );
-		quickSort(s, left + 1, hi);
+	public static void quickSortTop(float arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      float tmp;
+	      float pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
 	}
 
 	/**
@@ -135,6 +92,12 @@ public class QuickSort {
 	public static float[] sort(float[] data) {
 		float[] newData = data.clone();
 		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	public static float[] sortTop(float[] data, int from) {
+		float[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
 		return newData;
 	}
 
