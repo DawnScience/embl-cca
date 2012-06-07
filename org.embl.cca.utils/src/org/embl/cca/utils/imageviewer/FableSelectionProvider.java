@@ -25,7 +25,7 @@ public class FableSelectionProvider implements ISelectionProvider {
 
 	@Override
 	public ISelection getSelection() {
-		return dSelection == null ? new StructuredSelection() : dSelection; // Eclipse requires that we do not return null
+		return dSelection;
 	}
 
 	@Override
