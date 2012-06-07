@@ -1,5 +1,7 @@
 package org.embl.cca.utils.imageviewer;
 
+import java.util.Arrays;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.IEditorInput;
@@ -11,6 +13,10 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 	public MemoryImageEditorInput(String name, int width, int height, float [] data) {
 		super( width, height, data );
 		this.name = name;
+	}
+
+	public MemoryImageEditorInput(String name, int width, int height, float [] data, int offset) {
+		this( name, width, height, Arrays.copyOfRange( data, offset, offset + width * height ) );
 	}
 
 	public MemoryImageEditorInput getSelectedArea( Rectangle selection ) {
