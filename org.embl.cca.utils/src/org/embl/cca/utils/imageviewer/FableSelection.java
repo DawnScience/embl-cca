@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.part.EditorPart;
 
 public class FableSelection implements IStructuredSelection {
 
@@ -17,17 +19,24 @@ public class FableSelection implements IStructuredSelection {
 	}
 
 	final private Rectangle[] rectangles;
+	final private EditorPart editor;
 	private SelectionType selectionType;
 
 	public FableSelection() {
 		this.rectangles = new Rectangle[0];
+		editor = null;
 		selectionType = SelectionType.EMPTY;
 	}
 
-	public FableSelection(Rectangle rectangle) {
+	public FableSelection(Rectangle rectangle, EditorPart editor) {
 		this.rectangles = new Rectangle[1];
 		this.rectangles[0] = rectangle;
+		this.editor = editor;
 		this.selectionType = SelectionType.SELECTION_2D;
+	}
+
+	public EditorPart getEditor() {
+		return isEmpty() ? null : editor;
 	}
 
 	public SelectionType getType() {
