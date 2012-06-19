@@ -39,18 +39,20 @@ all : $(ALLJARFILES)
 .PHONY: clean
 clean :
 	rm -rf $(ALLJARFILES)
+	rm -rf $(OBJ_DIR)
 
 #================================================================
 # Building binaries
 #================================================================
 
-$(JARFILE) : $(JAVAFILES)
+$(JARFILE) : $(THIS_FILES)
 	mkdir -p $(OBJ_DIR)
 	$(JAVAC) $(JAVACFLAGS) $(THIS_FILES)
-	$(JAR) cvf $@ $(THIS_PACKFILES) $(EMBLUTILS_PACKFILES)
+#	$(JAR) cvf $@ $(THIS_PACKFILES) $(EMBLUTILS_PACKFILES)
 
-$(JNIFILES) : $(JARFILE)
-	CLASSPATH=$< $(JAVAH) -jni loaders.pilatus.PilatusLoader
-	rm -rf $(OBJ_DIR)
+#$(JNIFILES) : $(JARFILE)
+#	CLASSPATH=$< $(JAVAH) -jni loaders.pilatus.PilatusLoader
+$(JNIFILES) : $(OBJ_DIR)/$(THIS_INPKGROOTDIR)/PilatusLoader.class
+	CLASSPATH=$(OBJ_DIR) $(JAVAH) -jni loaders.pilatus.PilatusLoader
 
 # END OF FILE

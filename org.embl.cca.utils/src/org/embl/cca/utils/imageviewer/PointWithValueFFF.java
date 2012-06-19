@@ -31,22 +31,22 @@ import java.io.Serializable;
  * @since   20111207
  */
 
-public class Point2DWithValue implements Serializable, Comparable<Point2DWithValue> {
+public class PointWithValueFFF implements Serializable, Comparable<PointWithValueFFF> {
 		
 	/**
 	 * the x coordinate of the point
 	 */
-	public int x;
+	public float x;
 	
 	/**
 	 * the y coordinate of the point
 	 */
-	public int y;
+	public float y;
 	
 	/**
 	 * the z coordinate of the point
 	 */
-	public double z;
+	public float z;
 	
 	static final long serialVersionUID = 3257002163938146354L;
 		
@@ -57,7 +57,7 @@ public class Point2DWithValue implements Serializable, Comparable<Point2DWithVal
 	 * @param y the y coordinate of the new point
 	 * @param z the z coordinate of the new point
 	 */
-	public Point2DWithValue( int x, int y, float z ) {
+	public PointWithValueFFF( float x, float y, float z ) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -75,8 +75,8 @@ public class Point2DWithValue implements Serializable, Comparable<Point2DWithVal
 	 */
 	public boolean equals(Object object) {
 		if (object == this) return true;
-		if (!(object instanceof Point2DWithValue)) return false;
-		Point2DWithValue p = (Point2DWithValue)object;
+		if (!(object instanceof PointWithValueFFF)) return false;
+		PointWithValueFFF p = (PointWithValueFFF)object;
 		return (p.x == this.x) && (p.y == this.y) && (p.z == this.z);
 	}
 
@@ -91,7 +91,7 @@ public class Point2DWithValue implements Serializable, Comparable<Point2DWithVal
 	 * @see #equals(Object)
 	 */
 	public int hashCode() {
-		return x ^ y ^ (int)z;
+		return (int)x ^ (int)y ^ (int)z;
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class Point2DWithValue implements Serializable, Comparable<Point2DWithVal
 	}
 
 	@Override
-	public int compareTo(Point2DWithValue o) {
+	public int compareTo(PointWithValueFFF o) {
 		return (int)Math.signum( this.z - o.z );
 	}
 

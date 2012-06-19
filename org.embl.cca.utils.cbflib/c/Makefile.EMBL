@@ -2,6 +2,7 @@
 # Makefile for CBFlib library
 #
 
+include Makefile.env
 include Makefile.shared
 
 Osbits2dirname = $(subst 64,linux-x86_64,$(subst 32,linux-x86,$(1)))
@@ -33,6 +34,11 @@ $(LIBFILES_TARGET_DIR)/$(call Osbits2dirname,$(OSBITS))/%.o : $(addprefix $(OBJ_
 
 $(OBJ_DIR_OSBITS)/$(LIBFILES) :
 	$(MAKE) -C $(call Osbits2dirname,$(OSBITS)) -f $(MAKE$(OSBITS)) NOFORTRAN=$(NOFORTRAN) all
+
+.PHONY: javawrapper javawrapper32 javawrapper64
+javawrapper : javawrapper$(OSBITS)
+javawrapper32 javawrapper64 :
+	$(MAKE) -C $(call Osbits2dirname,$(subst javawrapper,,$@)) -f $(MAKE$(subst javawrapper,,$@)) NOFORTRAN=$(NOFORTRAN) JDKDIR=$(JAVA) javawrapper
 
 .PHONY: dirs
 dirs:

@@ -23,10 +23,10 @@ public class Statistics implements Cloneable {
 	float suggestedMax = mean;
 	Histogram histogram = null;
 	//The PSF points that are highlighted.
-	Point2DWithValue[] psfPoints = null;
+	PointWithValueIIF[] psfPoints = null;
 
 	public Statistics( float min, float max, float mean, float suggestedMin, float suggestedMax,
-			Histogram histogram, Point2DWithValue[] psfPoints, boolean readOnly ) {
+			Histogram histogram, PointWithValueIIF[] psfPoints, boolean readOnly ) {
 		setMinimum( min );
 		setMaximum( max );
 		setMean( mean );
@@ -38,8 +38,20 @@ public class Statistics implements Cloneable {
 	}
 
 	public Statistics( float min, float max, float mean,
-			Histogram histogram, Point2DWithValue[] PSFPoints ) {
-		this( min, max, mean, min, max, histogram, PSFPoints, true );
+			Histogram histogram, PointWithValueIIF[] psfPoints, boolean readOnly ) {
+		setMinimum( min );
+		setMaximum( max );
+		setMean( mean );
+		calculateSuggestedMinimum();
+		calculateSuggestedMaximum();
+		setHistogram( histogram );
+		setPSFPoints( psfPoints );
+		setReadOnly( readOnly );
+	}
+
+	public Statistics( float min, float max, float mean,
+			Histogram histogram, PointWithValueIIF[] PSFPoints ) {
+		this( min, max, mean, histogram, PSFPoints, true );
 	}
 
 	public Statistics( float min, float max, float mean, float suggestedMin, float suggestedMax, boolean readOnly ) {
@@ -47,11 +59,11 @@ public class Statistics implements Cloneable {
 	}
 
 	public Statistics( float min, float max, float mean, boolean readOnly ) {
-		this( min, max, mean, min, max, null, null, readOnly );
+		this( min, max, mean, null, null, readOnly );
 	}
 
 	public Statistics( float min, float max, float mean ) {
-		this( min, max, mean, min, max, null, null, true );
+		this( min, max, mean, null, null, true );
 	}
 
     public Statistics clone() {
@@ -108,6 +120,12 @@ public class Statistics implements Cloneable {
 		this.suggestedMin = suggestedMin;
 	}
 
+	public void calculateSuggestedMinimum() {
+		if( readOnly )
+			throw new SecurityException("Attempt to modify read only Statistics");
+		this.suggestedMin = min;
+	}
+
 	public float getSuggestedMaximum() {
 		return suggestedMax;
 	}
@@ -116,6 +134,12 @@ public class Statistics implements Cloneable {
 		if( readOnly )
 			throw new SecurityException("Attempt to modify read only Statistics");
 		this.suggestedMax = suggestedMax;
+	}
+
+	public void calculateSuggestedMaximum() {
+		if( readOnly )
+			throw new SecurityException("Attempt to modify read only Statistics");
+		this.suggestedMax = Math.min(3*mean, max);
 	}
 
 	public Histogram getHistogram() {
@@ -128,11 +152,11 @@ public class Statistics implements Cloneable {
 		this.histogram = histogram;
 	}
 
-	public Point2DWithValue[] getPSFPoints() {
+	public PointWithValueIIF[] getPSFPoints() {
 		return psfPoints;
 	}
 
-	public void setPSFPoints( Point2DWithValue[] PSFPoints ) {
+	public void setPSFPoints( PointWithValueIIF[] PSFPoints ) {
 		if( readOnly )
 			throw new SecurityException("Attempt to modify read only Statistics");
 		this.psfPoints = PSFPoints;
@@ -158,9 +182,7 @@ public class Statistics implements Cloneable {
 			}
 		}
 		float mean = sum / valueAmountTotal;
-		float suggestedMin = min;
-		float suggestedMax = Math.min(3*mean, max);
-		return new Statistics( min, max, mean, suggestedMin, suggestedMax, readOnly );
+		return new Statistics( min, max, mean, readOnly );
 	}
 
 	public static Statistics calculateMinMaxMean( float[] data, Dimension dataDim, Rectangle rect ) {
