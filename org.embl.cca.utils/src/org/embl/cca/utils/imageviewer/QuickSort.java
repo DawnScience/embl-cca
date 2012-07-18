@@ -1,29 +1,486 @@
-/* Copyright 2011 - iSencia Belgium NV
+/*
+ * Copyright (c) 2012 European Synchrotron Radiation Facility,
+ *                    Diamond Light Source Ltd.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */ 
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
- */
 package org.embl.cca.utils.imageviewer;
 
-import java.util.Vector;
-
+/**
+ * The <code>QuickSort</code> class is for sorting an array.
+ * Its special feature is being able to sort only an upper part of an array.
+ * <p>
+ *
+ * @author  Gábor Náray
+ * @version 1.10 18/07/2012
+ * @since   20120718
+ */
 public class QuickSort {
 
+	/* This section contains the methods for byte array. */
+
 	/**
-	 * Sort array of Objects using the QuickSort algorithm.
+	 * Sort array of bytes using the QuickSort algorithm.
 	 * 
-	 * @param s A float[].
-	 * @param lo The current lower bound.
-	 * @param hi The current upper bound.
+	 * @param arr A byte array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 */
+	public static void quickSort(byte arr[], int left, int right) {
+	      int i = left, j = right;
+	      byte tmp;
+	      byte pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
+	}
+
+	/**
+	 * Sort array of bytes using the QuickSort algorithm.
+	 * 
+	 * @param arr A byte array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void quickSortTop(byte arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      byte tmp;
+	      byte pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
+	}
+
+	/**
+	 * Sorts an array of bytes into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A byte array.
+	 */
+	public static void sortInItself(byte[] data) {
+		QuickSort.quickSort(data, 0, data.length - 1);
+	}
+
+	/**
+	 * Sorts an array of bytes into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A byte array.
+	 */
+	public static byte[] sort(byte[] data) {
+		byte[] newData = data.clone();
+		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	/**
+	 * Sorts the upper part of an array of bytes into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A byte array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(byte[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of bytes into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A byte array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static byte[] sortTop(byte[] data, int from) {
+		byte[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
+		return newData;
+	}
+
+	/* This section contains the methods for short array. */
+
+	/**
+	 * Sort array of shorts using the QuickSort algorithm.
+	 * 
+	 * @param arr A short array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 */
+	public static void quickSort(short arr[], int left, int right) {
+	      int i = left, j = right;
+	      short tmp;
+	      short pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
+	}
+
+	/**
+	 * Sort array of shorts using the QuickSort algorithm.
+	 * 
+	 * @param arr A short array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void quickSortTop(short arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      short tmp;
+	      short pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
+	}
+
+	/**
+	 * Sorts an array of shorts into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A short array.
+	 */
+	public static void sortInItself(short[] data) {
+		QuickSort.quickSort(data, 0, data.length - 1);
+	}
+
+	/**
+	 * Sorts an array of shorts into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A short array.
+	 */
+	public static short[] sort(short[] data) {
+		short[] newData = data.clone();
+		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	/**
+	 * Sorts the upper part of an array of shorts into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A short array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(short[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of shorts into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A short array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static short[] sortTop(short[] data, int from) {
+		short[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
+		return newData;
+	}
+
+	/* This section contains the methods for int array. */
+
+	/**
+	 * Sort array of ints using the QuickSort algorithm.
+	 * 
+	 * @param arr A int array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 */
+	public static void quickSort(int arr[], int left, int right) {
+	      int i = left, j = right;
+	      int tmp;
+	      int pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
+	}
+
+	/**
+	 * Sort array of ints using the QuickSort algorithm.
+	 * 
+	 * @param arr A int array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void quickSortTop(int arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      int tmp;
+	      int pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
+	}
+
+	/**
+	 * Sorts an array of ints into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A int array.
+	 */
+	public static void sortInItself(int[] data) {
+		QuickSort.quickSort(data, 0, data.length - 1);
+	}
+
+	/**
+	 * Sorts an array of ints into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A int array.
+	 */
+	public static int[] sort(int[] data) {
+		int[] newData = data.clone();
+		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	/**
+	 * Sorts the upper part of an array of ints into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A int array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(int[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of ints into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A int array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static int[] sortTop(int[] data, int from) {
+		int[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
+		return newData;
+	}
+
+	/* This section contains the methods for long array. */
+
+	/**
+	 * Sort array of longs using the QuickSort algorithm.
+	 * 
+	 * @param arr A long array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 */
+	public static void quickSort(long arr[], int left, int right) {
+	      int i = left, j = right;
+	      long tmp;
+	      long pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
+	}
+
+	/**
+	 * Sort array of longs using the QuickSort algorithm.
+	 * 
+	 * @param arr A long array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void quickSortTop(long arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      long tmp;
+	      long pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
+	}
+
+	/**
+	 * Sorts an array of longs into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A long array.
+	 */
+	public static void sortInItself(long[] data) {
+		QuickSort.quickSort(data, 0, data.length - 1);
+	}
+
+	/**
+	 * Sorts an array of longs into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A long array.
+	 */
+	public static long[] sort(long[] data) {
+		long[] newData = data.clone();
+		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	/**
+	 * Sorts the upper part of an array of longs into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A long array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(long[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of longs into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A long array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static long[] sortTop(long[] data, int from) {
+		long[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
+		return newData;
+	}
+
+	/* This section contains the methods for float array. */
+
+	/**
+	 * Sort array of floats using the QuickSort algorithm.
+	 * 
+	 * @param arr A float array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
 	 */
 	public static void quickSort(float arr[], int left, int right) {
 	      int i = left, j = right;
@@ -52,6 +509,14 @@ public class QuickSort {
 	            quickSort(arr, i, right);
 	}
 
+	/**
+	 * Sort array of floats using the QuickSort algorithm.
+	 * 
+	 * @param arr A float array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
 	public static void quickSortTop(float arr[], int left, int right, int from) {
 	      int i = left, j = right;
 	      float tmp;
@@ -80,70 +545,158 @@ public class QuickSort {
 	}
 
 	/**
-	 * Sorts and array of objects.
+	 * Sorts an array of floats into itself using the QuickSort algorithm.
 	 * 
-	 * @param data
-	 *            An Object[].
+	 * @param data A float array.
 	 */
 	public static void sortInItself(float[] data) {
 		QuickSort.quickSort(data, 0, data.length - 1);
 	}
 
+	/**
+	 * Sorts an array of floats into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A float array.
+	 */
 	public static float[] sort(float[] data) {
 		float[] newData = data.clone();
 		QuickSort.quickSort(newData, 0, newData.length - 1);
 		return newData;
 	}
 
+	/**
+	 * Sorts the upper part of an array of floats into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A float array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(float[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of floats into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A float array.
+	 * @param from The minimum bound of array part to sort.
+	 */
 	public static float[] sortTop(float[] data, int from) {
 		float[] newData = data.clone();
 		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
 		return newData;
 	}
 
-	public static void quickSort(Vector<Float> s, int lo, int hi) {
-		if (lo >= hi)
-			return;
+	/* This section contains the methods for double array. */
 
-		int mid = (lo + hi) / 2;
-		if (s.get(lo) > s.get(mid)) { // Swap.
-			Float tmp = s.get(lo);
-			s.set(lo, s.get(mid));
-			s.set(mid, tmp);
-		}
-		if (s.get(mid) > s.get(hi)) { // Swap.
-			Float tmp = s.get(mid);
-			s.set(mid, s.get(hi));
-			s.set(hi, tmp);
-			if (s.get(lo) > s.get(mid)) { // Swap.
-				tmp = s.get(lo);
-				s.set(lo, s.get(mid));
-				s.set(mid, tmp);
-			}
-		}
-		int left = lo + 1;
-		int right = hi - 1;
-		if (left >= right)
-			return;
-		float partition = s.get(mid);
-		for (;;) {
-			while (s.get(right) > partition)
-				--right;
-			while (left < right && s.get(left) <= partition)
-				++left;
-			if (left < right) { // Swap.
-				Float tmp = s.get(left);
-				s.set(left, s.get(right));
-				s.set(right, tmp);
-				--right;
-			} else
-				break;
-		}
-		quickSort(s, lo, left);
-		quickSort(s, left + 1, hi);
+	/**
+	 * Sort array of doubles using the QuickSort algorithm.
+	 * 
+	 * @param arr A double array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 */
+	public static void quickSort(double arr[], int left, int right) {
+	      int i = left, j = right;
+	      double tmp;
+	      double pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if (left < j)
+	            quickSort(arr, left, j);
+	      if (i < right)
+	            quickSort(arr, i, right);
 	}
 
-	public static void sortInItself(Vector<Float> data) {
-		QuickSort.quickSort(data, 0, data.size() - 1);
+	/**
+	 * Sort array of doubles using the QuickSort algorithm.
+	 * 
+	 * @param arr A double array.
+	 * @param left The current lower bound.
+	 * @param right The current upper bound.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void quickSortTop(double arr[], int left, int right, int from) {
+	      int i = left, j = right;
+	      double tmp;
+	      double pivot = arr[(left + right) / 2];
+	 
+	      /* partition */
+	      while (i <= j) {
+	            while (arr[i] < pivot)
+	                  i++;
+	            while (arr[j] > pivot)
+	                  j--;
+	            if (i <= j) {
+	    			tmp = arr[i];
+	    			arr[i] = arr[j];
+	    			arr[j] = tmp;
+	    			i++;
+	                j--;
+	            }
+	      };
+	 
+	      /* recursion */
+	      if ( left < j && j >= from )
+	            quickSortTop( arr, left, j, from );
+	      if ( i < right && right >= from )
+	            quickSortTop( arr, i, right, from );
 	}
+
+	/**
+	 * Sorts an array of doubles into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A double array.
+	 */
+	public static void sortInItself(double[] data) {
+		QuickSort.quickSort(data, 0, data.length - 1);
+	}
+
+	/**
+	 * Sorts an array of doubles into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A double array.
+	 */
+	public static double[] sort(double[] data) {
+		double[] newData = data.clone();
+		QuickSort.quickSort(newData, 0, newData.length - 1);
+		return newData;
+	}
+
+	/**
+	 * Sorts the upper part of an array of doubles into itself using the QuickSort algorithm.
+	 * 
+	 * @param data A double array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static void sortTopInItself(double[] data, int from) {
+		QuickSort.quickSortTop(data, 0, data.length - 1, from);
+	}
+
+	/**
+	 * Sorts the upper part of an array of doubles into a new array using the QuickSort algorithm.
+	 * 
+	 * @param data A double array.
+	 * @param from The minimum bound of array part to sort.
+	 */
+	public static double[] sortTop(double[] data, int from) {
+		double[] newData = data.clone();
+		QuickSort.quickSortTop(newData, 0, newData.length - 1, from);
+		return newData;
+	}
+
 }
