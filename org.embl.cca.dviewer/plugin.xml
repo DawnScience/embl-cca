@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.dawb.common.ui.editorExtension">
+      <editor_extension
+            class="org.embl.cca.dviewer.ui.editors.ImageEditor">
+      </editor_extension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.edna.workbench.preferences.root"
+            class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
+            id="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
+            name="dViewer preferences">
+      </page>
+   </extension>
+
+</plugin>
