@@ -38,6 +38,8 @@ import org.dawb.common.ui.plot.trace.ITrace;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.views.HeaderTablePage;
+import org.dawb.common.ui.widgets.ActionBarWrapper;
+import org.dawb.common.ui.widgets.EmptyActionBars;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -74,6 +76,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IReusableEditor;
@@ -138,6 +142,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	private PSF psf;
 	private Action psfAction;
+	private Action dviewerPrefAction;
+
 	/**
 	 * The object which contains the image, can be used in different view parts.
 	 */
@@ -161,7 +167,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		try {
 	        psf = new PSF( 6 );
 	        this.plottingSystem = PlottingFactory.createPlottingSystem();
-	        plottingSystem.setColorOption(ColorOption.NONE);
+	        plottingSystem.setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
 		} catch (Exception ne) {
 			logger.error("Cannot locate any plotting systems!", ne);
 		}
@@ -188,7 +194,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	 */
 	@Override
 	public void createPartControl(Composite parent) {
-		
+
 		final Composite main = new Composite(parent, SWT.NONE);
 		final GridLayout gridLayout = new GridLayout(1, false);
 		main.setLayout(gridLayout);
@@ -218,60 +224,77 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		point.setBackground(topLeft.getBackground());
 
 		topRight = new Composite(top, SWT.NONE); ////earlier tools
-		topRight.setLayout(new GridLayout(2, false));
+		topRight.setLayout(new GridLayout(1, false));
 		topRight.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         GridUtils.removeMargins(topRight);
 
 	    final ToolBarManager toolMan = new ToolBarManager(SWT.FLAT|SWT.RIGHT);
 	    final ToolBar toolBar = toolMan.createControl(topRight);
 	    toolBar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
-		ToolBarManager rightMan = new ToolBarManager(SWT.FLAT|SWT.RIGHT);
-		final ToolBar rightBar = rightMan.createControl(topRight);
-		rightBar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
 		loadedImageFiles = new TreeSet<File>();
 		imageFilesWindowWidth = 1;
 		/* Top line containing image selector sliders */
 		createImageSelectorUI(main);
 
+    	Activator.getDefault().getPreferenceStore().addPropertyChangeListener(this); 
+
+		final MenuManager menuMan = new MenuManager();
+		final IActionBars bars = this.getEditorSite().getActionBars();
+		//If we specify toolMan, plottingSystem fills it with all tools, and must not modify it.
+		//If we do not specify toolMan, plottingSystem creates its own, so our toolMan can be modified,
+		//but the main toolManager will also display the tools what we do not want.
+		ActionBarWrapper wrapper = new ActionBarWrapper(toolMan,menuMan,null,(IActionBars2)bars);
+//		ActionBarWrapper wrapper = new ActionBarWrapper(null, menuMan, null, (IActionBars2)bars);
+
         final Composite plotComposite = new Composite(main, SWT.NONE);
         plotComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         plotComposite.setLayout(new FillLayout());
-        plottingSystem.createPlotPart(plotComposite, getEditorInput().getName(), null, PlotType.IMAGE, this);
-        IPlotActionSystem actionsys = plottingSystem.getPlotActionSystem();
-        actionsys.fillZoomActions(toolMan);
-        actionsys.fillRegionActions(toolMan);
-        actionsys.fillToolActions(toolMan, ToolPageRole.ROLE_2D);
         
-//        propertyChangeListener = new IPropertyChangeListener() {
-//			@Override
-//			public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
-//    			if (event.getProperty() == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) {
-//					DownsampleType newDownsampleType = DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ];
-//					setDownsampleType(newDownsampleType);
-//    			} else if (event.getProperty() == EditorConstants.PREFERENCE_APPLY_PSF) {
-//    			}
-//			}
-//    	};
-//    	Activator.getDefault().getPreferenceStore().addPropertyChangeListener(propertyChangeListener); 
-    	Activator.getDefault().getPreferenceStore().addPropertyChangeListener(this); 
+        plottingSystem.createPlotPart(plotComposite, getEditorInput().getName(), wrapper, PlotType.IMAGE, this);
 
-        psfAction = new Action("PSF", IAction.AS_CHECK_BOX ) {
+		psfAction = new Action("PSF", IAction.AS_CHECK_BOX ) {
 	    	@Override
 	    	public void run() {
 	    		updatePlot();
 	    	}
         };
+        psfAction.setId(PSF.class.getName());
         psfAction.setText("Apply PSF");
         psfAction.setToolTipText("Apply PointSpreadFunction (PSF) on the image");
         psfAction.setImageDescriptor(Activator.getImageDescriptor("/icons/psf.png"));
         psfAction.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(EditorConstants.PREFERENCE_APPLY_PSF));
+
+//        IPlotActionSystem actionsys = plottingSystem.getPlotActionSystem();
+//        actionsys.fillZoomActions(toolMan);
+//        actionsys.fillRegionActions(toolMan);
+//        actionsys.fillToolActions(toolMan, ToolPageRole.ROLE_2D);
+//        actionsys.fillAnnotationActions(toolMan); //Not implemented
+//        actionsys.fillPrintActions(toolMan); //Not implemented
+//        actionsys.fillUndoActions(toolMan); //Not implemented
+
+        //The problem with this solution is it does not consider order of tools and separators
+//        IToolBarManager toolBarManager = wrapper.getToolBarManager();
+//        IContributionItem[] tbmItems = toolBarManager.getItems();
+//		for( IContributionItem tbmItem : tbmItems) {
+//			if( !(tbmItem instanceof Separator) && toolMan.find(tbmItem.getId()) == null ) {
+//				logger.info("id=" + tbmItem.getId() + ", str=" + tbmItem.toString());
+//				toolMan.add(tbmElem);
+//			}
+//		}
+
 	    toolMan.add( psfAction );
 
-		final MenuManager menuMan = new MenuManager();
+        //The problem with this solution is it does not consider order of tools and separators
+//        IMenuManager menuManager = wrapper.getMenuManager();
+//        IContributionItem[] mmItems = menuManager.getItems();
+//		for( IContributionItem mmItem : mmItems) {
+//			logger.info("id=" + mmItem.getId() + ", str=" + mmItem.toString());
+//			menuMan.add(mmItem);
+//		}
 
 //		if( Activator.getDefault().getPreferenceStore().contains(prefPage) ) {
-			menuMan.add(new Action("dViewer Preferences", null) {
+	    	dviewerPrefAction = new Action("dViewer Preferences", null) {
 		    	@Override
 		    	public void run() {
 					PreferenceDialog pref = PreferencesUtil.createPreferenceDialogOn(PlatformUI.getWorkbench().
@@ -281,24 +304,25 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 					if (pref != null)
 						pref.open();
 		    	}
-			});
+			};
+			dviewerPrefAction.setId(prefPage);
+			menuMan.add(dviewerPrefAction);
 //		}
 
 		if( menuMan.getSize() > 0 ) {
 		    Action menuAction = new Action("", Activator.getImageDescriptor("/icons/DropDown.png")) {
 		        @Override
 		        public void run() {
-	                final Menu mbar = menuMan.createContextMenu(rightBar);
+	                final Menu mbar = menuMan.createContextMenu(toolBar);
 	       		    mbar.setVisible(true);
 		        }
 		    };
-			rightMan.add(menuAction);
+		    menuAction.setId("dropdownMenu");
+			toolMan.add(menuAction);
 		}
 
 		if (toolMan != null)
 			toolMan.update(true);
-		if (rightMan != null)
-			rightMan.update(true);
 
 		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
 
@@ -550,18 +574,20 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 
 	protected void updatePlot() {
-//		Number n = null;
-//		if( imageTrace != null ) {
-//			n = imageTrace.getMax();
-//		}
-		ITrace t = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
-//		((IImageTrace)t).setMax(3);
 		if( imageTrace != null ) {
-//			imageTrace.setMax(n);
+			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
+//			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
+			//This would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
+			Number n = imageTrace.getMax();
+			plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
+			if( !imageTrace.getMax().equals(n) ) {
+				imageTrace.setImageUpdateActive(false);
+				imageTrace.setMax(n);
+				imageTrace.setImageUpdateActive(true);
+			}
+
 			System.out.println( "DownsampleType at switching PSF = " + imageTrace.getDownsampleType().getLabel() );
 		}
-//		}
-//		return trace;
 	}
 
 	private void editorInputChanged() {
