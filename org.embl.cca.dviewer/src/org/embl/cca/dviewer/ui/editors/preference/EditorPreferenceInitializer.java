@@ -30,9 +30,17 @@ public class EditorPreferenceInitializer extends AbstractPreferenceInitializer {
 	 * initializeDefaultPreferences()
 	 */
 	public void initializeDefaultPreferences() {
+		//Better adjust current values if they are invalid
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		store.setDefault(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, DownsampleType.MEAN.getIndex());
+		int value = store.getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE); 
+		if( value < 0 || value >= DownsampleType.values().length )
+			store.setValue(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, store.getDefaultInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE));
 		store.setDefault(EditorConstants.PREFERENCE_APPLY_PSF, false);
+		store.setDefault(EditorConstants.PREFERENCE_PSF_RADIUS, 6);
+		value = store.getInt(EditorConstants.PREFERENCE_PSF_RADIUS); 
+		if( value < 1 || value > 99 )
+			store.setValue(EditorConstants.PREFERENCE_PSF_RADIUS, store.getDefaultInt(EditorConstants.PREFERENCE_PSF_RADIUS));
 	}
 
 }
