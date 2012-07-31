@@ -13,14 +13,17 @@ import java.io.File;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.TreeSet;
 
 import org.dawb.common.services.ILoaderService;
 import org.dawb.common.services.ServiceManager;
+import org.dawb.common.services.ImageServiceBean.ImageOrigin;
 import org.dawb.common.ui.editors.IEditorExtension;
+import org.dawb.common.ui.menu.CheckableActionGroup;
+import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
-import org.dawb.common.ui.plot.IPlotActionSystem;
 import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
 import org.dawb.common.ui.plot.region.IROIListener;
@@ -31,15 +34,14 @@ import org.dawb.common.ui.plot.region.ROIEvent;
 import org.dawb.common.ui.plot.region.RegionEvent;
 import org.dawb.common.ui.plot.region.RegionUtils;
 import org.dawb.common.ui.plot.tool.IToolPageSystem;
-import org.dawb.common.ui.plot.tool.IToolPage.ToolPageRole;
 import org.dawb.common.ui.plot.trace.IImageTrace;
+import org.dawb.common.ui.plot.trace.TraceEvent;
 import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
 import org.dawb.common.ui.plot.trace.ITrace;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.views.HeaderTablePage;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
-import org.dawb.common.ui.widgets.EmptyActionBars;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -53,6 +55,7 @@ import org.eclipse.draw2d.MouseListener;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -92,12 +95,13 @@ import org.eclipse.ui.part.Page;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.ui.editors.preference.EditorConstants;
 import org.embl.cca.dviewer.ui.editors.utils.PSF;
-import org.embl.cca.utils.imageviewer.ExecutableManager;
 import org.embl.cca.utils.imageviewer.FilenameCaseInsensitiveComparator;
 import org.embl.cca.utils.imageviewer.MemoryImageEditorInput;
-import org.embl.cca.utils.imageviewer.TrackableJob;
-import org.embl.cca.utils.imageviewer.TrackableRunnable;
 import org.embl.cca.utils.imageviewer.WildCardFileFilter;
+import org.embl.cca.utils.threading.CommonThreading;
+import org.embl.cca.utils.threading.ExecutableManager;
+import org.embl.cca.utils.threading.TrackableJob;
+import org.embl.cca.utils.threading.TrackableRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +133,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	// This view is a composite of two other views.
 	protected AbstractPlottingSystem plottingSystem;	
 	protected IImageTrace imageTrace;
+	private boolean editorInputChanged = false;
 //	protected IPropertyChangeListener propertyChangeListener;
 //	protected IDetectorPropertyListener detectorPropertyListener;
 	IDiffractionMetadata localDiffractionMetaData;
@@ -157,6 +162,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	private TreeSet<File> loadedImageFiles; //Indices in loadedImagesFiles which are loaded
 	boolean autoFollow;
 	Button imageFilesAutoLatestButton;
+	private Slider psfRadiusSlider;
+	private Label psfRadiusSliderLabel;
+	ExecutableManager psfRadiusManager = null;
+
 	AbstractDataset resultImageModel = null;
 	static private NumberFormat decimalFormat = NumberFormat.getNumberInstance();
 
@@ -165,7 +174,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	public ImageEditor() {
 		try {
-	        psf = new PSF( 6 );
+	        psf = new PSF( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
 	        this.plottingSystem = PlottingFactory.createPlottingSystem();
 	        plottingSystem.setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
 		} catch (Exception ne) {
@@ -256,10 +265,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		psfAction = new Action("PSF", IAction.AS_CHECK_BOX ) {
 	    	@Override
 	    	public void run() {
-	    		updatePlot();
+	    		updatePlot(originalSet, false);
 	    	}
         };
-        psfAction.setId(PSF.class.getName());
+        psfAction.setId(getClass().getName()+".psf");
         psfAction.setText("Apply PSF");
         psfAction.setToolTipText("Apply PointSpreadFunction (PSF) on the image");
         psfAction.setImageDescriptor(Activator.getImageDescriptor("/icons/psf.png"));
@@ -293,6 +302,41 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 //			menuMan.add(mmItem);
 //		}
 
+	    MenuAction dviewerDownsamplingAction = new MenuAction("Downsampling type");
+	    dviewerDownsamplingAction.setId(getClass().getName()+".downsamplingType");
+//	    dviewerDownsamplingAction.setImageDescriptor(Activator.getImageDescriptor("icons/origins.png"));
+		CheckableActionGroup group = new CheckableActionGroup();
+		DownsampleType downsampleType = (DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
+        IAction selectedAction  = null;
+        
+        String dTypeNames[] = new String[DownsampleType.values().length];
+        for (final DownsampleType dType : DownsampleType.values())
+        	dTypeNames[dType.getIndex()] = dType.name();
+        Arrays.sort(dTypeNames, Collections.reverseOrder());
+//        for (final DownsampleType dType : DownsampleType.values()) {
+        for (final String dTypeName : dTypeNames) {
+        	final DownsampleType dType = DownsampleType.valueOf(dTypeName);
+        	final IAction action = new Action(dType.getLabel(), IAction.AS_CHECK_BOX) {
+        		public void run() {
+        			//We do not store this selection neither as last nor as default (currently only default exists anyway)
+//        			Activator.getDefault().getPreferenceStore().setValue(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, dType.getLabel());
+        			setDownsampleType(dType);
+       			    setChecked(true);
+        		}
+        	};
+        	dviewerDownsamplingAction.add(action);
+        	group.add(action);
+        	
+        	if (downsampleType == dType)
+        		selectedAction = action;
+		}
+        
+        if (selectedAction!=null)
+        	selectedAction.setChecked(true);
+        
+        menuMan.add(dviewerDownsamplingAction);
+        menuMan.insertAfter(dviewerDownsamplingAction.getId(), new Separator(dviewerDownsamplingAction.getId()+".group"));
+		
 //		if( Activator.getDefault().getPreferenceStore().contains(prefPage) ) {
 	    	dviewerPrefAction = new Action("dViewer Preferences", null) {
 		    	@Override
@@ -317,7 +361,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	       		    mbar.setVisible(true);
 		        }
 		    };
-		    menuAction.setId("dropdownMenu");
+		    menuAction.setId(getClass().getName()+".dropdownMenu");
 			toolMan.add(menuAction);
 		}
 
@@ -326,29 +370,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
 
-        try {
-			xHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer X", plottingSystem), IRegion.RegionType.XAXIS_LINE);
-			addRegion("Updating x cross hair", xHair);
-	        yHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer Y", plottingSystem), IRegion.RegionType.YAXIS_LINE);
-			addRegion("Updating y cross hair", yHair);
-//	        plottingSystem.addRegionListener(this);
-		} catch (Exception ne) {
-			logger.error("Cannot locate any plotting systems!", ne);
-		}
+        plottingSystem.addRegionListener(this);
 
-		editorInputChanged();
+        editorInputChanged();
    	}
-
-	protected void addRegion(String jobName, IRegion region) {
-		region.setVisible(false);
-		region.setTrackMouse(true);
-		region.setRegionColor(ColorConstants.red);
-		region.setUserRegion(false); // They cannot see preferences or change it!
-		getPlottingSystem().addRegion(region);
-		region.addMouseListener(this);
-		region.setVisible(false);
-		region.addROIListener(this);
-	}
 
 /*
 	private void initSlider( int amount ){ 
@@ -483,13 +508,63 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		}
 	}
 
+	private void updatePsfRadiusSlider(int sel) {
+		if (psfRadiusSlider == null || psfRadiusSlider.isDisposed())
+			return;
+		synchronized (psfRadiusSlider) {
+			final int min = 1;
+			final int max = 99;
+			final int selection = Math.max(Math.min(sel, max + 1), min);
+
+			final int thumb = psfRadiusSlider.getThumb();
+			psfRadiusSlider.setValues(selection, min, max + 1, thumb, 1,
+					Math.max(thumb, (max-min) / 5));
+			psfRadiusSliderLabel.setText("" + selection);
+			psfRadiusSliderLabel.getParent().pack();
+			if (originalSet == null)
+				return;
+
+			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply PSF") {
+				public IStatus runThis(IProgressMonitor monitor) {
+					IStatus result = Status.CANCEL_STATUS;
+					do {
+						if (isAborting())
+							break;
+						psf.setRadius(selection);
+						psfSet = originalSet.synchronizedCopy();
+						psf.applyPSF(psfSet,
+								new Rectangle(0, 0, originalSet.getShape()[1],
+										originalSet.getShape()[0]));
+						if (isAborting())
+							break;
+						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+							public void run() {
+								psfAction.run();
+							}
+						});
+						result = Status.OK_STATUS;
+					} while (false);
+					if (isAborting()) {
+						setAborted();
+						return Status.CANCEL_STATUS;
+					}
+					return result;
+				}
+			};
+			job.setUser(false);
+			job.setPriority(Job.BUILD);
+			psfRadiusManager = ExecutableManager.setRequest(job);
+		}
+	}
+	
 	private void createImageSelectorUI(Composite parent) {
 		final Composite sliderMain = new Composite(parent, SWT.NONE);
 		sliderMain.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		sliderMain.setLayout(new GridLayout(5, false));
+		sliderMain.setLayout(new GridLayout(7, false));
 		GridUtils.removeMargins(sliderMain);
 		
 		imageSlider = new Slider(sliderMain, SWT.HORIZONTAL);
+		imageSlider.setToolTipText("Image selector");
 		imageSlider.setThumb(imageFilesWindowWidth);
 //		imageSlider.setBounds(115, 50, 25, 15);
 		totalSliderImageLabel = new Label(sliderMain, SWT.NONE);
@@ -539,6 +614,20 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+
+		psfRadiusSlider = new Slider(sliderMain, SWT.HORIZONTAL);
+		psfRadiusSlider.setToolTipText("PSF radius selector");
+		psfRadiusSlider.setThumb(1);
+//		psfRadiusSlider.setBounds(115, 50, 25, 15);
+		psfRadiusSliderLabel = new Label(sliderMain, SWT.NONE);
+		psfRadiusSliderLabel.setToolTipText("Selected PSF radius");
+		psfRadiusSliderLabel.setText("0");
+		psfRadiusSlider.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				updatePsfRadiusSlider( psfRadiusSlider.getSelection() );
+			}
+		});
+		updatePsfRadiusSlider( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
 	}
 
 	protected IPath getPath( IEditorInput editorInput ) {
@@ -573,24 +662,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	}
 
 
-	protected void updatePlot() {
-		if( imageTrace != null ) {
-			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
-//			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
-			//This would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
-			Number n = imageTrace.getMax();
-			plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
-			if( !imageTrace.getMax().equals(n) ) {
-				imageTrace.setImageUpdateActive(false);
-				imageTrace.setMax(n);
-				imageTrace.setImageUpdateActive(true);
-			}
-
-			System.out.println( "DownsampleType at switching PSF = " + imageTrace.getDownsampleType().getLabel() );
-		}
-	}
-
 	private void editorInputChanged() {
+		editorInputChanged = true;
 		if (getEditorInput() instanceof MemoryImageEditorInput) {
 			MemoryImageEditorInput miei = (MemoryImageEditorInput)getEditorInput();
 			AbstractDataset set = new FloatDataset(miei.getData(), new int[] {miei.getWidth(), miei.getHeight()});			
@@ -607,7 +680,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 				}
 */
 			}
-			createPlot(set);
+			updatePlot(set, true);
 		} else {
 			final IPath imageFilename = getPath( getEditorInput() );
 			allImageFiles = listIndexedFilesOf( imageFilename );
@@ -623,8 +696,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	private void setDownsampleType(final DownsampleType downsampleType) {
 		if( imageTrace != null && imageTrace.getDownsampleType() != downsampleType ) {
 			System.out.println( "Setting DownsampleType from " + imageTrace.getDownsampleType().getLabel() + " to " + downsampleType.getLabel() );
-			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-				@Override
+			CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
 				public void run() {
 					imageTrace.setDownsampleType(downsampleType);
 				}
@@ -632,21 +704,103 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		}
 	}
 
-	private void createPlot(final AbstractDataset set) {
-		createPlot( set, null );
+	private DownsampleType getDownsampleType() {
+		if( imageTrace != null ) {
+			return imageTrace.getDownsampleType();
+		} else
+			return null;
 	}
 
-	private void createPlot(final AbstractDataset set, IProgressMonitor monitor) {
-		originalSet = set;
-		psfSet = set.synchronizedCopy(); 
-		psf.applyPSF(psfSet, new Rectangle(0, 0, originalSet.getShape()[1], originalSet.getShape()[0]));
+	private void updatePlot(final AbstractDataset set, boolean contentChanged) {
+		createPlot( set, contentChanged, null );
+	}
 
+	private void createPlot(final AbstractDataset set, boolean contentChanged, IProgressMonitor monitor) {
+		if( editorInputChanged || contentChanged /*originalSet != set*/) {
+			long t0 = System.nanoTime();
+			originalSet = set;
+			psfSet = set.synchronizedCopy(); 
+			long t1 = System.nanoTime();
+			System.out.println( "DEBUG: Copying data image took [msec]= " + ( t1 - t0 ) / 1000000 );
+			psf.applyPSF(psfSet, new Rectangle(0, 0, originalSet.getShape()[1], originalSet.getShape()[0]));
+		}
+		Number n = null;
+		if( !editorInputChanged && imageTrace != null ) {
+			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
+//			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
+			//This (updatePlot2D) would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
+			n = imageTrace.getMax();
+		}
+		long t0 = System.nanoTime();
 		final ITrace trace = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
+		long t1 = System.nanoTime();
+		System.out.println( "DEBUG: Update plot2D took [msec]= " + ( t1 - t0 ) / 1000000 );
 		if (trace instanceof IImageTrace) {
-			imageTrace = (IImageTrace) trace;
-			setDownsampleType(DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
-		} else
+			if( imageTrace != trace) {
+				imageTrace = (IImageTrace) trace;
+				setDownsampleType(DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
+			}
+			if( n != null && !imageTrace.getMax().equals(n) ) {
+				imageTrace.setImageUpdateActive(false);
+				imageTrace.setMax(n);
+				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+					public void run() {
+						imageTrace.setImageUpdateActive(true);
+					}
+				});
+			}
+			if( !crossHairExists() )
+				addCrossHair();
+		} else {
+			if( crossHairExists() )
+				removeCrossHair();
 			imageTrace = null;
+		}
+		editorInputChanged = false;
+	}
+
+	protected void addRegion(String jobName, IRegion region) {
+		region.setVisible(false);
+		region.setTrackMouse(true);
+		region.setRegionColor(ColorConstants.red);
+		region.setUserRegion(false); // They cannot see preferences or change it!
+		getPlottingSystem().addRegion(region);
+		region.addMouseListener(this);
+		region.setVisible(false);
+		region.addROIListener(this);
+	}
+
+	protected boolean crossHairExists() {
+		return xHair != null && yHair != null;
+	}
+
+	protected void addCrossHair() {
+		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+			public void run() {
+		        try {
+					xHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer X", plottingSystem), IRegion.RegionType.XAXIS_LINE);
+			        yHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer Y", plottingSystem), IRegion.RegionType.YAXIS_LINE);
+				} catch (Exception ne) {
+					logger.error("Cannot locate any plotting systems!", ne);
+					xHair = null;
+					yHair = null;
+					return;
+				}
+	        	addRegion("Updating x cross hair", xHair);
+	        	addRegion("Updating y cross hair", yHair);
+			}
+		});
+	}
+
+	protected void removeCrossHair() {
+		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+			public void run() {
+				plottingSystem.removeRegion(xHair);
+				xHair = null;
+				plottingSystem.removeRegion(yHair);
+				yHair = null;
+			}
+		});
 	}
 
 	private void createPlot(final File[] toLoadImageFiles) {
@@ -661,7 +815,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 					try {
 //						imageModel = ImageModelFactory.getImageModel(filePath);
 						final ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
-						set = service.getDataset(filePath);
+						set = service.getDataset(filePath).clone();
 					} catch (Throwable e) {
 						logger.error("Cannot load file "+filePath, e);
 						return Status.CANCEL_STATUS;
@@ -706,6 +860,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 				 */
 				IStatus result = Status.CANCEL_STATUS;
 				do {
+					if( isAborting() )
+						break;
 					TreeSet<File> adding = new TreeSet<File>( toLoadImageFilesJob );
 					adding.removeAll( loadedImageFiles );
 					TreeSet<File> removing = new TreeSet<File>( loadedImageFiles );
@@ -731,26 +887,25 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 					}
 					if( isAborting() )
 						break;
-//					ImageModel resultImageModelDivided = resultImageModel;
 					AbstractDataset resultImageModelDivided = resultImageModel;
-					if( loadedImageFiles.size() > 1 ) {
-						resultImageModelDivided = resultImageModel.clone();
-						int divider = loadedImageFiles.size();
-						resultImageModelDivided.idivide( divider );
-//						float[] fsetdata = resultImageModelDivided.getData();
-//						int jMax = fsetdata.length;
-//						for( int j = 0; j < jMax; j++ )
-//							fsetdata[ j ] /= divider;
-					}
+//					if( loadedImageFiles.size() > 1 ) {
+//						resultImageModelDivided = resultImageModel.clone();
+//						int divider = loadedImageFiles.size();
+//						resultImageModelDivided.idivide( divider );
+////						float[] fsetdata = resultImageModelDivided.getData();
+////						int jMax = fsetdata.length;
+////						for( int j = 0; j < jMax; j++ )
+////							fsetdata[ j ] /= divider;
+//					}
 
 					if( isAborting() )
 						break;
-					createPlot(resultImageModelDivided, monitor);
+					createPlot(resultImageModelDivided, true, monitor);
 					if( loadedImageFiles.size() > 0 ) { //Checking for sure
-						Display.getDefault().syncExec(new Runnable(){  
-							public void run() {  
+						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+							public void run() {
 								setPartName(loadedImageFiles.first().getName());
-							}  
+							}
 						});
 					}
 					result = Status.OK_STATUS;
@@ -843,10 +998,22 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
+		Object o = event.getOldValue();
 		if (event.getProperty() == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) {
-			DownsampleType newDownsampleType = DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ];
-			setDownsampleType(newDownsampleType);
+			DownsampleType currentDType = getDownsampleType(); 
+			if( currentDType != null && currentDType == DownsampleType.values()[ Integer.valueOf((String)event.getOldValue()) ])
+				setDownsampleType(DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ]);
 		} else if (event.getProperty() == EditorConstants.PREFERENCE_APPLY_PSF) {
+			Boolean currentApplyPsf = psfAction.isChecked();
+			if( currentApplyPsf == (Boolean)event.getOldValue() ) {
+				psfAction.setChecked((Boolean)event.getNewValue());
+				psfAction.run();
+			}
+		} else if (event.getProperty() == EditorConstants.PREFERENCE_PSF_RADIUS) {
+			int currentPsfRadius = psf.getRadius();
+			if( currentPsfRadius == (Integer)event.getOldValue() ) {
+				updatePsfRadiusSlider((Integer)event.getNewValue());
+			}
 		}
 	}
 
@@ -886,10 +1053,17 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			cursorImagePosX = evt.getROI().getPointX();
 		else if( rt == RegionType.YAXIS_LINE )
 			cursorImagePosY = evt.getROI().getPointY();
-		Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-		Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-		point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s", (int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString()));
-		top.layout(true);		
+		if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
+			if( (int)cursorImagePosX < 0 || (int)cursorImagePosY < 0 )
+				System.out.println( "Too small! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+			if( (int)cursorImagePosX < originalSet.getShape()[1] && (int)cursorImagePosY < originalSet.getShape()[0] ) {
+				Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+				Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+				point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s", (int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString()));
+				top.layout(true);
+			} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
+				System.out.println( "Too big! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+		}
 	}
 
 	@Override
@@ -910,6 +1084,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	public void regionAdded(RegionEvent evt) {
 		// TODO Auto-generated method stub
 		int a = 0;		
+		IRegion region = (IRegion) evt.getSource();
+		region.addMouseListener(this);
+//		region.setVisible(false);
+		region.addROIListener(this);
 		
 	}
 
@@ -917,6 +1095,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	public void regionRemoved(RegionEvent evt) {
 		// TODO Auto-generated method stub
 		int a = 0;		
+		IRegion region = (IRegion) evt.getSource();
+		region.removeMouseListener(this);
+		region.removeROIListener(this);
 		
 	}
 
