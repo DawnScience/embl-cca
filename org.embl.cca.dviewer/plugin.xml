@@ -16,5 +16,11 @@
             name="dViewer preferences">
       </page>
    </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+       <initializer
+             class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer">
+       </initializer>
+   </extension>
 
 </plugin>
