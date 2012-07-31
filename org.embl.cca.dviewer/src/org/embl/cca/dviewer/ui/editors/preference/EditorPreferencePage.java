@@ -16,6 +16,7 @@ import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.embl.cca.dviewer.Activator;
@@ -59,6 +60,7 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 				"&Downsampling type :", choices, getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(EditorConstants.PREFERENCE_APPLY_PSF, "Apply PSF", getFieldEditorParent()));
+		addField(new IntegerFieldEditor(EditorConstants.PREFERENCE_PSF_RADIUS, "PSF radius", getFieldEditorParent(), 2));
 	}
 
 	/*
