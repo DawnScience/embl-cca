@@ -24,6 +24,7 @@ import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
+import org.dawb.common.ui.plot.IPlottingSystem;
 import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
 import org.dawb.common.ui.plot.region.IROIListener;
@@ -42,6 +43,8 @@ import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.views.HeaderTablePage;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
+import org.dawb.workbench.plotting.tools.InfoPixelLabelProvider;
+import org.dawb.workbench.plotting.tools.InfoPixelTool;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -113,6 +116,7 @@ import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.diffraction.IDetectorPropertyListener;
 import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
+import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
 
 /**
  * ImageEditor
@@ -120,7 +124,7 @@ import uk.ac.diamond.scisoft.analysis.io.IMetaData;
  * @author Gábor Náray
  * 
  */
-public class ImageEditor extends EditorPart implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener, IDetectorPropertyListener, MouseListener, IROIListener, IRegionListener {
+public class ImageEditor extends EditorPart implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener, IDetectorPropertyListener /*, MouseListener, IROIListener, IRegionListener*/ {
 	/**
 	 * Plug-in ID.
 	 */
@@ -140,8 +144,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	DetectorProperties detConfig;
 	DiffractionCrystalEnvironment diffEnv;
 
-	protected IRegion xHair, yHair;
+//	protected IRegion xHair, yHair;
+	protected InfoPixelTool infoPixelTool;
 	protected double cursorImagePosX, cursorImagePosY; 
+	protected InfoPixelLabelProvider infoPixelToolLabelResolution;
 	protected Label point;
 	protected Composite top, topLeft, topRight;
 
@@ -150,7 +156,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	private Action dviewerPrefAction;
 
 	/**
-	 * The object which contains the image, can be used in different view parts.
+	 * The objects which contain the image.
 	 */
 	AbstractDataset originalSet, psfSet; 
 
@@ -370,7 +376,38 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
 
-        plottingSystem.addRegionListener(this);
+    	infoPixelTool = new InfoPixelTool() {
+    		@Override
+    		public void roiDragged(ROIEvent evt) {
+    			IRegion region = (IRegion) evt.getSource();
+    			RegionType rt = region.getRegionType();
+    			if (rt == RegionType.POINT) {
+    				super.roiDragged(evt);
+    			}
+    			if( rt == RegionType.XAXIS_LINE )
+    				cursorImagePosX = evt.getROI().getPointX();
+    			else if( rt == RegionType.YAXIS_LINE )
+    				cursorImagePosY = evt.getROI().getPointY();
+    			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
+    				if( (int)cursorImagePosX < 0 || (int)cursorImagePosY < 0 )
+    					System.out.println( "Too small! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+    				if( (int)cursorImagePosX < originalSet.getShape()[1] && (int)cursorImagePosY < originalSet.getShape()[0] ) {
+    					Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+    	    			ROIBase rb = evt.getROI();
+    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
+    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
+    					top.layout(true);
+    				} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
+    					System.out.println( "Too big! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+    			}
+    		}
+    	};
+//    	infoPixelTool.createControl(top);
+    	infoPixelTool.setPlottingSystem(plottingSystem);
+		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8);
+
+//        plottingSystem.addRegionListener(this);
 
         editorInputChanged();
    	}
@@ -759,48 +796,51 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		editorInputChanged = false;
 	}
 
-	protected void addRegion(String jobName, IRegion region) {
-		region.setVisible(false);
-		region.setTrackMouse(true);
-		region.setRegionColor(ColorConstants.red);
-		region.setUserRegion(false); // They cannot see preferences or change it!
-		getPlottingSystem().addRegion(region);
-		region.addMouseListener(this);
-		region.setVisible(false);
-		region.addROIListener(this);
-	}
+//	protected void addRegion(String jobName, IRegion region) {
+//		region.setVisible(false);
+//		region.setTrackMouse(true);
+//		region.setRegionColor(ColorConstants.red);
+//		region.setUserRegion(false); // They cannot see preferences or change it!
+//		getPlottingSystem().addRegion(region);
+//		region.addMouseListener(this);
+//		region.setVisible(false);
+//		region.addROIListener(this);
+//	}
 
 	protected boolean crossHairExists() {
-		return xHair != null && yHair != null;
+//		return xHair != null && yHair != null;
+		return infoPixelTool.isActive();
 	}
 
 	protected void addCrossHair() {
 		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
 			public void run() {
-		        try {
-					xHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer X", plottingSystem), IRegion.RegionType.XAXIS_LINE);
-			        yHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer Y", plottingSystem), IRegion.RegionType.YAXIS_LINE);
-				} catch (Exception ne) {
-					logger.error("Cannot locate any plotting systems!", ne);
-					xHair = null;
-					yHair = null;
-					return;
-				}
-	        	addRegion("Updating x cross hair", xHair);
-	        	addRegion("Updating y cross hair", yHair);
+//		        try {
+//					xHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer X", plottingSystem), IRegion.RegionType.XAXIS_LINE);
+//			        yHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer Y", plottingSystem), IRegion.RegionType.YAXIS_LINE);
+//				} catch (Exception ne) {
+//					logger.error("Cannot locate any plotting systems!", ne);
+//					xHair = null;
+//					yHair = null;
+//					return;
+//				}
+//	        	addRegion("Updating x cross hair", xHair);
+//	        	addRegion("Updating y cross hair", yHair);
+				infoPixelTool.activate();
 			}
 		});
 	}
 
 	protected void removeCrossHair() {
-		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-			public void run() {
-				plottingSystem.removeRegion(xHair);
-				xHair = null;
-				plottingSystem.removeRegion(yHair);
-				yHair = null;
-			}
-		});
+//		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+//			public void run() {
+//				plottingSystem.removeRegion(xHair);
+//				xHair = null;
+//				plottingSystem.removeRegion(yHair);
+//				yHair = null;
+//			}
+//		});
+		infoPixelTool.deactivate();
 	}
 
 	private void createPlot(final File[] toLoadImageFiles) {
@@ -925,16 +965,18 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
     @Override
     public void dispose() {
-    	if( localDiffractionMetaData != null ) {
+		if( crossHairExists() )
+			removeCrossHair();
+		if( localDiffractionMetaData != null ) {
 			localDiffractionMetaData.getDetector2DProperties().removeDetectorPropertyListener(this);
 			localDiffractionMetaData = null;
 		}
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
-     	imageTrace = null;
        	if (plottingSystem != null) {
      		plottingSystem.dispose();
      		plottingSystem = null;
      	}
+     	imageTrace = null;
      	super.dispose();
     }
 
@@ -1023,89 +1065,89 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		int a = 0;		
 	}
 
-	@Override
-	public void mousePressed(MouseEvent me) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent me) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
-
-	@Override
-	public void mouseDoubleClicked(MouseEvent me) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
-
-	@Override
-	public void roiDragged(ROIEvent evt) {
-		// TODO Auto-generated method stub
-		IRegion region = (IRegion) evt.getSource();
-		RegionType rt = region.getRegionType();
-		if( rt == RegionType.XAXIS_LINE )
-			cursorImagePosX = evt.getROI().getPointX();
-		else if( rt == RegionType.YAXIS_LINE )
-			cursorImagePosY = evt.getROI().getPointY();
-		if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
-			if( (int)cursorImagePosX < 0 || (int)cursorImagePosY < 0 )
-				System.out.println( "Too small! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
-			if( (int)cursorImagePosX < originalSet.getShape()[1] && (int)cursorImagePosY < originalSet.getShape()[0] ) {
-				Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-				Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-				point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s", (int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString()));
-				top.layout(true);
-			} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
-				System.out.println( "Too big! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
-		}
-	}
-
-	@Override
-	public void roiChanged(ROIEvent evt) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
-
-	@Override
-	public void regionCreated(RegionEvent evt) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
-
-	@Override
-	public void regionAdded(RegionEvent evt) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		IRegion region = (IRegion) evt.getSource();
-		region.addMouseListener(this);
-//		region.setVisible(false);
-		region.addROIListener(this);
-		
-	}
-
-	@Override
-	public void regionRemoved(RegionEvent evt) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		IRegion region = (IRegion) evt.getSource();
-		region.removeMouseListener(this);
-		region.removeROIListener(this);
-		
-	}
-
-	@Override
-	public void regionsRemoved(RegionEvent evt) {
-		// TODO Auto-generated method stub
-		int a = 0;		
-		
-	}
+//	@Override
+//	public void mousePressed(MouseEvent me) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
+//
+//	@Override
+//	public void mouseReleased(MouseEvent me) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
+//
+//	@Override
+//	public void mouseDoubleClicked(MouseEvent me) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
+//
+//	@Override
+//	public void roiDragged(ROIEvent evt) {
+//		// TODO Auto-generated method stub
+//		IRegion region = (IRegion) evt.getSource();
+//		RegionType rt = region.getRegionType();
+//		if( rt == RegionType.XAXIS_LINE )
+//			cursorImagePosX = evt.getROI().getPointX();
+//		else if( rt == RegionType.YAXIS_LINE )
+//			cursorImagePosY = evt.getROI().getPointY();
+//		if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
+//			if( (int)cursorImagePosX < 0 || (int)cursorImagePosY < 0 )
+//				System.out.println( "Too small! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+//			if( (int)cursorImagePosX < originalSet.getShape()[1] && (int)cursorImagePosY < originalSet.getShape()[0] ) {
+//				Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+//				Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+//				point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s", (int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString()));
+//				top.layout(true);
+//			} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
+//				System.out.println( "Too big! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+//		}
+//	}
+//
+//	@Override
+//	public void roiChanged(ROIEvent evt) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
+//
+//	@Override
+//	public void regionCreated(RegionEvent evt) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
+//
+//	@Override
+//	public void regionAdded(RegionEvent evt) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		IRegion region = (IRegion) evt.getSource();
+//		region.addMouseListener(this);
+////		region.setVisible(false);
+//		region.addROIListener(this);
+//		
+//	}
+//
+//	@Override
+//	public void regionRemoved(RegionEvent evt) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		IRegion region = (IRegion) evt.getSource();
+//		region.removeMouseListener(this);
+//		region.removeROIListener(this);
+//		
+//	}
+//
+//	@Override
+//	public void regionsRemoved(RegionEvent evt) {
+//		// TODO Auto-generated method stub
+//		int a = 0;		
+//		
+//	}
 
 }
