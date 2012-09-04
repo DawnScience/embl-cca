@@ -8,4 +8,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: org.embl.cca.utils.imageviewer
+Export-Package: org.embl.cca.utils.general,
+ org.embl.cca.utils.imageviewer,
+ org.embl.cca.utils.sorting,
+ org.embl.cca.utils.threading,
+ org.embl.cca.utils.ui.widget,
+ org.embl.cca.utils.ui.widget.support
