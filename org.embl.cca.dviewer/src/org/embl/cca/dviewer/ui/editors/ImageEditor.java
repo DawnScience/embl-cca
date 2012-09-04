@@ -10,39 +10,40 @@
 package org.embl.cca.dviewer.ui.editors;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
+
+import javax.vecmath.Vector3d;
 
 import org.dawb.common.services.ILoaderService;
 import org.dawb.common.services.ServiceManager;
-import org.dawb.common.services.ImageServiceBean.ImageOrigin;
 import org.dawb.common.ui.editors.IEditorExtension;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
-import org.dawb.common.ui.plot.IPlottingSystem;
 import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
-import org.dawb.common.ui.plot.region.IROIListener;
 import org.dawb.common.ui.plot.region.IRegion;
 import org.dawb.common.ui.plot.region.IRegion.RegionType;
-import org.dawb.common.ui.plot.region.IRegionListener;
 import org.dawb.common.ui.plot.region.ROIEvent;
 import org.dawb.common.ui.plot.region.RegionEvent;
 import org.dawb.common.ui.plot.region.RegionUtils;
 import org.dawb.common.ui.plot.tool.IToolPageSystem;
 import org.dawb.common.ui.plot.trace.IImageTrace;
-import org.dawb.common.ui.plot.trace.TraceEvent;
 import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
 import org.dawb.common.ui.plot.trace.ITrace;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.views.HeaderTablePage;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
+import org.dawb.workbench.plotting.system.swtxy.selection.AbstractSelectionRegion;
 import org.dawb.workbench.plotting.tools.InfoPixelLabelProvider;
 import org.dawb.workbench.plotting.tools.InfoPixelTool;
 import org.eclipse.core.resources.IFile;
@@ -54,12 +55,12 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.MouseEvent;
-import org.eclipse.draw2d.MouseListener;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -70,13 +71,12 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Slider;
@@ -96,8 +96,9 @@ import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.Page;
 import org.embl.cca.dviewer.Activator;
+import org.embl.cca.dviewer.plotting.tools.PSFTool;
 import org.embl.cca.dviewer.ui.editors.preference.EditorConstants;
-import org.embl.cca.dviewer.ui.editors.utils.PSF;
+import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.imageviewer.FilenameCaseInsensitiveComparator;
 import org.embl.cca.utils.imageviewer.MemoryImageEditorInput;
 import org.embl.cca.utils.imageviewer.WildCardFileFilter;
@@ -114,9 +115,16 @@ import uk.ac.diamond.scisoft.analysis.diffraction.DetectorProperties;
 import uk.ac.diamond.scisoft.analysis.diffraction.DetectorPropertyEvent;
 import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.diffraction.IDetectorPropertyListener;
+import uk.ac.diamond.scisoft.analysis.diffraction.Resolution;
 import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
+import uk.ac.diamond.scisoft.analysis.rcp.AnalysisRCPActivator;
+import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
+import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
 import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
+import uk.ac.diamond.scisoft.analysis.roi.ResolutionRing;
+import uk.ac.diamond.scisoft.analysis.roi.ResolutionRingList;
+import uk.ac.diamond.scisoft.analysis.roi.SectorROI;
 
 /**
  * ImageEditor
@@ -124,13 +132,16 @@ import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
  * @author Gábor Náray
  * 
  */
-public class ImageEditor extends EditorPart implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener, IDetectorPropertyListener /*, MouseListener, IROIListener, IRegionListener*/ {
+public class ImageEditor extends EditorPart implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener, IDetectorPropertyListener /*, MouseListener, IROIListener, IRegionListener*/
+	, Disposable {
 	/**
 	 * Plug-in ID.
 	 */
 	public static final String ID = "org.embl.cca.dviewer.ui.editors.ImageEditor";
 	
 	private static Logger logger = LoggerFactory.getLogger(ImageEditor.class);
+
+	protected boolean disposed = false;
 
 	final String prefPage = "org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage";
 
@@ -146,19 +157,21 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 //	protected IRegion xHair, yHair;
 	protected InfoPixelTool infoPixelTool;
-	protected double cursorImagePosX, cursorImagePosY; 
+//	protected double cursorImagePosX, cursorImagePosY; 
 	protected InfoPixelLabelProvider infoPixelToolLabelResolution;
 	protected Label point;
 	protected Composite top, topLeft, topRight;
 
-	private PSF psf;
-	private Action psfAction;
-	private Action dviewerPrefAction;
+//	protected PSF psf;
+	protected PSFTool psfTool;
+	protected Action psfAction;
+	protected Action dviewerPrefAction;
 
 	/**
 	 * The objects which contain the image.
 	 */
-	AbstractDataset originalSet, psfSet; 
+	AbstractDataset originalSet;
+//	AbstractDataset psfSet; 
 
 	private Label totalSliderImageLabel;
 	private Slider imageSlider;
@@ -178,9 +191,30 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	ExecutableManager imageLoaderManager = null;
 	Thread imageFilesAutoLatestThread = null;
 
+	//Rings from MXPlotImageEditor [begin]
+	protected final static double[] iceResolution = new double[] { 3.897, 3.669, 3.441, 2.671, 2.249, 2.072, 1.948,
+		1.918, 1.883, 1.721 };// angstrom
+
+	// Standard rings
+	ResolutionRingList standardRingsList;
+	ArrayList<IRegion> standardRingsRegionList;
+
+	// Ice rings
+	ResolutionRingList iceRingsList;
+	ArrayList<IRegion> iceRingsRegionList;
+
+	// Calibrant rings
+	ResolutionRingList calibrantRingsList;
+	ArrayList<IRegion> calibrantRingsRegionList;
+
+	IRegion beamCentreRegion;
+
+	Action standardRings, iceRings, calibrantRings, beamCentre;
+	//Rings from MXPlotImageEditor [end]
+
 	public ImageEditor() {
 		try {
-	        psf = new PSF( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
+//	        psf = new PSF( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
 	        this.plottingSystem = PlottingFactory.createPlottingSystem();
 	        plottingSystem.setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
 		} catch (Exception ne) {
@@ -247,6 +281,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	    final ToolBar toolBar = toolMan.createControl(topRight);
 	    toolBar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
+		psfTool = new PSFTool() {
+		};
+		psfTool.setPlottingSystem(plottingSystem);
+
 		loadedImageFiles = new TreeSet<File>();
 		imageFilesWindowWidth = 1;
 		/* Top line containing image selector sliders */
@@ -271,7 +309,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		psfAction = new Action("PSF", IAction.AS_CHECK_BOX ) {
 	    	@Override
 	    	public void run() {
-	    		updatePlot(originalSet, false);
+	    		psfStateSelected();
 	    	}
         };
         psfAction.setId(getClass().getName()+".psf");
@@ -300,7 +338,46 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	    toolMan.add( psfAction );
 
-        //The problem with this solution is it does not consider order of tools and separators
+	    MenuAction dropdown = new MenuAction("Resolution rings");
+	    dropdown.setImageDescriptor(Activator.getImageDescriptor("/icons/resolution_rings.png"));
+
+	    standardRings = new Action("Standard rings", Activator.getImageDescriptor("/icons/standard_rings.png")) {
+	    	@Override
+	    	public void run() {
+	    		drawStandardRings();
+	    	}
+		};
+		standardRings.setChecked(false);
+		iceRings = new Action("Ice rings", Activator.getImageDescriptor("/icons/ice_rings.png")) {
+			@Override
+			public void run() {
+				drawIceRings();
+			}
+		};
+		iceRings.setChecked(false);
+		calibrantRings = new Action("Calibrant", Activator.getImageDescriptor("/icons/calibrant_rings.png")) {
+			@Override
+			public void run() {
+				drawCalibrantRings();
+			}
+		};
+		calibrantRings.setChecked(false);
+		beamCentre = new Action("Beam centre", Activator.getImageDescriptor("/icons/beam_centre.png")) {
+			@Override
+			public void run() {
+				drawBeamCentre();
+			}
+		};
+		beamCentre.setChecked(false);
+		
+		dropdown.add(standardRings);
+		dropdown.add(iceRings);
+	    dropdown.add(calibrantRings);
+	    dropdown.add(beamCentre);
+
+	    toolMan.add(dropdown);
+
+	    //The problem with this solution is it does not consider order of tools and separators
 //        IMenuManager menuManager = wrapper.getMenuManager();
 //        IContributionItem[] mmItems = menuManager.getItems();
 //		for( IContributionItem mmItem : mmItems) {
@@ -379,36 +456,79 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     	infoPixelTool = new InfoPixelTool() {
     		@Override
     		public void roiDragged(ROIEvent evt) {
+				if(infoPixelRegionRemoved) {
+//					addRegion(xHair);
+//					addRegion(yHair);
+					infoPixelRegionRemoved = false;
+				}
     			IRegion region = (IRegion) evt.getSource();
     			RegionType rt = region.getRegionType();
     			if (rt == RegionType.POINT) {
-    				super.roiDragged(evt);
+    				return;
     			}
-    			if( rt == RegionType.XAXIS_LINE )
-    				cursorImagePosX = evt.getROI().getPointX();
-    			else if( rt == RegionType.YAXIS_LINE )
-    				cursorImagePosY = evt.getROI().getPointY();
+    			if( rt == RegionType.XAXIS_LINE ) {
+    				xValues[0] = evt.getROI().getPointX();
+			  	} else if( rt == RegionType.YAXIS_LINE ) {
+    				yValues[0] = evt.getROI().getPointY();
+			  	}
+    			System.out.println("updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
     			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
-    				if( (int)cursorImagePosX < 0 || (int)cursorImagePosY < 0 )
-    					System.out.println( "Too small! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
-    				if( (int)cursorImagePosX < originalSet.getShape()[1] && (int)cursorImagePosY < originalSet.getShape()[0] ) {
-    					Object oriValue = originalSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+    				if( (int)xValues[0] < 0 || (int)yValues[0] < 0 )
+    					System.out.println( "Too small! " + (int)xValues[0] + ", " + (int)yValues[0] );
+    				if( (int)xValues[0] < originalSet.getShape()[1] && (int)yValues[0] < originalSet.getShape()[0] ) {
+    					Object oriValue = originalSet.getObject(new int[] {(int)yValues[0], (int)xValues[0]});
+//    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
     	    			ROIBase rb = evt.getROI();
-    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
-    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
+//    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
+//    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
+    					point.setText( String.format("x=%d y=%d oriValue=%s, res=%s",
+    							(int)xValues[0], (int)yValues[0], oriValue.toString(), infoPixelToolLabelResolution.getText(region)));
     					top.layout(true);
     				} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
-    					System.out.println( "Too big! " + (int)cursorImagePosX + ", " + (int)cursorImagePosY );
+    					System.out.println( "Too big! " + (int)xValues[0] + ", " + (int)yValues[0] );
     			}
+    		}
+
+    		@Override
+    		protected void addRegion(IRegion region) {
+    			if( getPlottingSystem().getRegion(region.getName()) == null ) {
+    				getPlottingSystem().addRegion(region);
+//    				getPlottingSystem().removeRegion(region);
+    			}
+    		}
+
+    		@Override
+    		public void regionAdded(RegionEvent evt) {
+    			int a = 0;
+    		}
+
+    		@Override
+    		public void regionRemoved(RegionEvent evt) {
+    			int a = 0;
+    		}
+
+    		@Override
+    		public void mousePressed(MouseEvent evt) {
+    		}
+
+    		@Override
+    		public void mouseReleased(MouseEvent me) {
+    		}
+
+    		@Override
+    		public void mouseDoubleClicked(MouseEvent me) {
     		}
     	};
 //    	infoPixelTool.createControl(top);
+		infoPixelTool.setToolSystem(plottingSystem);
     	infoPixelTool.setPlottingSystem(plottingSystem);
-		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8);
+		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8); //Resolution ID = 8
+//		infoPixelTool.setPart(plottingSystem.getPart());
+
 
 //        plottingSystem.addRegionListener(this);
 
+		psfStateSelected();
         editorInputChanged();
    	}
 
@@ -485,7 +605,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			for( int i = 0; i < iMax; i++ )
 				toLoadImageFiles[ i ] = allImageFiles[ pos - 1 + i ];
 		}
-		createPlot(toLoadImageFiles);
+		loadFilesForPlotting(toLoadImageFiles);
 	}
 
 	public void onImageFilesAutoLatestButtonSelected() {
@@ -549,48 +669,49 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		if (psfRadiusSlider == null || psfRadiusSlider.isDisposed())
 			return;
 		synchronized (psfRadiusSlider) {
-			final int min = 1;
-			final int max = 99;
-			final int selection = Math.max(Math.min(sel, max + 1), min);
-
-			final int thumb = psfRadiusSlider.getThumb();
-			psfRadiusSlider.setValues(selection, min, max + 1, thumb, 1,
-					Math.max(thumb, (max-min) / 5));
-			psfRadiusSliderLabel.setText("" + selection);
-			psfRadiusSliderLabel.getParent().pack();
-			if (originalSet == null)
-				return;
-
-			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply PSF") {
-				public IStatus runThis(IProgressMonitor monitor) {
-					IStatus result = Status.CANCEL_STATUS;
-					do {
-						if (isAborting())
-							break;
-						psf.setRadius(selection);
-						psfSet = originalSet.synchronizedCopy();
-						psf.applyPSF(psfSet,
-								new Rectangle(0, 0, originalSet.getShape()[1],
-										originalSet.getShape()[0]));
-						if (isAborting())
-							break;
-						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-							public void run() {
-								psfAction.run();
-							}
-						});
-						result = Status.OK_STATUS;
-					} while (false);
-					if (isAborting()) {
-						setAborted();
-						return Status.CANCEL_STATUS;
-					}
-					return result;
-				}
-			};
-			job.setUser(false);
-			job.setPriority(Job.BUILD);
-			psfRadiusManager = ExecutableManager.setRequest(job);
+	        psfTool.updatePSFRadius(sel);
+//			final int min = 1;
+//			final int max = 99;
+//			final int selection = Math.max(Math.min(sel, max + 1), min);
+//
+//			final int thumb = psfRadiusSlider.getThumb();
+//			psfRadiusSlider.setValues(selection, min, max + 1, thumb, 1,
+//					Math.max(thumb, (max-min) / 5));
+//			psfRadiusSliderLabel.setText("" + selection);
+//			psfRadiusSliderLabel.getParent().pack();
+//			if (originalSet == null)
+//				return;
+//
+//			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply PSF") {
+//				public IStatus runThis(IProgressMonitor monitor) {
+//					IStatus result = Status.CANCEL_STATUS;
+//					do {
+//						if (isAborting())
+//							break;
+//						psf.setRadius(selection);
+//						psfSet = originalSet.synchronizedCopy();
+//						psf.applyPSF(psfSet,
+//								new Rectangle(0, 0, originalSet.getShape()[1],
+//										originalSet.getShape()[0]));
+//						if (isAborting())
+//							break;
+//						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+//							public void run() {
+//								psfAction.run();
+//							}
+//						});
+//						result = Status.OK_STATUS;
+//					} while (false);
+//					if (isAborting()) {
+//						setAborted();
+//						return Status.CANCEL_STATUS;
+//					}
+//					return result;
+//				}
+//			};
+//			job.setUser(false);
+//			job.setPriority(Job.BUILD);
+//			psfRadiusManager = ExecutableManager.setRequest(job);
 		}
 	}
 	
@@ -717,7 +838,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 				}
 */
 			}
-			updatePlot(set, true);
+			updatePlot(set);
 		} else {
 			final IPath imageFilename = getPath( getEditorInput() );
 			allImageFiles = listIndexedFilesOf( imageFilename );
@@ -748,52 +869,69 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			return null;
 	}
 
-	private void updatePlot(final AbstractDataset set, boolean contentChanged) {
-		createPlot( set, contentChanged, null );
+	protected void psfStateSelected() {
+		psfTool.updatePSFState(psfAction.isChecked());
+	}
+
+	private void updatePlot(final AbstractDataset set) {
+		createPlot( set, true, null );
 	}
 
 	private void createPlot(final AbstractDataset set, boolean contentChanged, IProgressMonitor monitor) {
-		if( editorInputChanged || contentChanged /*originalSet != set*/) {
-			long t0 = System.nanoTime();
-			originalSet = set;
-			psfSet = set.synchronizedCopy(); 
-			long t1 = System.nanoTime();
-			System.out.println( "DEBUG: Copying data image took [msec]= " + ( t1 - t0 ) / 1000000 );
-			psf.applyPSF(psfSet, new Rectangle(0, 0, originalSet.getShape()[1], originalSet.getShape()[0]));
-		}
-		Number n = null;
-		if( !editorInputChanged && imageTrace != null ) {
-			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
-//			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
-			//This (updatePlot2D) would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
-			n = imageTrace.getMax();
-		}
-		long t0 = System.nanoTime();
-		final ITrace trace = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
-		long t1 = System.nanoTime();
-		System.out.println( "DEBUG: Update plot2D took [msec]= " + ( t1 - t0 ) / 1000000 );
+		originalSet = set;
+		final ITrace trace = plottingSystem.updatePlot2D( set, null, monitor );
 		if (trace instanceof IImageTrace) {
-			if( imageTrace != trace) {
-				imageTrace = (IImageTrace) trace;
-				setDownsampleType(DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
-			}
-			if( n != null && !imageTrace.getMax().equals(n) ) {
-				imageTrace.setImageUpdateActive(false);
-				imageTrace.setMax(n);
-				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-					public void run() {
-						imageTrace.setImageUpdateActive(true);
-					}
-				});
-			}
+//			imageTrace = (IImageTrace) trace;
+//			psfTool.updatePSFState(psfAction.isChecked());
+//		if( editorInputChanged || contentChanged /*originalSet != set*/) {
+//			long t0 = System.nanoTime();
+//			originalSet = set;
+//			psfSet = set.synchronizedCopy(); 
+//			long t1 = System.nanoTime();
+//			System.out.println( "DEBUG: Copying data image took [msec]= " + ( t1 - t0 ) / 1000000 );
+//			psf.applyPSF(psfSet, new Rectangle(0, 0, originalSet.getShape()[1], originalSet.getShape()[0]));
+//		}
+//		Number n = null;
+//		if( !editorInputChanged && imageTrace != null ) {
+//			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
+////			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
+//			//This (updatePlot2D) would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
+//			n = imageTrace.getMax();
+//		}
+//		long t0 = System.nanoTime();
+//		final ITrace trace = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
+//		long t1 = System.nanoTime();
+//		System.out.println( "DEBUG: Update plot2D took [msec]= " + ( t1 - t0 ) / 1000000 );
+//		if (trace instanceof IImageTrace) {
+//			if( imageTrace != trace) {
+//				imageTrace = (IImageTrace) trace;
+//				setDownsampleType(DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
+//			}
+//			if( n != null && !imageTrace.getMax().equals(n) ) {
+//				imageTrace.setImageUpdateActive(false);
+//				imageTrace.setMax(n);
+//				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+//					public void run() {
+//						imageTrace.setImageUpdateActive(true);
+//					}
+//				});
+//			}
 			if( !crossHairExists() )
 				addCrossHair();
+			if( !psfToolActivated() )
+				psfTool.activate();
 		} else {
 			if( crossHairExists() )
 				removeCrossHair();
+			if( psfToolActivated() )
+				psfTool.deactivate();
 			imageTrace = null;
 		}
 		editorInputChanged = false;
+	}
+
+	protected boolean psfToolActivated() {
+		return psfTool.isActive();
 	}
 
 //	protected void addRegion(String jobName, IRegion region) {
@@ -843,7 +981,211 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		infoPixelTool.deactivate();
 	}
 
-	private void createPlot(final File[] toLoadImageFiles) {
+	protected IRegion drawBeamCentreCrosshairs(double[] beamCentre, double length, Color colour, Color labelColour, String nameStub, String labelText) {
+		IRegion region;
+		try {
+			final String regionName = RegionUtils.getUniqueName(nameStub, plottingSystem);
+			region = plottingSystem.createRegion(regionName, RegionType.LINE);
+		} catch (Exception e) {
+			logger.error("Can't create region", e);
+			return null;
+		}
+
+		final LinearROI lroi = new LinearROI(length, 0);
+		double dbc[] = {(double)beamCentre[0], (double)beamCentre[1]};
+		lroi.setMidPoint(dbc);
+		lroi.setCrossHair(true);
+		region.setROI(lroi);
+		region.setRegionColor(colour);
+		region.setAlpha(100);
+		region.setUserRegion(false);
+		region.setShowPosition(false);
+
+//		org.eclipse.draw2d.Label label = new org.eclipse.draw2d.Label(labelText);
+//		label.setForegroundColor(labelColour);
+
+		region.setLabel(labelText);
+		((AbstractSelectionRegion)region).setShowLabel(true);
+
+		plottingSystem.addRegion(region);
+		region.setMobile(false); // NOTE: Must be done **AFTER** calling the addRegion method.
+//		region.setLabel(label);  // NOTE: Must be done **AFTER** calling the addRegion method in order for the label colour to be used.
+
+		return region;
+	}
+	
+	protected double[] getBeamCentreAndLength() {
+		double[] beamCentreAndLength;
+		if (detConfig != null) {
+			double[] beamLocation = detConfig.getBeamLocation();
+			int beamLocationLength = beamLocation.length;
+			beamCentreAndLength = Arrays.copyOf(beamLocation, beamLocationLength + 1);
+			beamCentreAndLength[ beamLocationLength ] = (1 + Math.sqrt(detConfig.getPx() * detConfig.getPx() + detConfig.getPy() * detConfig.getPy()) * 0.01);
+		} else {
+			final AbstractDataset image = imageTrace.getData();
+			beamCentreAndLength = new double[] { image.getShape()[1]/2d, image.getShape()[0]/2d, image.getShape()[1]/100 };
+		}
+		return beamCentreAndLength;
+	}
+
+	protected void drawBeamCentre() {
+		if (!beamCentre.isChecked()) {
+			if (beamCentreRegion != null) {
+				plottingSystem.removeRegion(beamCentreRegion);
+				beamCentreRegion = null;
+			}
+			return;
+		}
+		double[] beamCentreAndLength = getBeamCentreAndLength();
+		DecimalFormat df = new DecimalFormat("#.##");
+		String label = df.format(beamCentreAndLength[0]) + "px, " + df.format(beamCentreAndLength[1])+"py";
+    	beamCentreRegion = drawBeamCentreCrosshairs(beamCentreAndLength, beamCentreAndLength[beamCentreAndLength.length - 1], ColorConstants.red, ColorConstants.black, "beam centre", label);
+	}
+
+	/*
+	 * handle ring drawing, removal and clearing
+	 */
+	protected void removeRings(ArrayList<IRegion> regionList, ResolutionRingList resolutionRingList) {
+		for (IRegion region : regionList) {
+			plottingSystem.removeRegion(region);
+		}
+		regionList.clear();
+		resolutionRingList.clear();
+	}
+	
+	protected IRegion drawRing(int[] beamCentre, double innerRadius, double outerRadius, Color colour, Color labelColour, String nameStub, String labelText) {
+		IRegion region;
+		try {
+			final String regionName = RegionUtils.getUniqueName(nameStub, plottingSystem);
+			region = plottingSystem.createRegion(regionName, RegionType.RING);
+		} catch (Exception e) {
+			logger.error("Can't create region", e);
+			return null;
+		}
+	    final SectorROI sroi = new SectorROI(innerRadius, outerRadius);
+	    sroi.setPoint(beamCentre[0], beamCentre[1]);
+		region.setROI(sroi);
+		region.setRegionColor(colour);
+		region.setAlpha(100);
+		region.setUserRegion(false);
+		region.setMobile(false);
+		
+//		org.eclipse.draw2d.Label label = new org.eclipse.draw2d.Label(labelText);
+//		label.setForegroundColor(labelColour);
+//		region.setLabel(label);
+		region.setLabel(labelText);
+		((AbstractSelectionRegion)region).setShowLabel(true);
+		((AbstractSelectionRegion)region).setForegroundColor(labelColour);
+		
+		region.setShowPosition(false);
+		plottingSystem.addRegion(region);
+		
+		return region;
+	}
+	
+	protected IRegion drawResolutionRing(ResolutionRing ring, String name) {
+		if( detConfig == null || diffEnv == null ) {
+			logger.error("Drawing resolution rings is not possible without metadata.");
+			return null;
+		}
+		int[] beamCentre = detConfig.pixelCoords(detConfig.getBeamPosition());
+		double radius = Resolution.circularResolutionRingRadius(detConfig, diffEnv, ring.getResolution());
+		DecimalFormat df = new DecimalFormat("#.00");
+		return drawRing(beamCentre, radius, radius+4.0, ring.getColour(), ring.getColour(), name, df.format(ring.getResolution())+"Å");
+	}
+	
+	protected ArrayList<IRegion> drawResolutionRings(ResolutionRingList ringList, String typeName) {
+		ArrayList<IRegion> regions = new ArrayList<IRegion>(); 
+		for (int i = 0; i < ringList.size(); i++) {
+			IRegion region = drawResolutionRing(ringList.get(i), typeName+i);
+			if( region != null )
+				regions.add(region);
+		}
+		return regions;
+	}
+	
+	protected void drawStandardRings() {
+		if (!standardRings.isChecked()) {
+			if (standardRingsRegionList != null && standardRingsList != null)
+				removeRings(standardRingsRegionList, standardRingsList);
+			return;
+		}
+		if (diffEnv!= null && detConfig != null) {
+			standardRingsList = new ResolutionRingList();
+			Double numberEvenSpacedRings = 6.0;
+			double lambda = diffEnv.getWavelength();
+			Vector3d longestVector = detConfig.getLongestVector();
+			double step = longestVector.length() / numberEvenSpacedRings; 
+			double d, twoThetaSpacing;
+			Vector3d toDetectorVector = new Vector3d();
+			Vector3d beamVector = detConfig.getBeamPosition();
+			for (int i = 0; i < numberEvenSpacedRings - 1; i++) {
+				// increase the length of the vector by step.
+				longestVector.normalize();
+				longestVector.scale(step + (step * i));
+	
+				toDetectorVector.add(beamVector, longestVector);
+				twoThetaSpacing = beamVector.angle(toDetectorVector);
+				d = lambda / Math.sin(twoThetaSpacing);
+				standardRingsList.add(new ResolutionRing(d, true, ColorConstants.yellow, false, true, true));
+			}
+			standardRingsRegionList = drawResolutionRings(standardRingsList, "standard");
+		}
+	}
+
+	protected void drawIceRings() {
+		if (!iceRings.isChecked()) {
+			if (iceRingsRegionList!=null && iceRingsList!=null)
+				removeRings(iceRingsRegionList, iceRingsList);
+			return;
+		}
+		iceRingsList = new ResolutionRingList();
+		
+		for (double res : iceResolution) {
+			iceRingsList.add(new ResolutionRing(res, true, ColorConstants.blue, true, false, false));
+		}
+		iceRingsRegionList = drawResolutionRings(iceRingsList, "ice");
+	}
+	
+	protected void drawCalibrantRings() {
+		// Remove rings if unchecked
+		if (!calibrantRings.isChecked()) {
+			if (calibrantRingsRegionList!=null && calibrantRingsList != null) {
+				removeRings(calibrantRingsRegionList, calibrantRingsList);
+			}
+		}
+		else {
+			calibrantRingsList = new ResolutionRingList();
+
+			IPreferenceStore preferenceStore = AnalysisRCPActivator.getDefault().getPreferenceStore();
+			@SuppressWarnings("unused")
+			String standardName;
+			if (preferenceStore.isDefault(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME))
+				standardName = preferenceStore.getDefaultString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME);
+			else
+				standardName = preferenceStore.getString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME);
+
+			String standardDistances;
+			if (preferenceStore.isDefault(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES))
+				standardDistances = preferenceStore
+				.getDefaultString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES);
+			else
+				standardDistances = preferenceStore.getString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES);
+
+			ArrayList<Double> dSpacing = new ArrayList<Double>();
+			StringTokenizer st = new StringTokenizer(standardDistances, ",");
+			while (st.hasMoreTokens()) {
+				String temp = st.nextToken();
+				dSpacing.add(Double.valueOf(temp));
+			}
+			for (double d : dSpacing) {
+				calibrantRingsList.add(new ResolutionRing(d, true, ColorConstants.red, true, false, false));
+			}
+			calibrantRingsRegionList = drawResolutionRings(calibrantRingsList, "calibrant");
+		}
+	}
+	
+	private void loadFilesForPlotting(final File[] toLoadImageFiles) {
 		final TrackableJob job = new TrackableJob(imageLoaderManager, "Read image data") {
 			TreeSet<File> toLoadImageFilesJob = new TreeSet<File>( Arrays.asList(toLoadImageFiles) );
 //			ImageModel imageModel = null;
@@ -869,7 +1211,12 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 							//TODO handling metadata when multiloading
 							detConfig = localDiffractionMetaData.getDetector2DProperties();
 							diffEnv = localDiffractionMetaData.getDiffractionCrystalEnvironment();
-							localDiffractionMetaData.getDetector2DProperties().addDetectorPropertyListener(ImageEditor.this);
+							detConfig.addDetectorPropertyListener(ImageEditor.this);
+						} else {
+							//TODO handling metadata when multiloading
+							releaseDetConfig();
+							detConfig = null;
+							diffEnv = null;
 						}
 					} catch (Exception e) {
 						logger.error("Could not create diffraction experiment objects");
@@ -961,23 +1308,39 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		job.setPriority(Job.BUILD);
 		imageLoaderManager = ExecutableManager.setRequest(job);
 	}
-	
+
+	protected void releaseDetConfig() {
+		if( detConfig != null ) {
+			detConfig.removeDetectorPropertyListener(this);
+			detConfig = null;
+		}
+	}
+
+	@Override
+	public boolean isDisposed() {
+		return disposed;
+	}
 
     @Override
     public void dispose() {
+    	if( disposed ) {
+        	System.out.println("ImageEditor already disposed");
+    		return;
+    	}
+    	System.out.println("ImageEditor disposing");
 		if( crossHairExists() )
 			removeCrossHair();
-		if( localDiffractionMetaData != null ) {
-			localDiffractionMetaData.getDetector2DProperties().removeDetectorPropertyListener(this);
-			localDiffractionMetaData = null;
-		}
+		releaseDetConfig();
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
        	if (plottingSystem != null) {
-     		plottingSystem.dispose();
+       		if( !plottingSystem.isDisposed() )
+       			plottingSystem.dispose();
      		plottingSystem = null;
      	}
      	imageTrace = null;
      	super.dispose();
+     	disposed = true;
+    	System.out.println("ImageEditor disposed");
     }
 
     @Override
@@ -1052,17 +1415,20 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 				psfAction.run();
 			}
 		} else if (event.getProperty() == EditorConstants.PREFERENCE_PSF_RADIUS) {
-			int currentPsfRadius = psf.getRadius();
-			if( currentPsfRadius == (Integer)event.getOldValue() ) {
-				updatePsfRadiusSlider((Integer)event.getNewValue());
-			}
+//			int currentPsfRadius = psf.getRadius();
+//			if( currentPsfRadius == (Integer)event.getOldValue() ) {
+//				updatePsfRadiusSlider((Integer)event.getNewValue());
+//			}
 		}
 	}
 
 	@Override
 	public void detectorPropertiesChanged(DetectorPropertyEvent evt) {
 		// TODO Auto-generated method stub
-		int a = 0;		
+		String property = evt.getPropertyName();
+		if ("Beam Center".equals(property)) {
+			drawBeamCentre();
+		}
 	}
 
 //	@Override
