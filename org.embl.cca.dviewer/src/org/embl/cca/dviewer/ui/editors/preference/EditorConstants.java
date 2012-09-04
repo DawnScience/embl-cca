@@ -17,6 +17,6 @@ package org.embl.cca.dviewer.ui.editors.preference;
  */
 public class EditorConstants {
 	public static final String PREFERENCE_DOWNSAMPLING_TYPE = "prefDownsamplingType";
-	public static final String PREFERENCE_APPLY_PSF  = "prefApplyPsf";
-	public static final String PREFERENCE_PSF_RADIUS  = "prefPsfRadius";
+	public static final String PREFERENCE_APPLY_PSF = "prefApplyPsf";
+	public static final String PREFERENCE_PSF_RADIUS = "prefPsfRadius";
 }
