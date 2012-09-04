@@ -22,5 +22,15 @@
              class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer">
        </initializer>
    </extension>
+   <extension
+         point="org.dawb.common.ui.toolPage">
+      <plotting_tool_page
+            class="org.embl.cca.dviewer.plotting.tools.PSFTool"
+            icon="icons/psf.png"
+            id="org.embl.cca.dviewer.plotting.tools.psfTool"
+            label="PSF"
+            tooltip="A tool for highlighting spots of images.">
+      </plotting_tool_page>
+   </extension>
 
 </plugin>
