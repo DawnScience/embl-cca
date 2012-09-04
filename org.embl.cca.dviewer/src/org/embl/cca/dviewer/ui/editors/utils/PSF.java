@@ -14,8 +14,14 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import org.eclipse.swt.graphics.Rectangle;
-import org.embl.cca.utils.imageviewer.QuickSort;
 import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
+import org.embl.cca.utils.sorting.ArrayAndIndexBI;
+import org.embl.cca.utils.sorting.ArrayAndIndexDI;
+import org.embl.cca.utils.sorting.ArrayAndIndexFI;
+import org.embl.cca.utils.sorting.ArrayAndIndexII;
+import org.embl.cca.utils.sorting.ArrayAndIndexLI;
+import org.embl.cca.utils.sorting.ArrayAndIndexSI;
+import org.embl.cca.utils.sorting.QuickSort;
 import org.slf4j.Logger;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
@@ -39,6 +45,10 @@ public class PSF {
 	protected float kernel[][];
 	protected int kernelCenter;
 
+	public PSF() {
+		this( 0 );
+	}
+
 	public PSF( int radius ) {
 		kernel = new float[0][0]; //Creating an empty kernel so we can synchronize with it
 		setRadius( radius );
@@ -46,8 +56,10 @@ public class PSF {
 
 	public void setRadius( int radius ) {
 		synchronized (kernel) {
-			this.radius = radius;
-			calculateGaussKernel();
+			if( this.radius != radius ) {
+				this.radius = radius;
+				calculateGaussKernel();
+			}
 		}
 	}
 
@@ -151,7 +163,8 @@ public class PSF {
 	}
 
 	protected int getTopAmountGoal( int pointAmount ) {
-		final int topAmountIdeal = (int) (14000000 / Math.pow( (float)radius * ( 5f / ( radius + 1 ) + 1 ), 2 )); //Value and formula by experience
+//		final int topAmountIdeal = (int) (14000000 / Math.pow( (float)radius * ( 5f / ( radius + 1 ) + 1 ), 2 )); //Value and formula by experience
+		final int topAmountIdeal = (int) (pointAmount * 0.1f ); //Value and formula by experience
 		final int topAmountGoal = Math.min( topAmountIdeal, pointAmount );
 		return topAmountGoal;
 	}
@@ -191,8 +204,11 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexBI result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
+		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 		topFromValue = sortedData[ topFrom ]; 
@@ -267,8 +283,11 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexSI result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
+		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 		topFromValue = sortedData[ topFrom ]; 
@@ -343,10 +362,13 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexII result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		int topFrom = result.getIndex();
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -419,8 +441,11 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexLI result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
+		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 		topFromValue = sortedData[ topFrom ]; 
@@ -495,8 +520,11 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexFI result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
+		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 		topFromValue = sortedData[ topFrom ]; 
@@ -571,8 +599,11 @@ public class PSF {
 		long t1 = System.nanoTime();
 		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
-		int topFrom = rectData.length - topAmount;
-		sortedData = QuickSort.sortTop( rectData, topFrom );
+//		int topFrom = rectData.length - topAmount;
+//		sortedData = QuickSort.sortTop( rectData, topFrom );
+		ArrayAndIndexDI result = QuickSort.sortFromValue( rectData, 200 );
+		sortedData = result.getArray();
+		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 		topFromValue = sortedData[ topFrom ]; 
