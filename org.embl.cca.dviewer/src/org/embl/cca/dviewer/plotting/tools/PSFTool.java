@@ -1,6 +1,5 @@
 package org.embl.cca.dviewer.plotting.tools;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 
 import org.dawb.common.ui.plot.tool.AbstractToolPage;
@@ -8,7 +7,6 @@ import org.dawb.common.ui.plot.trace.IImageTrace;
 import org.dawb.common.ui.plot.trace.ITrace;
 import org.dawb.common.ui.plot.trace.ITraceListener;
 import org.dawb.common.ui.plot.trace.TraceEvent;
-import org.dawb.workbench.plotting.preference.PlottingConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -24,18 +22,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Shell;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.ui.editors.preference.EditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
-import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PSF;
-import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.embl.cca.utils.ui.widget.SpinnerSlider;
-import org.embl.cca.utils.ui.widget.support.IndexAndValueConverter;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 
