@@ -483,7 +483,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     					System.out.println( "Too big! " + (int)xValues[0] + ", " + (int)yValues[0] );
     			}
     		}
-
+/*
     		@Override
     		protected void addRegion(IRegion region) {
     			if( getPlottingSystem().getRegion(region.getName()) == null ) {
@@ -491,7 +491,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 //    				getPlottingSystem().removeRegion(region);
     			}
     		}
-
+*/
     		@Override
     		public void regionAdded(RegionEvent evt) {
     			int a = 0;
