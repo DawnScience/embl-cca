@@ -456,11 +456,6 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     	infoPixelTool = new InfoPixelTool() {
     		@Override
     		public void roiDragged(ROIEvent evt) {
-				if(infoPixelRegionRemoved) {
-//					addRegion(xHair);
-//					addRegion(yHair);
-					infoPixelRegionRemoved = false;
-				}
     			IRegion region = (IRegion) evt.getSource();
     			RegionType rt = region.getRegionType();
     			if (rt == RegionType.POINT) {
@@ -471,7 +466,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			  	} else if( rt == RegionType.YAXIS_LINE ) {
     				yValues[0] = evt.getROI().getPointY();
 			  	}
-    			System.out.println("updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
+//    			System.out.println("updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
     			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
     				if( (int)xValues[0] < 0 || (int)yValues[0] < 0 )
     					System.out.println( "Too small! " + (int)xValues[0] + ", " + (int)yValues[0] );
