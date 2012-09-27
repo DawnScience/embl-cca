@@ -98,6 +98,7 @@ import org.eclipse.ui.part.Page;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.plotting.tools.PSFTool;
 import org.embl.cca.dviewer.ui.editors.preference.EditorConstants;
+import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
 import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.imageviewer.FilenameCaseInsensitiveComparator;
 import org.embl.cca.utils.imageviewer.MemoryImageEditorInput;
@@ -106,6 +107,7 @@ import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.embl.cca.utils.threading.TrackableRunnable;
+import org.embl.cca.utils.ui.widget.SpinnerSlider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,13 +177,14 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	private Label totalSliderImageLabel;
 	private Slider imageSlider;
+	private int imageSliderSelection;
 	private Text imageFilesWindowWidthText;
 	private int imageFilesWindowWidth; //aka batchAmount
 	private File[] allImageFiles;
 	private TreeSet<File> loadedImageFiles; //Indices in loadedImagesFiles which are loaded
 	boolean autoFollow;
 	Button imageFilesAutoLatestButton;
-	private Slider psfRadiusSlider;
+	private SpinnerSlider psfRadiusUI;
 	private Label psfRadiusSliderLabel;
 	ExecutableManager psfRadiusManager = null;
 
@@ -536,6 +539,14 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		//}  
 	}  
 */
+	private void updateSliderByUser( int sel ) {
+		if( imageSlider == null || imageSlider.isDisposed() )
+			return;
+		if( imageSliderSelection == sel )
+			return;
+		updateSlider( sel );
+	}
+
 	private void updateSlider( int sel ) {
 		if( imageSlider == null || imageSlider.isDisposed() )
 			return;
@@ -547,6 +558,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			try {  
 //			if( imageSlider.getSelection() == selection )
 //				return;
+				imageSliderSelection = selection;
 				imageFilesWindowWidth = imageSlider.getThumb();
 				imageSlider.setValues(selection, min, total+1, imageFilesWindowWidth, 1, Math.max(imageFilesWindowWidth, total/5));
 				totalSliderImageLabel.setText( "" + selection + "/" + total + "   ");
@@ -661,52 +673,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	}
 
 	private void updatePsfRadiusSlider(int sel) {
-		if (psfRadiusSlider == null || psfRadiusSlider.isDisposed())
+		if (psfRadiusUI == null || psfRadiusUI.isDisposed())
 			return;
-		synchronized (psfRadiusSlider) {
+		synchronized (psfRadiusUI) {
 	        psfTool.updatePSFRadius(sel);
-//			final int min = 1;
-//			final int max = 99;
-//			final int selection = Math.max(Math.min(sel, max + 1), min);
-//
-//			final int thumb = psfRadiusSlider.getThumb();
-//			psfRadiusSlider.setValues(selection, min, max + 1, thumb, 1,
-//					Math.max(thumb, (max-min) / 5));
-//			psfRadiusSliderLabel.setText("" + selection);
-//			psfRadiusSliderLabel.getParent().pack();
-//			if (originalSet == null)
-//				return;
-//
-//			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply PSF") {
-//				public IStatus runThis(IProgressMonitor monitor) {
-//					IStatus result = Status.CANCEL_STATUS;
-//					do {
-//						if (isAborting())
-//							break;
-//						psf.setRadius(selection);
-//						psfSet = originalSet.synchronizedCopy();
-//						psf.applyPSF(psfSet,
-//								new Rectangle(0, 0, originalSet.getShape()[1],
-//										originalSet.getShape()[0]));
-//						if (isAborting())
-//							break;
-//						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-//							public void run() {
-//								psfAction.run();
-//							}
-//						});
-//						result = Status.OK_STATUS;
-//					} while (false);
-//					if (isAborting()) {
-//						setAborted();
-//						return Status.CANCEL_STATUS;
-//					}
-//					return result;
-//				}
-//			};
-//			job.setUser(false);
-//			job.setPriority(Job.BUILD);
-//			psfRadiusManager = ExecutableManager.setRequest(job);
 		}
 	}
 	
@@ -719,6 +689,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		imageSlider = new Slider(sliderMain, SWT.HORIZONTAL);
 		imageSlider.setToolTipText("Image selector");
 		imageSlider.setThumb(imageFilesWindowWidth);
+		imageSliderSelection = imageSlider.getSelection();
 //		imageSlider.setBounds(115, 50, 25, 15);
 		totalSliderImageLabel = new Label(sliderMain, SWT.NONE);
 		totalSliderImageLabel.setToolTipText("Selected image/Number of images");
@@ -731,7 +702,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 					//setSelection does not trigger the Selection event because we are in Selection event here already,
 					onImageFilesAutoLatestButtonSelected(); //so we have to call it manually, which is lame.
 				}
-				updateSlider( imageSlider.getSelection() );
+				updateSliderByUser( imageSlider.getSelection() );
 			}
 		});
 		final Label imageFilesWindowWidthLabel = new Label(sliderMain, SWT.NONE);
@@ -768,19 +739,23 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			}
 		});
 
-		psfRadiusSlider = new Slider(sliderMain, SWT.HORIZONTAL);
-		psfRadiusSlider.setToolTipText("PSF radius selector");
-		psfRadiusSlider.setThumb(1);
-//		psfRadiusSlider.setBounds(115, 50, 25, 15);
+		psfRadiusUI = new SpinnerSlider(sliderMain, SWT.HORIZONTAL);
+		psfRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
+		psfRadiusUI.setToolTipText("PSF radius selector");
+//		psfRadiusUI.setThumb(1);
+		psfRadiusUI.setValues("PSF Radius", (Integer)EditorPreferenceHelper.getStoreValue(Activator.getDefault().getPreferenceStore(), EditorConstants.PREFERENCE_PSF_RADIUS),
+				1, 100, 0, 1, 10, 1, 10);
+//		psfRadiusUI.setBounds(115, 50, 25, 15);
 		psfRadiusSliderLabel = new Label(sliderMain, SWT.NONE);
 		psfRadiusSliderLabel.setToolTipText("Selected PSF radius");
 		psfRadiusSliderLabel.setText("0");
-		psfRadiusSlider.addSelectionListener(new SelectionAdapter() {
+		psfRadiusUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				updatePsfRadiusSlider( psfRadiusSlider.getSelection() );
+				updatePsfRadiusSlider( psfRadiusUI.getSelection() );
 			}
 		});
 		updatePsfRadiusSlider( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
+
 	}
 
 	protected IPath getPath( IEditorInput editorInput ) {
