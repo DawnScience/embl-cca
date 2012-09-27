@@ -1,0 +1,94 @@
+<?pde version="3.5"?>
+
+<product name="dViewer" uid="org.embl.cca.dviewer.product" id="org.embl.cca.dviewer.product.plugin.dViewer" application="org.eclipse.ui.ide.workbench" version="1.0.0" useFeatures="true" includeLaunchers="true">
+
+   <aboutInfo>
+      <image path="/org.embl.cca.dviewer.product.plugin/icons/Temp-48x48-icon.png"/>
+      <text>
+         Welcome to dViewer
+Copyright, 2010 - 2012 Diamond Light Source and ESRF
+
+Version 1.1 Pre-release
+
+This version of Data Analysis Workbench is licensed under
+the Eclipse Public License version 1.0.
+
+Please see the license file in the installation directory and 
+contact us if you cannot locate it. More details can be found at
+http://www.dawnsci.org
+
+Based on Eclipse, www.eclipse.org 
+Uses: Java, GEF, Log4J, Passerelle
+
+Diamond Light Source and ESRF are registered trade marks 
+All other trademarks are the property of their respective owners.
+      </text>
+   </aboutInfo>
+
+   <configIni use="default">
+   </configIni>
+
+   <launcherArgs>
+      <vmArgs>-Xms512m
+-XX:PermSize=128m
+-XX:MaxPermSize=256m
+-Djava.library.path=${project_loc:uk.ac.gda.libs}/lib/${target.os}-${target.arch}
+-Ddbconnect=config/dbconnect.ispyb.properties
+-Dentry=MyVisitsEntryPoint
+-DidaEmbedded=yes
+-Dcolour=on
+-Dosgi.locking=none
+-Dcom.isencia.require.file.source=true
+-Dpasserelle.workbench.version=1.0.0
+-Dorg.dawb.editor.h5.use.default=true</vmArgs>
+      <vmArgsLin>-Xmx2048m</vmArgsLin>
+      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
+-Xmx2048m</vmArgsMac>
+      <vmArgsSol>-Xmx2048m</vmArgsSol>
+   </launcherArgs>
+
+   <windowImages i16="/org.embl.cca.dviewer.product.plugin/icons/Temp-16x16-icon.png" i48="/org.embl.cca.dviewer.product.plugin/icons/Temp-48x48-icon.png"/>
+
+   <splash
+      location="org.embl.cca.dviewer.product.plugin"
+      startupProgressRect="0,245,600,15"
+      startupMessageRect="0,20,200,20"
+      startupForegroundColor="000000" />
+   <launcher name="dViewer">
+      <solaris/>
+      <win useIco="false">
+         <bmp/>
+      </win>
+   </launcher>
+
+
+   <vm>
+   </vm>
+
+   <license>
+        <url>http://www.apache.org/licenses/</url>
+        <text>
+   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+
+See the License for the specific language governing permissions and limitations under the License.
+         </text>
+   </license>
+
+   <plugins>
+   </plugins>
+
+   <features>
+      <feature id="org.embl.cca.dviewer.base.product.feature"/>
+   </features>
+
+   <configurations>
+      <plugin id="uk.ac.diamond.scisoft" autoStart="true" startLevel="0" />
+   </configurations>
+
+</product>
