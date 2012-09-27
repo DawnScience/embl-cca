@@ -24,7 +24,7 @@ import org.eclipse.ui.PlatformUI;
 public class ExecutableManager extends Thread {
 	protected Vector<TrackableRunnable> runnableQueue = new Vector<TrackableRunnable>();
 	protected Vector<TrackableJob> jobQueue = new Vector<TrackableJob>();
-	Boolean canReceiveRequest = true;
+	Boolean canReceiveRequest = true; //means there is no critical error objecting any new request
 	TrackableRunnable currentRun = null;
 	TrackableJob currentJob = null;
 	boolean abortCurrentRequest = false;
@@ -78,12 +78,14 @@ public class ExecutableManager extends Thread {
 			try {
 				if( runnableQueue.size() > 0 ) {
 					currentRun = runnableQueue.lastElement();
+//					System.out.println("ExecutableManager.run: runnableQueue.size=" + runnableQueue.size() + " (" + currentRun.toString() + ")");
 					runnableQueue.clear();
 					PlatformUI.getWorkbench().getDisplay().asyncExec(currentRun);
 					currentRun.waitForFinish();
 					currentRun = null;
 				} else {
 					currentJob = jobQueue.lastElement();
+//					System.out.println("ExecutableManager.run: jobQueue.size=" + jobQueue.size() + " (" + currentJob.toString() + ")");
 					jobQueue.clear();
 					currentJob.schedule();
 					currentJob.waitForFinish();

@@ -17,15 +17,21 @@ public class CommonThreading {
 	}
 
 	public static void execFromUIThreadNowOr(Runnable run, ExecMode execMode ) {
+//		System.out.println("CommonThreading.execFromUIThreadNowOr called (" + run.toString() + ")");
 		if (Display.getDefault().getThread() == Thread.currentThread()) {
+//			System.out.println("CommonThreading.execFromUIThreadNowOr: current thread! (" + run.toString() + ")");
 			run.run();
 		} else {
-			if( execMode == ExecMode.SYNC )
+//			System.out.println("CommonThreading.execFromUIThreadNowOr: NOT current thread! (" + run.toString() + ")");
+			if( execMode == ExecMode.SYNC ) {
+//				System.out.println("CommonThreading.execFromUIThreadNowOr: SYNC call (" + run.toString() + ")");
 				PlatformUI.getWorkbench().getDisplay().syncExec(run);
 //				Display.getDefault().syncExec(run);
-			else
+			} else {
+//				System.out.println("CommonThreading.execFromUIThreadNowOr: ASYNC call (" + run.toString() + ")");
 				PlatformUI.getWorkbench().getDisplay().asyncExec(run);
 //				Display.getDefault().asyncExec(run);
+			}
 		}
 	}
 
