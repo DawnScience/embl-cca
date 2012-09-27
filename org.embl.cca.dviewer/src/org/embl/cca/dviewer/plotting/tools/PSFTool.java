@@ -48,9 +48,9 @@ public class PSFTool extends AbstractToolPage {
 	Button saveSettingsUI;
 	Button resetSettingsUI;
 
-	PSF psf;
-	int PSFRadiusSelected;
-	boolean psfStateSelected;
+	protected PSF psf;
+	protected int PSFRadiusSelected;
+	protected boolean psfStateSelected;
 
 	IImageTrace image;
 	ITraceListener traceListener;
@@ -265,6 +265,14 @@ public class PSFTool extends AbstractToolPage {
 		}
 	}
 
+	public int getPSFRadiusSelected() {
+		return PSFRadiusSelected;
+	}
+
+	public boolean getPsfStateSelected() {
+		return psfStateSelected;
+	}
+
 	protected void PSFRadiusSelected() {
 		synchronized (psf) {
 			if (psfRadiusUI == null || psfRadiusUI.isDisposed())
@@ -328,16 +336,21 @@ public class PSFTool extends AbstractToolPage {
 						}
 						if (isAborting())
 							break;
+						Runnable run;
 						synchronized (psf) {
 							originalSet = originalSetJob;
 							psfSet = psfSetJob;
 							psf = psfJob;
-							CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+							run = new Runnable() {
 								public void run() {
-									imageJob.setData(!applyPSFJob ? originalSet : psfSet, image.getAxes(), false);
+									if( !isAborting() ) {
+										imageJob.setData(!applyPSFJob ? originalSet : psfSet, image.getAxes(), false);
+									}
 								}
-							});
+							};
 						}
+						//Must sync call outside of psf lock, else it can cause deadlock with another sync call to this method
+						CommonThreading.execFromUIThreadNowOrSynced(run);
 						result = Status.OK_STATUS;
 					} while (false);
 					if (isAborting()) {
