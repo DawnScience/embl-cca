@@ -1368,8 +1368,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	@Override
 	public boolean isApplicable(String filePath, String extension,
 			String perspectiveId) {
-		final String dviewerEnabled = "org.embl.cca.dviewer.enabled";
-		return System.getProperty(dviewerEnabled) != null && "true".equals(System.getProperty(dviewerEnabled));
+		return Boolean.getBoolean("org.embl.cca.dviewer.enabled");
 	}
 
 	@Override
