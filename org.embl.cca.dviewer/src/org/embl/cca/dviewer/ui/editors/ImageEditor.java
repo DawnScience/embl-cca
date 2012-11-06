@@ -1395,8 +1395,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	@Override
 	public void detectorPropertiesChanged(DetectorPropertyEvent evt) {
 		// TODO Auto-generated method stub
-		String property = evt.getPropertyName();
-		if ("Beam Center".equals(property)) {
+		if (evt.hasBeamCentreChanged()) {
 			drawBeamCentre();
 		}
 	}
