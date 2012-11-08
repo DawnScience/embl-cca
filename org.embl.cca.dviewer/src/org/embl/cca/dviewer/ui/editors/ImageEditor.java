@@ -987,7 +987,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	protected double[] getBeamCentreAndLength() {
 		double[] beamCentreAndLength;
 		if (detConfig != null) {
-			double[] beamLocation = detConfig.getBeamLocation();
+			double[] beamLocation = detConfig.getBeamCentreCoords();
 			int beamLocationLength = beamLocation.length;
 			beamCentreAndLength = Arrays.copyOf(beamLocation, beamLocationLength + 1);
 			beamCentreAndLength[ beamLocationLength ] = (1 + Math.sqrt(detConfig.getPx() * detConfig.getPx() + detConfig.getPy() * detConfig.getPy()) * 0.01);
@@ -1058,7 +1058,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			logger.error("Drawing resolution rings is not possible without metadata.");
 			return null;
 		}
-		int[] beamCentre = detConfig.pixelCoords(detConfig.getBeamPosition());
+		int[] beamCentre = detConfig.pixelCoords(detConfig.getBeamCentrePosition());
 		double radius = Resolution.circularResolutionRingRadius(detConfig, diffEnv, ring.getResolution());
 		DecimalFormat df = new DecimalFormat("#.00");
 		return drawRing(beamCentre, radius, radius+4.0, ring.getColour(), ring.getColour(), name, df.format(ring.getResolution())+"Å");
@@ -1088,7 +1088,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			double step = longestVector.length() / numberEvenSpacedRings; 
 			double d, twoThetaSpacing;
 			Vector3d toDetectorVector = new Vector3d();
-			Vector3d beamVector = detConfig.getBeamPosition();
+			Vector3d beamVector = detConfig.getBeamCentrePosition();
 			for (int i = 0; i < numberEvenSpacedRings - 1; i++) {
 				// increase the length of the vector by step.
 				longestVector.normalize();
