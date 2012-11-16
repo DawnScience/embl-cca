@@ -113,17 +113,16 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
+import uk.ac.diamond.scisoft.analysis.diffraction.DSpacing;
 import uk.ac.diamond.scisoft.analysis.diffraction.DetectorProperties;
 import uk.ac.diamond.scisoft.analysis.diffraction.DetectorPropertyEvent;
 import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.diffraction.IDetectorPropertyListener;
-import uk.ac.diamond.scisoft.analysis.diffraction.Resolution;
 import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.rcp.AnalysisRCPActivator;
 import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
-import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
 import uk.ac.diamond.scisoft.analysis.roi.ResolutionRing;
 import uk.ac.diamond.scisoft.analysis.roi.ResolutionRingList;
 import uk.ac.diamond.scisoft.analysis.roi.SectorROI;
@@ -476,7 +475,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     				if( (int)xValues[0] < originalSet.getShape()[1] && (int)yValues[0] < originalSet.getShape()[0] ) {
     					Object oriValue = originalSet.getObject(new int[] {(int)yValues[0], (int)xValues[0]});
 //    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-    	    			ROIBase rb = evt.getROI();
+//    	    			ROIBase rb = evt.getROI();
 //    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
 //    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
     					point.setText( String.format("x=%d y=%d oriValue=%s, res=%s",
@@ -497,12 +496,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 */
     		@Override
     		public void regionAdded(RegionEvent evt) {
-    			int a = 0;
     		}
 
     		@Override
     		public void regionRemoved(RegionEvent evt) {
-    			int a = 0;
     		}
 
     		@Override
@@ -1059,7 +1056,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			return null;
 		}
 		int[] beamCentre = detConfig.pixelCoords(detConfig.getBeamCentrePosition());
-		double radius = Resolution.circularResolutionRingRadius(detConfig, diffEnv, ring.getResolution());
+		double radius = DSpacing.radiusFromDSpacing(detConfig, diffEnv, ring.getResolution());
 		DecimalFormat df = new DecimalFormat("#.00");
 		return drawRing(beamCentre, radius, radius+4.0, ring.getColour(), ring.getColour(), name, df.format(ring.getResolution())+"Å");
 	}
@@ -1376,17 +1373,17 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		Object o = event.getOldValue();
 		if (event.getProperty() == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) {
 			DownsampleType currentDType = getDownsampleType(); 
-			if( currentDType != null && currentDType == DownsampleType.values()[ Integer.valueOf((String)event.getOldValue()) ])
+			if( currentDType != null && currentDType == DownsampleType.values()[ Integer.valueOf((String) o) ])
 				setDownsampleType(DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ]);
 		} else if (event.getProperty() == EditorConstants.PREFERENCE_APPLY_PSF) {
 			Boolean currentApplyPsf = psfAction.isChecked();
-			if( currentApplyPsf == (Boolean)event.getOldValue() ) {
+			if( currentApplyPsf == (Boolean) o) {
 				psfAction.setChecked((Boolean)event.getNewValue());
 				psfAction.run();
 			}
 		} else if (event.getProperty() == EditorConstants.PREFERENCE_PSF_RADIUS) {
 //			int currentPsfRadius = psf.getRadius();
-//			if( currentPsfRadius == (Integer)event.getOldValue() ) {
+//			if( currentPsfRadius == (Integer) o) {
 //				updatePsfRadiusSlider((Integer)event.getNewValue());
 //			}
 		}
