@@ -35,6 +35,8 @@ import org.dawb.common.ui.plot.region.IRegion.RegionType;
 import org.dawb.common.ui.plot.region.ROIEvent;
 import org.dawb.common.ui.plot.region.RegionEvent;
 import org.dawb.common.ui.plot.region.RegionUtils;
+import org.dawb.common.ui.plot.roi.ResolutionRing;
+import org.dawb.common.ui.plot.roi.ResolutionRingList;
 import org.dawb.common.ui.plot.tool.IToolPageSystem;
 import org.dawb.common.ui.plot.trace.IImageTrace;
 import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
@@ -123,8 +125,6 @@ import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.rcp.AnalysisRCPActivator;
 import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
-import uk.ac.diamond.scisoft.analysis.roi.ResolutionRing;
-import uk.ac.diamond.scisoft.analysis.roi.ResolutionRingList;
 import uk.ac.diamond.scisoft.analysis.roi.SectorROI;
 
 /**
