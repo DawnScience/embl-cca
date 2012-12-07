@@ -48,6 +48,7 @@ import org.dawb.common.ui.widgets.ActionBarWrapper;
 import org.dawb.workbench.plotting.system.swtxy.selection.AbstractSelectionRegion;
 import org.dawb.workbench.plotting.tools.InfoPixelLabelProvider;
 import org.dawb.workbench.plotting.tools.InfoPixelTool;
+import org.dawb.workbench.plotting.tools.InfoPixelTool2D;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -455,7 +456,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
 
-    	infoPixelTool = new InfoPixelTool() {
+    	infoPixelTool = new InfoPixelTool2D() {
     		@Override
     		public void roiDragged(ROIEvent evt) {
     			IRegion region = (IRegion) evt.getSource();
