@@ -10,7 +10,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            category="org.edna.workbench.preferences.root"
+            category="org.dawnsci.preferences.root"
             class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
             id="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
             name="dViewer preferences">
