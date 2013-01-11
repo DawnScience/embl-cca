@@ -55,6 +55,7 @@ public class PSFTool extends AbstractToolPage {
 	IImageTrace image;
 	ITraceListener traceListener;
 	ExecutableManager psfRadiusManager = null;
+	boolean imageUpdating = false;
 
 	/**
 	 * The objects which contain the image.
@@ -106,7 +107,8 @@ public class PSFTool extends AbstractToolPage {
 			@Override
 			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
-					imageUpdated( (IImageTrace)evt.getSource() );
+					if( !imageUpdating ) //Checking to avoid circular PSF applying
+						imageUpdated( (IImageTrace)evt.getSource() );
 				}
 			}
 		};
@@ -344,7 +346,9 @@ public class PSFTool extends AbstractToolPage {
 							run = new Runnable() {
 								public void run() {
 									if( !isAborting() ) {
+										imageUpdating = true;
 										imageJob.setData(!applyPSFJob ? originalSet : psfSet, image.getAxes(), false);
+										imageUpdating = false;
 									}
 								}
 							};
