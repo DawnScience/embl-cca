@@ -465,9 +465,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     				return;
     			}
     			if( rt == RegionType.XAXIS_LINE ) {
-    				xValues[0] = evt.getROI().getPointX();
+    				xValues[0] = (int)Math.round(evt.getROI().getPointX());
 			  	} else if( rt == RegionType.YAXIS_LINE ) {
-    				yValues[0] = evt.getROI().getPointY();
+			  		yValues[0] = (int)Math.round(evt.getROI().getPointY());
 			  	}
 //    			System.out.println("updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
     			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
