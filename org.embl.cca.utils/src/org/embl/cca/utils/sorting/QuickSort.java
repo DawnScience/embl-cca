@@ -102,7 +102,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int quickSortFromValue(byte arr[], int left, int right, int pivot) {
+	public static int quickSortFromValue(byte arr[], int left, int right, byte pivot) {
 	      int i = left, j = right;
 	      byte tmp;
 	 
@@ -176,7 +176,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int sortFromValueInItself(byte[] data, int pivot) {
+	public static int sortFromValueInItself(byte[] data, byte pivot) {
 		return QuickSort.quickSortFromValue(data, 0, data.length - 1, pivot);
 	}
 
@@ -187,7 +187,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return ArrayAndIndexBI containing the sorted array and the index of first element equal or greater than pivot.
 	 */
-	public static ArrayAndIndexBI sortFromValue(byte[] data, int pivot) {
+	public static ArrayAndIndexBI sortFromValue(byte[] data, byte pivot) {
 		ArrayAndIndexBI aai = new ArrayAndIndexBI();
 		aai.setArray( data.clone() );
 		aai.setIndex( QuickSort.quickSortFromValue(aai.getArray(), 0, aai.getArray().length - 1, pivot) );
@@ -274,7 +274,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int quickSortFromValue(short arr[], int left, int right, int pivot) {
+	public static int quickSortFromValue(short arr[], int left, int right, short pivot) {
 	      int i = left, j = right;
 	      short tmp;
 	 
@@ -348,7 +348,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int sortFromValueInItself(short[] data, int pivot) {
+	public static int sortFromValueInItself(short[] data, short pivot) {
 		return QuickSort.quickSortFromValue(data, 0, data.length - 1, pivot);
 	}
 
@@ -359,7 +359,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return ArrayAndIndexBI containing the sorted array and the index of first element equal or greater than pivot.
 	 */
-	public static ArrayAndIndexSI sortFromValue(short[] data, int pivot) {
+	public static ArrayAndIndexSI sortFromValue(short[] data, short pivot) {
 		ArrayAndIndexSI aai = new ArrayAndIndexSI();
 		aai.setArray( data.clone() );
 		aai.setIndex( QuickSort.quickSortFromValue(aai.getArray(), 0, aai.getArray().length - 1, pivot) );
@@ -618,7 +618,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int quickSortFromValue(long arr[], int left, int right, int pivot) {
+	public static int quickSortFromValue(long arr[], int left, int right, long pivot) {
 	      int i = left, j = right;
 	      long tmp;
 	 
@@ -692,7 +692,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int sortFromValueInItself(long[] data, int pivot) {
+	public static int sortFromValueInItself(long[] data, long pivot) {
 		return QuickSort.quickSortFromValue(data, 0, data.length - 1, pivot);
 	}
 
@@ -703,7 +703,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return ArrayAndIndexBI containing the sorted array and the index of first element equal or greater than pivot.
 	 */
-	public static ArrayAndIndexLI sortFromValue(long[] data, int pivot) {
+	public static ArrayAndIndexLI sortFromValue(long[] data, long pivot) {
 		ArrayAndIndexLI aai = new ArrayAndIndexLI();
 		aai.setArray( data.clone() );
 		aai.setIndex( QuickSort.quickSortFromValue(aai.getArray(), 0, aai.getArray().length - 1, pivot) );
@@ -790,7 +790,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int quickSortFromValue(float arr[], int left, int right, int pivot) {
+	public static int quickSortFromValue(float arr[], int left, int right, float pivot) {
 	      int i = left, j = right;
 	      float tmp;
 	 
@@ -864,7 +864,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int sortFromValueInItself(float[] data, int pivot) {
+	public static int sortFromValueInItself(float[] data, float pivot) {
 		return QuickSort.quickSortFromValue(data, 0, data.length - 1, pivot);
 	}
 
@@ -875,7 +875,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return ArrayAndIndexBI containing the sorted array and the index of first element equal or greater than pivot.
 	 */
-	public static ArrayAndIndexFI sortFromValue(float[] data, int pivot) {
+	public static ArrayAndIndexFI sortFromValue(float[] data, float pivot) {
 		ArrayAndIndexFI aai = new ArrayAndIndexFI();
 		aai.setArray( data.clone() );
 		aai.setIndex( QuickSort.quickSortFromValue(aai.getArray(), 0, aai.getArray().length - 1, pivot) );
@@ -962,7 +962,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int quickSortFromValue(double arr[], int left, int right, int pivot) {
+	public static int quickSortFromValue(double arr[], int left, int right, double pivot) {
 	      int i = left, j = right;
 	      double tmp;
 	 
@@ -1036,7 +1036,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return The index of first element equal or greater than pivot.
 	 */
-	public static int sortFromValueInItself(double[] data, int pivot) {
+	public static int sortFromValueInItself(double[] data, double pivot) {
 		return QuickSort.quickSortFromValue(data, 0, data.length - 1, pivot);
 	}
 
@@ -1047,7 +1047,7 @@ public class QuickSort {
 	 * @param pivot The minimum value in the array to sort equal or above it.
 	 * @return ArrayAndIndexBI containing the sorted array and the index of first element equal or greater than pivot.
 	 */
-	public static ArrayAndIndexDI sortFromValue(double[] data, int pivot) {
+	public static ArrayAndIndexDI sortFromValue(double[] data, double pivot) {
 		ArrayAndIndexDI aai = new ArrayAndIndexDI();
 		aai.setArray( data.clone() );
 		aai.setIndex( QuickSort.quickSortFromValue(aai.getArray(), 0, aai.getArray().length - 1, pivot) );

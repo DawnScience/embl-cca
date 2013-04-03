@@ -1,5 +1,6 @@
 package org.embl.cca.utils.imageviewer;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,26 +11,58 @@ import java.util.Map;
  * <p>
  * </p>
  *
- * @author  Gabor Naray
+ * @author Gábor Náray
  * @version 1.00 07/12/2011
  * @since   20111207
  */
 public class ConverterUtils {
+	final static String formatter = "%.2f";
 	public static String floatToString( float v ) {
 		String result = null;
 		if( (int)v != v )
-			result = Float.toString(v);
+			result = String.valueOf(v);
 		else
-			result = Integer.toString( (int)v );
+			result = String.valueOf( (int)v );
 		return result;
 	}
 
+	/**
+	 * @return String of float value, with default format (see formatter)
+	 */
+	public static String floatAsString( double v ) {
+		return String.format(formatter, v);
+	}
+
+	/**
+	 * @return String of double value, handling int value separately
+	 */
 	public static String doubleToString( double v ) {
 		String result = null;
 		if( (int)v != v )
-			result = Double.toString(v);
+			result = String.valueOf(v);
 		else
-			result = Integer.toString( (int)v );
+			result = String.valueOf( (int)v );
+		return result;
+	}
+
+	/**
+	 * @return String of double value, with default format (see formatter)
+	 */
+	public static String doubleAsString( double v ) {
+		return String.format(formatter, v);
+	}
+
+	/**
+	 * @return String of double value, with default format (see formatter), filling with spaces at right side to form width characters
+	 */
+	public static String doubleAsStringAndRightFill( double v, int width ) {
+		String result = String.format(formatter, v);
+		int needWidth = width - result.length(); 
+		if( needWidth > 0 ) {
+			char[] arr = new char[needWidth];
+			Arrays.fill(arr, ' ');
+			result += new String(arr);
+		}
 		return result;
 	}
 

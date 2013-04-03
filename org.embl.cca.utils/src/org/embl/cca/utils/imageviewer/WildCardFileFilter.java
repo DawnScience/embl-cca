@@ -2,32 +2,34 @@ package org.embl.cca.utils.imageviewer;
 
 import java.io.*;
 import java.util.regex.*;
- 
+
 public class WildCardFileFilter implements FileFilter
 {
-    private String _pattern;
+	protected Pattern pattern;
  
-    public WildCardFileFilter(String pattern)
-    {
-        _pattern = pattern
-        		.replace("\\", "\\\\")
-        		.replace(".", "\\.")
-        		.replace("+", "\\+")
-        		.replace("(", "\\(")
-        		.replace(")", "\\)")
-        		.replace("^", "\\^")
-        		.replace("$", "\\$")
-        		.replace("{", "\\{")
-        		.replace("}", "\\}")
-        		.replace("[", "\\[")
-        		.replace("]", "\\]")
-        		.replace("|", "\\|")
-        		.replace("*", ".*")
-        		.replace("?", ".");
-    }
- 
-    public boolean accept(File file)
-    {
-    	return Pattern.compile(_pattern).matcher(file.getName()).find();
-    }
+	public WildCardFileFilter(String patternString, boolean escapedPattern) {
+		pattern = Pattern.compile( !escapedPattern ? patternString
+			.replace("\\", "\\\\")
+			.replace(".", "\\.")
+			.replace("+", "\\+")
+			.replace("(", "\\(")
+			.replace(")", "\\)")
+			.replace("^", "\\^")
+			.replace("$", "\\$")
+			.replace("{", "\\{")
+			.replace("}", "\\}")
+			.replace("[", "\\[")
+			.replace("]", "\\]")
+			.replace("|", "\\|")
+			.replace("*", ".*")
+			.replace("?", ".") : patternString);
+	}
+
+	public WildCardFileFilter(Pattern pattern) {
+		this.pattern = pattern;
+	}
+
+	public boolean accept(File file) {
+		return pattern.matcher(file.getName()).find();
+	}
 }

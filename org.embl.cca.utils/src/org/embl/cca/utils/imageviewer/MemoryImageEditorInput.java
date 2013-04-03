@@ -1,13 +1,58 @@
 package org.embl.cca.utils.imageviewer;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Random;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.model.IWorkbenchAdapter;
+import org.embl.cca.utils.datahandling.FileEditorInput;
 
 public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEditorInput {
+	/**
+	 * The workbench adapter which simply provides the label.
+	 *
+	 * @since 3.3
+	 */
+	protected static class WorkbenchAdapter implements IWorkbenchAdapter {
+		/*
+		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getChildren(java.lang.Object)
+		 */
+		@Override
+		public Object[] getChildren(Object o) {
+			return null;
+		}
+
+		/*
+		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getImageDescriptor(java.lang.Object)
+		 */
+		@Override
+		public ImageDescriptor getImageDescriptor(Object object) {
+			return null;
+		}
+
+		/*
+		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getLabel(java.lang.Object)
+		 */
+		@Override
+		public String getLabel(Object o) {
+			return ((MemoryImageEditorInput) o).getName();
+		}
+
+		/*
+		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getParent(java.lang.Object)
+		 */
+		@Override
+		public Object getParent(Object o) {
+			return null;
+		}
+	}
+
+	protected WorkbenchAdapter workbenchAdapter = new WorkbenchAdapter();
 	String name;
 
 	public MemoryImageEditorInput(String name, int width, int height, float [] data) {
@@ -15,8 +60,16 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 		this.name = name;
 	}
 
+	public MemoryImageEditorInput(String name, int width, int height, float [] data, boolean createRandomFilename) {
+		this( name + (createRandomFilename ?  "-" + new Random().nextInt(Integer.MAX_VALUE) : ""), width, height, data );
+	}
+
 	public MemoryImageEditorInput(String name, int width, int height, float [] data, int offset) {
 		this( name, width, height, Arrays.copyOfRange( data, offset, offset + width * height ) );
+	}
+
+	public MemoryImageEditorInput(String name, int width, int height, float [] data, int offset, boolean createRandomFilename) {
+		this( name, width, height, Arrays.copyOfRange( data, offset, offset + width * height ), createRandomFilename );
 	}
 
 	public MemoryImageEditorInput getSelectedArea( Rectangle selection ) {
@@ -33,7 +86,7 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 			}
 			s = sj + width;
 		}
-		return new MemoryImageEditorInput( name, constrained.width, constrained.height, newData );
+		return new MemoryImageEditorInput( name, constrained.width, constrained.height, newData, true );
 	}
 	
 	@Override
@@ -52,9 +105,15 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 	 *    or <code>null</code> if this object does not
 	 *    have an adapter for the given class
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(Class adapter) {
-		return null;
+		if (IWorkbenchAdapter.class.equals(adapter))
+			return workbenchAdapter;
+		if( adapter.isAssignableFrom(File.class)) { //adapter <= File
+			return new File("/memory.img");
+		}
+		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}
 
 	/**
