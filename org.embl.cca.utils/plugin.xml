@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <!-- Phase 1 -->
+   <!-- Declare the view part to hold the default implementation --> 
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="uk.ac.diamond.scisoft.analysis.rcp"
+            class="org.embl.cca.utils.datahandling.explorer.FileView"
+            icon="icons/folder.gif"
+            id="org.embl.cca.utils.datahandling.explorer.FileView"
+            name="EMBL File Navigator"
+            restorable="true">
+      </view>
+   </extension>
+
+</plugin>
