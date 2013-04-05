@@ -49,7 +49,8 @@ public class PSFTool extends AbstractToolPage {
 	Button resetSettingsUI;
 
 	protected PSF psf;
-	protected int PSFRadiusSelected;
+	protected int psfRadiusSelected;
+	protected double psfMinValueSelected;
 	protected boolean psfStateSelected;
 
 	IImageTrace image;
@@ -107,6 +108,7 @@ public class PSFTool extends AbstractToolPage {
 			@Override
 			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
+					System.out.println("PSFTool: ImageTrace updated!!!");
 					if( !imageUpdating ) //Checking to avoid circular PSF applying
 						imageUpdated( (IImageTrace)evt.getSource() );
 				}
@@ -127,15 +129,15 @@ public class PSFTool extends AbstractToolPage {
 		composite.setLayout(new GridLayout(1, false));
 		final IImageTrace image = getImageTrace();
 		if (image!=null) {
-			composite.setText("PSFing '"+image.getName()+"'");
+			composite.setText(PSF.featureName + "ing '"+image.getName()+"'");
 		} else {
-			composite.setText("PSFing ");
+			composite.setText(PSF.featureName + "ing ");
 		}
 
 		applyPSFUI = new Button(composite, SWT.TOGGLE );
 		applyPSFUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-		applyPSFUI.setText("Apply PSF");
-		applyPSFUI.setToolTipText("Apply PointSpreadFunction (PSF) on the image");
+		applyPSFUI.setText("Apply " + PSF.featureName);
+		applyPSFUI.setToolTipText("Apply " + PSF.featureFullName + " (" + PSF.featureName + ") on the image");
 		applyPSFUI.setImage(Activator.getImage("/icons/psf.png"));
 		applyPSFUI.setSelection((Boolean)EditorPreferenceHelper.getStoreValue(preferenceStore, EditorConstants.PREFERENCE_APPLY_PSF));
 		applyPSFUI.addSelectionListener(new SelectionAdapter() {
@@ -150,20 +152,20 @@ public class PSFTool extends AbstractToolPage {
 
 		psfRadiusUI = new SpinnerSlider( buttons, SWT.None );
 		psfRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1));
-		psfRadiusUI.setToolTipText("PSF Radius");
-		psfRadiusUI.setValues("PSF Radius", (Integer)EditorPreferenceHelper.getStoreValue(preferenceStore, EditorConstants.PREFERENCE_PSF_RADIUS),
+		psfRadiusUI.setToolTipText(PSF.featureName + " Radius");
+		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(preferenceStore, EditorConstants.PREFERENCE_PSF_RADIUS),
 				1, 100, 0, 1, 10, 1, 10);
 		psfRadiusUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				if(applyPSFUI.getSelection())
-					PSFRadiusSelected();
+					psfRadiusSelected();
 	    	}
         });
 
         saveSettingsUI = new Button(buttons, SWT.PUSH);
 		saveSettingsUI.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		saveSettingsUI.setText("Save settings");
-		saveSettingsUI.setToolTipText("Save PointSpreadFunction (PSF) settings");
+		saveSettingsUI.setToolTipText("Save " + PSF.featureFullName + " (" + PSF.featureName + ") settings");
 		saveSettingsUI.setImage(Activator.getImage("icons/apply.gif"));
 		saveSettingsUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -175,7 +177,7 @@ public class PSFTool extends AbstractToolPage {
         resetSettingsUI = new Button(buttons, SWT.PUSH);
         resetSettingsUI.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
         resetSettingsUI.setText("Reset settings");
-        resetSettingsUI.setToolTipText("Reset PointSpreadFunction (PSF) settings");
+        resetSettingsUI.setToolTipText("Reset " + PSF.featureFullName + " (" + PSF.featureName + ") settings");
         resetSettingsUI.setImage(Activator.getImage("icons/reset.gif"));
         resetSettingsUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -184,7 +186,7 @@ public class PSFTool extends AbstractToolPage {
 		});
         resetSettingsUI.setEnabled(true);
 
-        PSFRadiusSelected();
+        psfRadiusSelected();
 		psfStateSelected();
 //        traceListener.traceUpdated(new TraceEvent(image)); //Emulating the updating of trace
 	}
@@ -197,11 +199,11 @@ public class PSFTool extends AbstractToolPage {
 
 	protected void resetPSFSettings() {
 //		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		int oldPSFRadius = psfRadiusUI.getSelection();
+		int oldPSFRadius = psfRadiusUI.getSelectionAsInteger();
 //		EditorPreferenceHelper.setStoreValueByDefault( preferenceStore, EditorConstants.PREFERENCE_PSF_RADIUS );
 		psfRadiusUI.setSelection((Integer)EditorPreferenceHelper.getDefaultValue(EditorConstants.PREFERENCE_PSF_RADIUS));
-		if( oldPSFRadius != psfRadiusUI.getSelection() )
-			PSFRadiusSelected();
+		if( oldPSFRadius != psfRadiusUI.getSelectionAsInteger() )
+			psfRadiusSelected();
 		boolean oldApplyPSF = applyPSFUI.getSelection();
 //		EditorPreferenceHelper.setStoreValueByDefault( preferenceStore, EditorConstants.PREFERENCE_APPLY_PSF );
 		applyPSFUI.setSelection((Boolean)EditorPreferenceHelper.getDefaultValue(EditorConstants.PREFERENCE_APPLY_PSF));
@@ -263,29 +265,36 @@ public class PSFTool extends AbstractToolPage {
 	protected void imageUpdated( IImageTrace image ) {
 		synchronized (psf) {
 			originalSet = null;
-			updateImage(image);
+			final double min = image.getMin().doubleValue();
+			final double max = image.getMax().doubleValue(); //In real, max() is a (weird) mean
+			final double realMax = image.getData().max().doubleValue();
+			final double realMean = ((Number)image.getData().mean()).doubleValue();
+			final double ourMean = Math.min(Math.ceil(realMean * 6), realMax); //6 is an experimental number, should find out by algorithm
+			System.out.println( "createPlot min=" + min + ", max=" + max + ", realMax=" + realMax + ", realMean=" + realMean + ", ourMean=" + ourMean);
+			updatePSFMinValue(((Number)image.getMax()).doubleValue()); //FIXME Will be ourMean
+			//updateImage(image); //Instead of updateImage, we call updatePSFMinValue, which will call updateImage if necessary 
 		}
 	}
 
 	public int getPSFRadiusSelected() {
-		return PSFRadiusSelected;
+		return psfRadiusSelected;
 	}
 
 	public boolean getPsfStateSelected() {
 		return psfStateSelected;
 	}
 
-	protected void PSFRadiusSelected() {
+	protected void psfRadiusSelected() {
 		synchronized (psf) {
 			if (psfRadiusUI == null || psfRadiusUI.isDisposed())
 				return;
-			updatePSFRadius(psfRadiusUI.getSelection());
+			updatePSFRadius(psfRadiusUI.getSelectionAsInteger());
 		}
 	}
 	public void updatePSFRadius(final int psfRadius) {
-		if( PSFRadiusSelected == psfRadius )
+		if( psfRadiusSelected == psfRadius )
 			return;
-		PSFRadiusSelected = psfRadius;
+		psfRadiusSelected = psfRadius;
 		psfSet = null;
 		if( psfStateSelected )
 			updateImage(getImageTrace());
@@ -307,17 +316,27 @@ public class PSFTool extends AbstractToolPage {
 		updateImage(getImageTrace());
 	}
 
+	public void updatePSFMinValue(final double psfMinValue) {
+		if( psfMinValueSelected == psfMinValue )
+			return;
+		psfMinValueSelected = psfMinValue;
+		psfSet = null;
+		if( psfStateSelected )
+			updateImage(getImageTrace());
+	}
+
 	protected void updateImage(final IImageTrace image) {
 		if (image == null)
 			return;
 
 		synchronized (psf) {
-			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply PSF") {
+			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply " + PSF.featureName) {
 				AbstractDataset originalSetJob = originalSet;
 				AbstractDataset psfSetJob = psfSet;
 				PSF psfJob = psf;
 				final IImageTrace imageJob = image;
-				final int psfRadiusJob = PSFRadiusSelected;
+				final int psfRadiusJob = psfRadiusSelected;
+				final double psfMinValueJob = psfMinValueSelected;
 				final boolean applyPSFJob = psfStateSelected;
 				public IStatus runThis(IProgressMonitor monitor) {
 					IStatus result = Status.CANCEL_STATUS;
@@ -334,6 +353,7 @@ public class PSFTool extends AbstractToolPage {
 							long t1 = System.nanoTime();
 							System.out.println( "DEBUG: Copying data image took [msec]= " + ( t1 - t0 ) / 1000000 );
 							psfJob.setRadius(psfRadiusJob);
+							psfJob.setMinValue(psfMinValueJob);
 							psfJob.applyPSF(psfSetJob, new Rectangle(0, 0, originalSetJob.getShape()[1], originalSetJob.getShape()[0]));
 						}
 						if (isAborting())

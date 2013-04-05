@@ -41,17 +41,23 @@ import uk.ac.diamond.scisoft.analysis.dataset.ShortDataset;
  * @since   20120718
  */
 public class PSF {
+	public static final String featureName = "PHA";
+	public static final String featureFullName = "Point Highlighting Alghorithm";
+	public static final String featureIdentifierName = "pha";
+
 	protected int radius;
+	protected double minValue;
 	protected float kernel[][];
 	protected int kernelCenter;
 
 	public PSF() {
-		this( 0 );
+		this( 0, 0 );
 	}
 
-	public PSF( int radius ) {
+	public PSF( int radius, double minValue ) {
 		kernel = new float[0][0]; //Creating an empty kernel so we can synchronize with it
 		setRadius( radius );
+		setMinValue( minValue );
 	}
 
 	public void setRadius( int radius ) {
@@ -65,6 +71,18 @@ public class PSF {
 
 	public int getRadius() {
 		return radius;
+	}
+
+	public void setMinValue( double minValue ) {
+		synchronized (kernel) {
+			if( this.minValue != minValue ) {
+				this.minValue = minValue;
+			}
+		}
+	}
+
+	public double getMinValue() {
+		return minValue;
 	}
 
 	//	protected void calculateOrbKernel() {
@@ -180,6 +198,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final byte[] imageValues = dataSet.getData();
+		final byte minValueHere = minValue < Byte.MIN_VALUE ? Byte.MIN_VALUE : (minValue > Byte.MAX_VALUE ? Byte.MAX_VALUE : (byte)minValue);
 		final byte[] rectData = new byte[ constrained.width * constrained.height ];
 		final byte[] sortedData;
 		final byte topFromValue;
@@ -192,7 +211,7 @@ public class PSF {
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
 		long t0 = System.nanoTime();
-		//Copying data of selected rectangle, in the meantime calculating statistics
+		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
 			for( int i = constrained.x; i < iMax; i++ ) {
@@ -206,7 +225,7 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexBI result = QuickSort.sortFromValue( rectData, 200 );
+		ArrayAndIndexBI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
@@ -259,6 +278,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final short[] imageValues = dataSet.getData();
+		final short minValueHere = minValue < Short.MIN_VALUE ? Short.MIN_VALUE : (minValue > Short.MAX_VALUE ? Short.MAX_VALUE : (short)minValue);
 		final short[] rectData = new short[ constrained.width * constrained.height ];
 		final short[] sortedData;
 		final short topFromValue;
@@ -285,7 +305,7 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexSI result = QuickSort.sortFromValue( rectData, 200 );
+		ArrayAndIndexSI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
@@ -338,6 +358,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final int[] imageValues = dataSet.getData();
+		final int minValueHere = minValue < Integer.MIN_VALUE ? Integer.MIN_VALUE : (minValue > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)minValue);
 		final int[] rectData = new int[ constrained.width * constrained.height ];
 		final int[] sortedData;
 		final int topFromValue;
@@ -364,7 +385,7 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexII result = QuickSort.sortFromValue( rectData, 200 );
+		ArrayAndIndexII result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		long t2 = System.nanoTime();
 		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
@@ -417,6 +438,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final long[] imageValues = dataSet.getData();
+		final long minValueHere = minValue < Long.MIN_VALUE ? Long.MIN_VALUE : (minValue > Long.MAX_VALUE ? Long.MAX_VALUE : (long)minValue);
 		final long[] rectData = new long[ constrained.width * constrained.height ];
 		final long[] sortedData;
 		final long topFromValue;
@@ -443,7 +465,7 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexLI result = QuickSort.sortFromValue( rectData, 200 );
+		ArrayAndIndexLI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
@@ -496,6 +518,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final float[] imageValues = dataSet.getData();
+		final float minValueHere = minValue < Float.MIN_VALUE ? Float.MIN_VALUE : (minValue > Float.MAX_VALUE ? Float.MAX_VALUE : (float)minValue);
 		final float[] rectData = new float[ constrained.width * constrained.height ];
 		final float[] sortedData;
 		final float topFromValue;
@@ -522,7 +545,8 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexFI result = QuickSort.sortFromValue( rectData, 200 );
+		logger.debug( "getPSFPoints@float minValueHere=" + minValueHere);
+		ArrayAndIndexFI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
@@ -575,6 +599,7 @@ public class PSF {
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final double[] imageValues = dataSet.getData();
+		final double minValueHere = minValue;
 		final double[] rectData = new double[ constrained.width * constrained.height ];
 		final double[] sortedData;
 		final double topFromValue;
@@ -601,7 +626,7 @@ public class PSF {
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
-		ArrayAndIndexDI result = QuickSort.sortFromValue( rectData, 200 );
+		ArrayAndIndexDI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
 		long t2 = System.nanoTime();
@@ -665,7 +690,7 @@ public class PSF {
 			applyPSF((DoubleDataset)imageComponent, imageRect);
 			break;
 		default:
-			throw new RuntimeException( "PSF is not implemented for this image containing values of class " + imageComponent.elementClass().toString() );
+			throw new RuntimeException( PSF.featureName + " is not implemented for this image containing values of class " + imageComponent.elementClass().toString() );
 		}
 		long t1 = System.nanoTime();
 		System.out.println( "DEBUG: applyPSF took [msec]= " + ( t1 - t0 ) / 1000000 );

@@ -9,9 +9,6 @@
  */ 
 package org.embl.cca.dviewer.ui.editors.preference;
 
-import org.dawb.common.ui.image.PaletteFactory;
-import org.dawb.common.ui.plot.AbstractPlottingSystem;
-import org.dawb.common.ui.plot.trace.IImageTrace;
 import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
@@ -20,6 +17,7 @@ import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.embl.cca.dviewer.Activator;
+import org.embl.cca.dviewer.ui.editors.utils.PSF;
 
 
 /**
@@ -59,8 +57,8 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 		addField(new ComboFieldEditor(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE,
 				"&Downsampling type :", choices, getFieldEditorParent()));
 
-		addField(new BooleanFieldEditor(EditorConstants.PREFERENCE_APPLY_PSF, "Apply PSF", getFieldEditorParent()));
-		addField(new IntegerFieldEditor(EditorConstants.PREFERENCE_PSF_RADIUS, "PSF radius", getFieldEditorParent(), 2));
+		addField(new BooleanFieldEditor(EditorConstants.PREFERENCE_APPLY_PSF, "Apply " + PSF.featureName, getFieldEditorParent()));
+		addField(new IntegerFieldEditor(EditorConstants.PREFERENCE_PSF_RADIUS, PSF.featureName + " radius", getFieldEditorParent(), 2));
 	}
 
 	/*
