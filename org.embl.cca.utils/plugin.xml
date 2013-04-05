@@ -7,12 +7,142 @@
          point="org.eclipse.ui.views">
       <view
             category="uk.ac.diamond.scisoft.analysis.rcp"
-            class="org.embl.cca.utils.datahandling.explorer.FileView"
+            class="org.embl.cca.utils.ui.view.fileexplorer.FileView"
             icon="icons/folder.gif"
-            id="org.embl.cca.utils.datahandling.explorer.FileView"
-            name="EMBL File Navigator"
+            id="org.embl.cca.utils.ui.view.fileexplorer.FileView"
+            name="EMBL File Explorer"
             restorable="true">
       </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+         <page
+            category="uk.ac.diamond.scisoft.analysis.rcp.preferences.root"
+            class="org.embl.cca.utils.ui.view.fileexplorer.FileExplorerPreferencePage"
+            id="org.embl.cca.utils.ui.view.fileexplorer.rcp.fileExplorerPreferencePage"
+            name="EMBL File Explorer">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.embl.cca.utils.ui.view.fileexplorer.FileView">
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.openCommand"
+               label="Open"
+               style="push">
+         </command>
+         <separator
+               name="org.embl.cca.utils.ui.view.fileexplorer.separator1"
+               visible="true">
+         </separator>
+         <command
+               commandId="uk.ac.diamond.scisoft.analysis.rcp.contributions.openImageGridView"
+               label="Open in Image Grid"
+               style="push">
+         </command>
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.exploreros"
+               icon="icons/folder.png"
+               label="Open in File Explorer"
+               style="push">
+         </command>
+         <separator
+               name="org.embl.cca.utils.ui.view.fileexplorer.separator2"
+               visible="true">
+         </separator>
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.refresh"
+               icon="icons/refresh.gif"
+               label="Refresh"
+               style="push"
+               tooltip="Refresh file tree">
+         </command>
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.collapseAll"
+               icon="icons/CollapseAll.png"
+               label="Collapse All"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.embl.cca.utils.ui.view.fileexplorer.FileView">
+         <separator
+               name="org.embl.cca.utils.ui.view.fileexplorer.separator3"
+               visible="true">
+         </separator>
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.collapseAll"
+               icon="icons/CollapseAll.png"
+               label="Collapse All"
+               style="push">
+         </command>
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.refresh"
+               icon="icons/refresh.gif"
+               label="Refresh"
+               style="push"
+               tooltip="Refresh file tree">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.navigator.ProjectExplorer">
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.ReUseEditor"
+               icon="icons/clone_el.gif"
+               label="Re-use editor"
+               style="toggle"
+               tooltip="Enable/disable re-use editor">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.embl.cca.utils.ui.view.fileexplorer.FileView?after=additions">
+         <command
+               commandId="org.embl.cca.utils.ui.view.fileexplorer.showFileNavigatorPreferences"
+               label="Show preferences"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.views.OpenHandler"
+            id="org.embl.cca.utils.ui.view.fileexplorer.openCommand"
+            name="Open">
+      </command>
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.views.CollapseAllHandler"
+            id="org.embl.cca.utils.ui.view.fileexplorer.collapseAll"
+            name="Collapse All">
+      </command>
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.views.RefreshHandler"
+            id="org.embl.cca.utils.ui.view.fileexplorer.refresh"
+            name="Refresh">
+      </command>
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.actions.ReUseEditorHandler"
+            description="Enable/disable multi-editor use"
+            id="org.embl.cca.utils.ui.view.fileexplorer.ReUseEditor"
+            name="Re-use Editor">
+            <state class="org.eclipse.ui.handlers.RegistryToggleState:false"
+               id="org.eclipse.ui.commands.toggleState"/>
+      </command>
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.views.ExplorerOSHandler"
+            id="org.embl.cca.utils.ui.view.fileexplorer.exploreros"
+            name="Open in File Explorer">
+      </command>
+      <command
+            defaultHandler="uk.ac.diamond.sda.navigator.views.ShowPreferencesHandler"
+            id="org.embl.cca.utils.ui.view.fileexplorer.showFileNavigatorPreferences"
+            name="Show preferences">
+      </command>
    </extension>
 
 </plugin>

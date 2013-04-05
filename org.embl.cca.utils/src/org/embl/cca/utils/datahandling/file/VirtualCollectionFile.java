@@ -83,7 +83,7 @@ public class VirtualCollectionFile extends FileWithTag implements ICollectionFil
 	}
 
 	protected boolean isDifferentFiles(FileWithTag[] otherImageFiles ) {
-		return allFiles.equals(otherImageFiles);
+		return allFiles == null || allFiles.equals(otherImageFiles);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class VirtualCollectionFile extends FileWithTag implements ICollectionFil
 		String parentFolder = getParent();//getFilesOriginWithoutProtocol().removeLastSegments(1);
 		resultArray = listFiles(new FileWithTag(parentFolder), new PatternFileFilter(filenameTemplatePattern) );
 		if( resultArray == null )
-			throw new RuntimeException("The parent folder is not available: " + parentFolder);
+			resultArray = new FileWithTag[0];
 		Arrays.sort( resultArray, new FilenameCaseInsensitiveComparator() );
 		long currentTotalLength = 0;
 		int iSup = resultArray.length;
@@ -510,7 +510,7 @@ public class VirtualCollectionFile extends FileWithTag implements ICollectionFil
 
 	@Override
 	public boolean exists() {
-		return true; // TODO maybe add exists(int index) method
+		return !allFiles.isEmpty();
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package org.embl.cca.utils.datahandling.file;
 
+import java.io.FileNotFoundException;
 import java.util.Vector;
 
 import org.embl.cca.utils.datahandling.EFile;
@@ -145,4 +146,18 @@ public interface ICollectionFile {
 	 */
 	public int getIndexOfFile(String filePath);
 
+    /**
+     * Tests whether this collection file exists.
+     *
+     * @return  <code>true</code> if and only if the collection file exists;
+     * <code>false</code> otherwise.
+     * A collection file exists if it is emulated or at least one file of
+     * the collection is found (implies existing parent folder).
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method denies read access to the file or directory
+     */
+	public boolean exists();
 }
