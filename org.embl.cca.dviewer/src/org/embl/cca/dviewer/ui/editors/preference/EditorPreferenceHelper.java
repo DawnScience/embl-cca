@@ -2,7 +2,7 @@ package org.embl.cca.dviewer.ui.editors.preference;
 
 import java.util.Hashtable;
 
-import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
+import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 public class EditorPreferenceHelper {
