@@ -35,6 +35,12 @@
             label="PHA"
             tooltip="A tool for highlighting spots of images.">
       </plotting_tool_page>
+      <plotting_tool_page
+            class="org.embl.cca.dviewer.plotting.tools.DiffractionLineProfileTool"
+            icon="icons/plot-tool-line-profile.png"
+            id="org.embl.cca.dviewer.plotting.tools.diffractionLineProfile"
+            label="Diffraction Line Profile">
+      </plotting_tool_page>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
