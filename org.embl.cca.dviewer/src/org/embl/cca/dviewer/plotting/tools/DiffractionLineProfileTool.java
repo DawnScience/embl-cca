@@ -9,17 +9,16 @@ import java.util.Vector;
 import javax.vecmath.Vector3d;
 
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
-import org.dawb.common.ui.plot.annotation.AnnotationUtils;
-import org.dawb.common.ui.plot.annotation.IAnnotation;
-import org.dawb.common.ui.plot.region.IRegion;
-import org.dawb.common.ui.plot.region.IRegion.RegionType;
-import org.dawb.common.ui.plot.region.RegionUtils;
-import org.dawb.common.ui.plot.trace.IImageTrace;
-import org.dawb.common.ui.plot.trace.ILineTrace;
-import org.dawb.common.ui.plot.trace.ITrace;
-import org.dawb.common.ui.plot.trace.TraceUtils;
 import org.dawb.gda.extensions.loaders.H5Utils;
-//import org.dawb.hdf5.IHierarchicalDataFile;
+import org.dawnsci.plotting.api.annotation.AnnotationUtils;
+import org.dawnsci.plotting.api.annotation.IAnnotation;
+import org.dawnsci.plotting.api.region.IRegion;
+import org.dawnsci.plotting.api.region.IRegion.RegionType;
+import org.dawnsci.plotting.api.region.RegionUtils;
+import org.dawnsci.plotting.api.trace.IImageTrace;
+import org.dawnsci.plotting.api.trace.ILineTrace;
+import org.dawnsci.plotting.api.trace.ITrace;
+import org.dawnsci.plotting.api.trace.TraceUtils;
 import org.dawnsci.plotting.tools.fitting.FittedFunction;
 import org.dawnsci.plotting.tools.fitting.FittedFunctions;
 import org.dawnsci.plotting.tools.fitting.FittedPeaksInfo;
@@ -39,13 +38,14 @@ import org.embl.cca.dviewer.Activator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import ncsa.hdf.object.Group;
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
 import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
 import uk.ac.diamond.scisoft.analysis.roi.ROIProfile;
 import uk.ac.diamond.scisoft.analysis.roi.RectangularROI;
+//import org.dawb.hdf5.IHierarchicalDataFile;
+//import ncsa.hdf.object.Group;
 
 public class DiffractionLineProfileTool extends ProfileTool {
 
