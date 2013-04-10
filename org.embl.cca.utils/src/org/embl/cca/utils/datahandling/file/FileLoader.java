@@ -707,7 +707,7 @@ public class FileLoader {
 		final String filePath = imageFile.getAbsolutePathWithoutProtocol();
 		try {
 			ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
-			AbstractDataset set = service.getDataset(filePath);
+			AbstractDataset set = (AbstractDataset)service.getDataset(filePath);
 			if( set == null )
 				throw new IOException("The loader returned null dataset for file: " + imageFile.getAbsolutePath()); //should the loader throw an exception?
 			return set;

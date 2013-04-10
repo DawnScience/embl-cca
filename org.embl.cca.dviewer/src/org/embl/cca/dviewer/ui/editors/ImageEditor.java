@@ -752,7 +752,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     		public void roiDragged(ROIEvent evt) {
     			IRegion region = (IRegion) evt.getSource();
     			RegionType rt = region.getRegionType();
-    			ROIBase rb = evt.getROI();
+    			ROIBase rb = (ROIBase)evt.getROI();
     			if( rt == RegionType.XAXIS_LINE ) {
     				xValues[0] = evt.getROI().getPointX();
 			  	} else if( rt == RegionType.YAXIS_LINE ) {
