@@ -469,7 +469,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	public void doSaveAs() {
 		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs(imageTrace.getData(), imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs((AbstractDataset)imageTrace.getData(), imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
 		} while( false );
 	}
 
@@ -1821,7 +1821,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			beamCentreAndLength = Arrays.copyOf(beamLocation, beamLocationLength + 1);
 			beamCentreAndLength[ beamLocationLength ] = (1 + Math.sqrt(detConfig.getPx() * detConfig.getPx() + detConfig.getPy() * detConfig.getPy()) * beamCentrePercent / 100);
 		} else {
-			final AbstractDataset image = imageTrace.getData();
+			final AbstractDataset image = (AbstractDataset)imageTrace.getData();
 			beamCentreAndLength = new double[] { image.getShape()[1]/2d, image.getShape()[0]/2d, image.getShape()[1] * beamCentrePercent /100.0 };
 		}
 		return beamCentreAndLength;

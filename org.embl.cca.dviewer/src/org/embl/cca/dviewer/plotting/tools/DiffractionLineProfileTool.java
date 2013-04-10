@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
 import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
@@ -131,8 +132,8 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			for (ILineTrace selectedTrace : selectedTraces) {
 				
 				// We peak fit only the first of the data sets plotted for now.
-				AbstractDataset x  = selectedTrace.getXData();
-				AbstractDataset y  = selectedTrace.getYData();
+				AbstractDataset x  = (AbstractDataset)selectedTrace.getXData();
+				AbstractDataset y  = (AbstractDataset)selectedTrace.getYData();
 	
 				try {
 					final FittedFunctions bean = FittingUtils.getFittedPeaks(new FittedPeaksInfo(x, y, monitor, getPlottingSystem(), selectedTrace,10));
@@ -298,7 +299,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		if (!region.isVisible()) return;
 
 		if (monitor.isCanceled()) return;
-		AbstractDataset[] profileData = ROIProfile.line(image.getData(), image.getMask(), bounds, 1d, true);
+		AbstractDataset[] profileData = ROIProfile.line((AbstractDataset)image.getData(), (AbstractDataset)image.getMask(), bounds, 1d, true);
         if (profileData==null) return;
 
 		if (monitor.isCanceled()) return;
@@ -318,7 +319,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			
 		} else {
 			if (monitor.isCanceled()) return;
-			Collection<ITrace> plotted = profilePlottingSystem.updatePlot1D(indices, Arrays.asList(new AbstractDataset[]{intensity}), monitor);
+			Collection<ITrace> plotted = profilePlottingSystem.updatePlot1D(indices, Arrays.asList(new IDataset[]{intensity}), monitor);
 			registerTraces(region, plotted);
 			
 		}
@@ -347,7 +348,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			if (!region.isVisible())    continue;
 			if (!region.isUserRegion()) continue;
 			
-			AbstractDataset[] profileData = ROIProfile.line(slice.getData(), image.getMask(), (LinearROI)region.getROI(), 1d, false);
+			AbstractDataset[] profileData = ROIProfile.line((AbstractDataset)slice.getData(), (AbstractDataset)image.getMask(), (LinearROI)region.getROI(), 1d, false);
 			final AbstractDataset intensity = profileData[0];
 			intensity.setName(region.getName().replace(' ', '_'));
 			

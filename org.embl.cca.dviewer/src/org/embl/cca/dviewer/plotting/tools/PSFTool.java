@@ -344,7 +344,7 @@ public class PSFTool extends AbstractToolPage {
 						if (isAborting())
 							break;
 						if( originalSetJob == null ) {
-							originalSetJob = imageJob.getData();
+							originalSetJob = (AbstractDataset)imageJob.getData();
 							psfSetJob = null;
 						}
 						long t0 = System.nanoTime();

@@ -304,7 +304,7 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 			IDiffractionMetadata dmeta = null;
 			AbstractDataset set = null;
 			if (imageTrace!=null) {
-				set = imageTrace.getData();
+				set = (AbstractDataset)imageTrace.getData();
 				final IMetaData      meta = set.getMetadata();
 				if (meta instanceof IDiffractionMetadata) {
 	
