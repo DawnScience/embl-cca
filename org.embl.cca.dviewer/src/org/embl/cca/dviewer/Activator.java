@@ -23,7 +23,7 @@ public class Activator extends AbstractUIPlugin {
 	private static Activator plugin;
 
 	protected MxCuBeConnectionManager mxCuBeConnectionManager = null;
-	protected final static int DefaultPort = 7211;
+	protected final static int DefaultPort = -1;
 
 	/**
 	 * The constructor
@@ -97,7 +97,8 @@ public class Activator extends AbstractUIPlugin {
 			}
 			final int finalPort = port;
 			try {
-				mxCuBeConnectionManager = new MxCuBeConnectionManager(port, new MxCuBeMessageAndEventTranslator());
+				if( finalPort > 0 )
+					mxCuBeConnectionManager = new MxCuBeConnectionManager(port, new MxCuBeMessageAndEventTranslator());
 			} catch (final Exception e) {
 				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
 					public void run() {
