@@ -1,14 +1,13 @@
 package org.embl.cca.dviewer;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
-import org.embl.cca.utils.threading.CommonThreading;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -87,11 +86,9 @@ public class Activator extends AbstractUIPlugin {
 					try {
 						port = Integer.parseInt(arg.substring(portOption.length()));
 					} catch( final NumberFormatException e ) {
-						CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-							public void run() {
-								MessageDialog.openWarning(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "dViewer startup warning", "Using default port " + DefaultPort + " for socket listener because the specified port is not valid.\n" + e.getMessage());
-							}
-						});
+						// Important - this is the activator to an OSGI plugin you do not know 
+						// at what point it will be loaded. If this line was entered in the old way it caused a crash.
+						getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, "Using default port " + DefaultPort + " for socket listener because the specified port is not valid.", e));
 					}
 				}
 			}
@@ -99,11 +96,9 @@ public class Activator extends AbstractUIPlugin {
 			try {
 				mxCuBeConnectionManager = new MxCuBeConnectionManager(port, new MxCuBeMessageAndEventTranslator());
 			} catch (final Exception e) {
-				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-					public void run() {
-						MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "dViewer startup error", "Can not start socket listener on port " + finalPort + ".\n" + e.getMessage());
-					}
-				});
+				// Important - this is the activator to an OSGI plugin you do not know 
+				// at what point it will be loaded. If this line was entered in the old way it caused a crash.
+				getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, "Can not start socket listener on port " + finalPort + ".\n" + e.getMessage(), e));
 			}
 		}
 	}
