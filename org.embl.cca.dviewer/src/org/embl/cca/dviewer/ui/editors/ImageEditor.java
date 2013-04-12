@@ -39,6 +39,7 @@ import org.dawb.common.ui.plot.trace.TraceWillPlotEvent;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
+import org.dawb.workbench.ui.editors.PlotImageEditor;
 import org.dawnsci.plotting.draw2d.swtxy.selection.AbstractSelectionRegion;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
 import org.eclipse.core.resources.IFile;
@@ -77,13 +78,14 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
-import org.eclipse.ui.part.EditorPart;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.plotting.tools.InfoPixelTool;
 import org.embl.cca.dviewer.plotting.tools.PSFTool;
@@ -130,20 +132,17 @@ import uk.ac.diamond.sda.meta.page.IDiffractionMetadataCompositeListener;
 //import org.dawb.workbench.plotting.tools.InfoPixelTool;
 
 /**
- * ImageEditor
+ * An image editor which combines a plot with a graph of data sets.
  * 
- * @author Gábor Náray
- * 
- */
-/**
- * The <code>ImageEditor</code> class is an image editor extension.
- * <p>
+ * This <code>ImageEditor</code> extends EditorPart basically, but it is based on
+ * org.dawb.workbench.ui, and must satisfy requirements. Thus simpler to extend
+ * PlotImageEditor which is maintained much better.
  *
  * @author  Gábor Náray
  * @version 1.00 01/06/2012
  * @since   20120601
  */
-public class ImageEditor extends EditorPart implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener /*, MouseListener, IROIListener, IRegionListener*/
+public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener /*, MouseListener, IROIListener, IRegionListener*/
 	, IDetectorPropertyListener, IDiffractionCrystalEnvironmentListener, IDiffractionMetadataCompositeListener
 	, IFileLoaderListener, Disposable {
 	protected final static EnumSet<ImageEditorRemotedDisplayState> notPlayingSet = EnumSet.of(ImageEditorRemotedDisplayState.NOT_PLAYING_AND_REMOTE_UPDATED, ImageEditorRemotedDisplayState.NOT_PLAYING);
@@ -205,6 +204,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	// This view is a composite of two other views.
 	protected AbstractPlottingSystem plottingSystem;	
+	private final IReusableEditor parent; /* This is used for setting input in parent
+	in PlotImageEditor (for stacking), we currently ignore this feature. */
 	protected IImageTrace imageTrace;
 	private boolean editorInputChanged = false;
 	protected ImageEditorRemotedDisplayState imageEditorRemotedDisplayState;
@@ -296,13 +297,18 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	ITraceListener traceListener;
 
 	public ImageEditor() {
+		this(null);
+	}
+
+	public ImageEditor(IReusableEditor parent) {
+		this.parent = parent;
 //		resultDataset = new AbstractDatasetAndFileSet();
 		fileLoader = new FileLoader();
 		fileLoader.addFileLoaderListener(this);
 		try {
 //			psf = new PSF( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
-			this.plottingSystem = PlottingFactory.createPlottingSystem();
-			plottingSystem.setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
+			plottingSystem = PlottingFactory.createPlottingSystem();
+			getPlottingSystem().setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
 		} catch (Exception ne) {
 			logger.error("Cannot locate any plotting systems!", ne);
 		}
@@ -388,6 +394,12 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		setPartName(input.getName());
 	}
 
+	/**
+	 * Sets the input to this editor.
+	 * Comment: the best would be inheriting <code>setInput</code>, but it differs too
+	 * much in concept, so we can not use it.
+	 */
+	@Override
 	public void setInput(IEditorInput input) {
 //		updateInputIfFilePathEditorInput(input);
 		super.setInput(input);
@@ -413,10 +425,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		releaseDetConfig();
 		releaseDiffEnvConfig();
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
-       	if (plottingSystem != null) {
-       		if( !plottingSystem.isDisposed() ) {
-       			plottingSystem.removeTraceListener(traceListener); //Although its dispose clears listeners
-       			plottingSystem.dispose();
+       	if (getPlottingSystem() != null) {
+       		if( !getPlottingSystem().isDisposed() ) {
+       			getPlottingSystem().removeTraceListener(traceListener); //Although its dispose clears listeners
+       			super.dispose();
        		}
      		plottingSystem = null;
      	}
@@ -428,9 +440,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
     @Override
 	public void setFocus() {
-		if (plottingSystem!=null && plottingSystem.getPlotComposite()!=null) {
-			plottingSystem.setFocus();
-		}
+    	super.setFocus();
 	}
 
 	@Override
@@ -475,7 +485,6 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	@Override
 	public boolean isSaveAsAllowed() {
-//		return false;
 		return true;
 	}
 
@@ -532,7 +541,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 		psfTool = new PSFTool() {
 		};
-		psfTool.setPlottingSystem(plottingSystem);
+		psfTool.setPlottingSystem(getPlottingSystem());
 
 		imageFilesWindowWidth = 1;
 		/* Top line containing image selector sliders */
@@ -553,8 +562,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 		final MenuManager menuMan = new MenuManager();
 		final IActionBars bars = this.getEditorSite().getActionBars();
-		//If we specify toolMan, plottingSystem fills it with all tools, and must not modify it.
-		//If we do not specify toolMan, plottingSystem creates its own, so our toolMan can be modified,
+		//If we specify toolMan, getPlottingSystem() fills it with all tools, and must not modify it.
+		//If we do not specify toolMan, getPlottingSystem() creates its own, so our toolMan can be modified,
 		//but the main toolManager will also display the tools what we do not want.
 		ActionBarWrapper wrapper = new ActionBarWrapper(toolMan,menuMan,null,(IActionBars2)bars);
 //		ActionBarWrapper wrapper = new ActionBarWrapper(null, menuMan, null, (IActionBars2)bars);
@@ -563,8 +572,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		plotComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		plotComposite.setLayout(new FillLayout());
 
-		plottingSystem.createPlotPart(plotComposite, getEditorInput().getName(), wrapper, PlotType.IMAGE, this);
-		//FYI: plottingSystem.getPlotComposite() is not the plotComposite, it is the canvas on it (lame naming)
+		getPlottingSystem().createPlotPart(plotComposite, getEditorInput().getName(), wrapper, PlotType.IMAGE, this);
+		//FYI: getPlottingSystem().getPlotComposite() is not the plotComposite, it is the canvas on it (lame naming)
 
 		psfAction = new Action(PSF.featureName, IAction.AS_CHECK_BOX ) {
 			@Override
@@ -578,7 +587,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		psfAction.setImageDescriptor(Activator.getImageDescriptor("/icons/psf.png"));
 		psfAction.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(EditorConstants.PREFERENCE_APPLY_PSF));
 
-//        IPlotActionSystem actionsys = plottingSystem.getPlotActionSystem();
+//        IPlotActionSystem actionsys = getPlottingSystem().getPlotActionSystem();
 //        actionsys.fillZoomActions(toolMan);
 //        actionsys.fillRegionActions(toolMan);
 //        actionsys.fillToolActions(toolMan, ToolPageRole.ROLE_2D);
@@ -725,6 +734,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			toolMan.add(menuAction);
 		}
 
+//		toolMan.remove(IToolPage.PlotTool.REMOVE_ALL_REGIONS.getId()); //TODO Do we want to remove it for sure?
+//		toolMan.remove(IToolPage.PlotTool.SHOW_LEGEND.getId()); //TODO Probably can remove it, since SHOW_LEGEND is used for 1D
 		toolMan.remove("org.csstudio.swt.xygraph.undo.ZoomType.HORIZONTAL_ZOOM");
 		toolMan.remove("org.csstudio.swt.xygraph.undo.ZoomType.ZOOM_OUT");
 		toolMan.remove("org.csstudio.swt.xygraph.undo.ZoomType.RUBBERBAND_ZOOM");
@@ -739,9 +750,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		if (toolMan != null)
 			toolMan.update(true);
 
-		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
+		getEditorSite().setSelectionProvider(getPlottingSystem().getSelectionProvider());
 
-    	infoPixelTool = new InfoPixelTool(plottingSystem, 1.0) {
+    	infoPixelTool = new InfoPixelTool(getPlottingSystem(), 1.0) {
     		@Override
     		public void setVisible(boolean visible) {
     			super.setVisible(visible);
@@ -811,18 +822,18 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
     	};
 //    	infoPixelTool.createControl(top);
 
-//		infoPixelTool.setToolSystem(plottingSystem);
-//TODO    	infoPixelTool.setPlottingSystem(plottingSystem);
+//		infoPixelTool.setToolSystem(getPlottingSystem());
+//TODO    	infoPixelTool.setPlottingSystem(getPlottingSystem());
 //TODO		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8); //Resolution ID = 8
 //TODO		infoPixelToolLabelQ = new InfoPixelLabelProvider(infoPixelTool, 20); //Q vector = 8
 //TODO		infoPixelToolLabelQ.setQscale(1.0);
-//		infoPixelTool.setPart(plottingSystem.getPart());
+//		infoPixelTool.setPart(getPlottingSystem().getPart());
 
 
-//        plottingSystem.addRegionListener(this);
+//        getPlottingSystem().addRegionListener(this);
 
 		psfStateSelected();
-		plottingSystem.addTraceListener(traceListener);
+		getPlottingSystem().addTraceListener(traceListener);
         editorInputChanged();
    	}
 /*	//TODO
@@ -1579,6 +1590,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 			if( !remotedImageEditor || selectedDisplayImageByRemoteRequest )
 				updateSlider( getPath( getEditorInput() ) );
 		}
+		firePropertyChange(IEditorPart.PROP_INPUT); //TODO Should not fire it when createPartControl?
  	}
 
 	private void setDownsampleType(final DownsampleType downsampleType) {
@@ -1618,10 +1630,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		} catch( NullPointerException e ) {
 			logger.debug("Dataset has no minimum, maximum");
 		}
-		boolean imageCreation = plottingSystem.getTraces().size() == 0; //Dirty fix
-//		final ITrace trace = plottingSystem.updatePlot2D( set, null, monitor, editorInputChanged ); //PerformAuto = true => rehistogram on loading
+		boolean imageCreation = getPlottingSystem().getTraces().size() == 0; //Dirty fix
+//		final ITrace trace = getPlottingSystem().updatePlot2D( set, null, monitor, editorInputChanged ); //PerformAuto = true => rehistogram on loading
 //FIXME I want the 4 parameters updatePlot2D!
-		final ITrace trace = plottingSystem.updatePlot2D( set, null, monitor );
+		final ITrace trace = getPlottingSystem().updatePlot2D( set, null, monitor );
 		if (trace instanceof IImageTrace) {
 			imageTrace = (IImageTrace) trace;
 			double min;
@@ -1665,12 +1677,12 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 //		Number n = null;
 //		if( !editorInputChanged && imageTrace != null ) {
 //			//Next line is optimal solution (keeps intensity), but requires changes in DLS source
-////			plottingSystem.setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
+////			getPlottingSystem().setPlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, null );
 //			//This (updatePlot2D) would be the solution (for keeping intensity) by official DLS source, problem is it calculates and paints the image two times
 //			n = imageTrace.getMax();
 //		}
 //		long t0 = System.nanoTime();
-//		final ITrace trace = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
+//		final ITrace trace = getPlottingSystem().updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
 //		long t1 = System.nanoTime();
 //		logger.debug( "DEBUG: Update plot2D took [msec]= " + ( t1 - t0 ) / 1000000 );
 //		if (trace instanceof IImageTrace) {
@@ -1749,8 +1761,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
 			public void run() {
 //		        try {
-//					xHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer X", plottingSystem), IRegion.RegionType.XAXIS_LINE);
-//			        yHair = plottingSystem.createRegion(RegionUtils.getUniqueName("dViewer Y", plottingSystem), IRegion.RegionType.YAXIS_LINE);
+//					xHair = getPlottingSystem().createRegion(RegionUtils.getUniqueName("dViewer X", getPlottingSystem()), IRegion.RegionType.XAXIS_LINE);
+//			        yHair = getPlottingSystem().createRegion(RegionUtils.getUniqueName("dViewer Y", getPlottingSystem()), IRegion.RegionType.YAXIS_LINE);
 //				} catch (Exception ne) {
 //					logger.error("Cannot locate any plotting systems!", ne);
 //					xHair = null;
@@ -1767,9 +1779,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	protected void removeCrossHair() {
 //		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
 //			public void run() {
-//				plottingSystem.removeRegion(xHair);
+//				getPlottingSystem().removeRegion(xHair);
 //				xHair = null;
-//				plottingSystem.removeRegion(yHair);
+//				getPlottingSystem().removeRegion(yHair);
 //				yHair = null;
 //			}
 //		});
@@ -1779,9 +1791,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	protected IRegion drawBeamCentreCrosshairs(double[] beamCentre, double length, Color colour, Color labelColour, String nameStub, String labelText) {
 		IRegion region;
 		try {
-			final String regionName = RegionUtils.getUniqueName(nameStub, plottingSystem);
+			final String regionName = RegionUtils.getUniqueName(nameStub, getPlottingSystem());
 			//do not appear in lineprofile
-			region = plottingSystem.createRegion(regionName, RegionType.LINE);
+			region = getPlottingSystem().createRegion(regionName, RegionType.LINE);
 		} catch (Exception e) {
 			logger.error("Can't create region", e);
 			return null;
@@ -1804,7 +1816,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		region.setLabel("");//labelText);
 		((AbstractSelectionRegion)region).setShowLabel(true);
 
-		plottingSystem.addRegion(region);
+		getPlottingSystem().addRegion(region);
 		region.setMobile(false); // NOTE: Must be done **AFTER** calling the addRegion method.
 //		region.setLabel(label);  // NOTE: Must be done **AFTER** calling the addRegion method in order for the label colour to be used.
 
@@ -1829,7 +1841,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 
 	protected void drawBeamCentre() {
 		if (beamCentreRegion != null) {
-			plottingSystem.removeRegion(beamCentreRegion);
+			getPlottingSystem().removeRegion(beamCentreRegion);
 			beamCentreRegion = null;
 		}
 		if (beamCentre.isChecked()) { 
@@ -1845,7 +1857,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	 */
 	protected void removeRings(ArrayList<IRegion> regionList, ResolutionRingList resolutionRingList) {
 		for (IRegion region : regionList) {
-			plottingSystem.removeRegion(region);
+			getPlottingSystem().removeRegion(region);
 		}
 		regionList.clear();
 		resolutionRingList.clear();
@@ -1854,8 +1866,8 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 	protected IRegion drawRing(double[] beamCentre, double innerRadius, double outerRadius, Color colour, Color labelColour, String nameStub, String labelText) {
 		IRegion region;
 		try {
-			final String regionName = RegionUtils.getUniqueName(nameStub, plottingSystem);
-			region = plottingSystem.createRegion(regionName, RegionType.RING);
+			final String regionName = RegionUtils.getUniqueName(nameStub, getPlottingSystem());
+			region = getPlottingSystem().createRegion(regionName, RegionType.RING);
 		} catch (Exception e) {
 			logger.error("Can't create region", e);
 			return null;
@@ -1876,7 +1888,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		((AbstractSelectionRegion)region).setForegroundColor(labelColour);
 		
 		region.setShowPosition(false);
-		plottingSystem.addRegion(region);
+		getPlottingSystem().addRegion(region);
 		
 		return region;
 	}
@@ -2207,9 +2219,10 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		}
 	}
 
-    public AbstractPlottingSystem getPlottingSystem() {
-    	return this.plottingSystem;
-    }
+	@Override
+	public AbstractPlottingSystem getPlottingSystem() {
+		return plottingSystem;
+	}
 
 	@Override
 	public boolean isApplicable(String filePath, String extension,
@@ -2256,7 +2269,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 //		if ("Beam Center".equals(property)) {
 			if (beamCentre.isChecked()) {
 				beamCentre.setChecked(false);
-				plottingSystem.removeRegion(beamCentreRegion);
+				getPlottingSystem().removeRegion(beamCentreRegion);
 			}
 			else {
 				beamCentre.setChecked(true);
@@ -2265,6 +2278,9 @@ public class ImageEditor extends EditorPart implements IReusableEditor, IEditorE
 		}
 	}
 
+	/**
+	 * Property change listener for preference store.
+	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 //		Object o = event.getOldValue();
