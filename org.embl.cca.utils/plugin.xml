@@ -87,6 +87,7 @@
                tooltip="Refresh file tree">
          </command>
       </menuContribution>
+<!-- We do not need this while File Navigator contributes it, else it is duplicated in project explorer!
       <menuContribution
             allPopups="false"
             locationURI="toolbar:org.eclipse.ui.navigator.ProjectExplorer">
@@ -98,6 +99,7 @@
                tooltip="Enable/disable re-use editor">
          </command>
       </menuContribution>
+-->
       <menuContribution
             allPopups="false"
             locationURI="menu:org.embl.cca.utils.ui.view.fileexplorer.FileView?after=additions">
@@ -125,6 +127,7 @@
             id="org.embl.cca.utils.ui.view.fileexplorer.refresh"
             name="Refresh">
       </command>
+<!--
       <command
             defaultHandler="uk.ac.diamond.sda.navigator.actions.ReUseEditorHandler"
             description="Enable/disable multi-editor use"
@@ -133,6 +136,7 @@
             <state class="org.eclipse.ui.handlers.RegistryToggleState:false"
                id="org.eclipse.ui.commands.toggleState"/>
       </command>
+-->
       <command
             defaultHandler="uk.ac.diamond.sda.navigator.views.ExplorerOSHandler"
             id="org.embl.cca.utils.ui.view.fileexplorer.exploreros"
