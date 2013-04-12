@@ -13,15 +13,11 @@
          </property>
          <property
                name="startupForegroundColor"
-               value="000000">
+               value="FFFF00">
          </property>
          <property
                name="startupMessageRect"
-               value="0,20,200,20">
-         </property>
-         <property
-               name="startupProgressRect"
-               value="0,245,600,15">
+               value="10,10,200,20">
          </property>
          <property
                name="preferenceCustomization"
@@ -38,6 +34,10 @@
          <property
                name="aboutText"
                value="Welcome to dViewer&#x0A;Copyright, 2010 - 2012 Diamond Light Source and ESRF&#x0A;&#x0A;Version 1.1 Pre-release&#x0A;&#x0A;This version of Data Analysis Workbench is licensed under&#x0A;the Eclipse Public License version 1.0.&#x0A;&#x0A;Please see the license file in the installation directory and &#x0A;contact us if you cannot locate it. More details can be found at&#x0A;http://www.dawnsci.org&#x0A;&#x0A;Based on Eclipse, www.eclipse.org &#x0A;Uses: Java, GEF, Log4J, Passerelle&#x0A;&#x0A;Diamond Light Source and ESRF are registered trade marks &#x0A;All other trademarks are the property of their respective owners.">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="0,513,1224,15">
          </property>
       </product>
    </extension>
