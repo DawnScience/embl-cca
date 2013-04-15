@@ -30,16 +30,16 @@ import org.dawb.workbench.ui.editors.PlotImageEditor;
 import org.dawnsci.plotting.api.PlotType;
 import org.dawnsci.plotting.api.histogram.IImageService;
 import org.dawnsci.plotting.api.region.IRegion;
+import org.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.dawnsci.plotting.api.region.ROIEvent;
 import org.dawnsci.plotting.api.region.RegionEvent;
 import org.dawnsci.plotting.api.region.RegionUtils;
-import org.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.dawnsci.plotting.api.trace.IImageTrace;
+import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.dawnsci.plotting.api.trace.ITrace;
 import org.dawnsci.plotting.api.trace.ITraceListener;
 import org.dawnsci.plotting.api.trace.TraceEvent;
 import org.dawnsci.plotting.api.trace.TraceWillPlotEvent;
-import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.dawnsci.plotting.draw2d.swtxy.selection.AbstractSelectionRegion;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
 import org.eclipse.core.resources.IFile;
@@ -80,7 +80,6 @@ import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.PartInitException;
@@ -124,12 +123,11 @@ import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
 import uk.ac.diamond.scisoft.analysis.rcp.AnalysisRCPActivator;
 import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
+import uk.ac.diamond.scisoft.analysis.roi.IROI;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
-import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
 import uk.ac.diamond.scisoft.analysis.roi.SectorROI;
 import uk.ac.diamond.sda.meta.page.DiffractionMetadataCompositeEvent;
 import uk.ac.diamond.sda.meta.page.IDiffractionMetadataCompositeListener;
-//import org.dawb.workbench.plotting.tools.InfoPixelTool;
 
 /**
  * An image editor which combines a plot with a graph of data sets.
@@ -763,7 +761,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
     		public void roiDragged(ROIEvent evt) {
     			IRegion region = (IRegion) evt.getSource();
     			RegionType rt = region.getRegionType();
-    			ROIBase rb = (ROIBase)evt.getROI();
+    			IROI rb = evt.getROI();
     			if( rt == RegionType.XAXIS_LINE ) {
     				xValues[0] = evt.getROI().getPointX();
 			  	} else if( rt == RegionType.YAXIS_LINE ) {
