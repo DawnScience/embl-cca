@@ -90,7 +90,7 @@
 <!-- We do not need this while File Navigator contributes it, else it is duplicated in project explorer!
       <menuContribution
             allPopups="false"
-            locationURI="toolbar:org.eclipse.ui.navigator.ProjectExplorer">
+            locationURI="toolbar:org.embl.cca.utils.ui.view.fileexplorer.FileView">
          <command
                commandId="org.embl.cca.utils.ui.view.fileexplorer.ReUseEditor"
                icon="icons/clone_el.gif"

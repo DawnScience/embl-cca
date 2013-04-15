@@ -14,32 +14,32 @@ import java.util.StringTokenizer;
 
 import javax.vecmath.Vector3d;
 
-import org.dawb.common.services.IImageService;
 import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.editors.IEditorExtension;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
-import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
-import org.dawb.common.ui.plot.region.IRegion;
-import org.dawb.common.ui.plot.region.IRegion.RegionType;
-import org.dawb.common.ui.plot.region.ROIEvent;
-import org.dawb.common.ui.plot.region.RegionEvent;
-import org.dawb.common.ui.plot.region.RegionUtils;
 import org.dawb.common.ui.plot.roi.ResolutionRing;
 import org.dawb.common.ui.plot.roi.ResolutionRingList;
-import org.dawb.common.ui.plot.trace.IImageTrace;
-import org.dawb.common.ui.plot.trace.IImageTrace.DownsampleType;
-import org.dawb.common.ui.plot.trace.ITrace;
-import org.dawb.common.ui.plot.trace.ITraceListener;
-import org.dawb.common.ui.plot.trace.TraceEvent;
-import org.dawb.common.ui.plot.trace.TraceWillPlotEvent;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
 import org.dawb.workbench.ui.editors.PlotImageEditor;
+import org.dawnsci.plotting.api.PlotType;
+import org.dawnsci.plotting.api.histogram.IImageService;
+import org.dawnsci.plotting.api.region.IRegion;
+import org.dawnsci.plotting.api.region.ROIEvent;
+import org.dawnsci.plotting.api.region.RegionEvent;
+import org.dawnsci.plotting.api.region.RegionUtils;
+import org.dawnsci.plotting.api.region.IRegion.RegionType;
+import org.dawnsci.plotting.api.trace.IImageTrace;
+import org.dawnsci.plotting.api.trace.ITrace;
+import org.dawnsci.plotting.api.trace.ITraceListener;
+import org.dawnsci.plotting.api.trace.TraceEvent;
+import org.dawnsci.plotting.api.trace.TraceWillPlotEvent;
+import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.dawnsci.plotting.draw2d.swtxy.selection.AbstractSelectionRegion;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
 import org.eclipse.core.resources.IFile;
@@ -479,7 +479,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 	public void doSaveAs() {
 		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs(imageTrace.getData(), imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs((AbstractDataset)imageTrace.getData(), imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
 		} while( false );
 	}
 
@@ -763,7 +763,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
     		public void roiDragged(ROIEvent evt) {
     			IRegion region = (IRegion) evt.getSource();
     			RegionType rt = region.getRegionType();
-    			ROIBase rb = evt.getROI();
+    			ROIBase rb = (ROIBase)evt.getROI();
     			if( rt == RegionType.XAXIS_LINE ) {
     				xValues[0] = evt.getROI().getPointX();
 			  	} else if( rt == RegionType.YAXIS_LINE ) {
@@ -1833,7 +1833,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 			beamCentreAndLength = Arrays.copyOf(beamLocation, beamLocationLength + 1);
 			beamCentreAndLength[ beamLocationLength ] = (1 + Math.sqrt(detConfig.getPx() * detConfig.getPx() + detConfig.getPy() * detConfig.getPy()) * beamCentrePercent / 100);
 		} else {
-			final AbstractDataset image = imageTrace.getData();
+			final AbstractDataset image = (AbstractDataset)imageTrace.getData();
 			beamCentreAndLength = new double[] { image.getShape()[1]/2d, image.getShape()[0]/2d, image.getShape()[1] * beamCentrePercent /100.0 };
 		}
 		return beamCentreAndLength;

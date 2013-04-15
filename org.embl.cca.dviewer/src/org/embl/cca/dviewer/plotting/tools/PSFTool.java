@@ -2,11 +2,11 @@ package org.embl.cca.dviewer.plotting.tools;
 
 import java.util.Collection;
 
-import org.dawb.common.ui.plot.tool.AbstractToolPage;
-import org.dawb.common.ui.plot.trace.IImageTrace;
-import org.dawb.common.ui.plot.trace.ITrace;
-import org.dawb.common.ui.plot.trace.ITraceListener;
-import org.dawb.common.ui.plot.trace.TraceEvent;
+import org.dawnsci.plotting.api.tool.AbstractToolPage;
+import org.dawnsci.plotting.api.trace.IImageTrace;
+import org.dawnsci.plotting.api.trace.ITrace;
+import org.dawnsci.plotting.api.trace.ITraceListener;
+import org.dawnsci.plotting.api.trace.TraceEvent;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -344,7 +344,7 @@ public class PSFTool extends AbstractToolPage {
 						if (isAborting())
 							break;
 						if( originalSetJob == null ) {
-							originalSetJob = imageJob.getData();
+							originalSetJob = (AbstractDataset)imageJob.getData();
 							psfSetJob = null;
 						}
 						long t0 = System.nanoTime();
