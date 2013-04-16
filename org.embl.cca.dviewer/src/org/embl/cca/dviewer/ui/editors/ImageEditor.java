@@ -27,6 +27,7 @@ import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
 import org.dawb.workbench.ui.editors.PlotImageEditor;
+import org.dawnsci.mx.ui.editors.MXPlotImageEditor;
 import org.dawnsci.plotting.api.PlotType;
 import org.dawnsci.plotting.api.histogram.IImageService;
 import org.dawnsci.plotting.api.region.IRegion;
@@ -42,6 +43,7 @@ import org.dawnsci.plotting.api.trace.TraceWillPlotEvent;
 import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.dawnsci.plotting.draw2d.swtxy.selection.AbstractSelectionRegion;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
+import org.dawnsci.plotting.tools.diffraction.DiffractionImageAugmenter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.draw2d.ColorConstants;
@@ -142,8 +144,7 @@ import uk.ac.diamond.sda.meta.page.IDiffractionMetadataCompositeListener;
  * @version 1.00 01/06/2012
  * @since   20120601
  */
-public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener /*, MouseListener, IROIListener, IRegionListener*/
-	, IDetectorPropertyListener, IDiffractionCrystalEnvironmentListener, IDiffractionMetadataCompositeListener
+public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener /*, MouseListener, IROIListener, IRegionListener*/
 	, IFileLoaderListener, Disposable {
 	protected final static EnumSet<ImageEditorRemotedDisplayState> notPlayingSet = EnumSet.of(ImageEditorRemotedDisplayState.NOT_PLAYING_AND_REMOTE_UPDATED, ImageEditorRemotedDisplayState.NOT_PLAYING);
 	protected final static EnumSet<ImageEditorRemotedDisplayState> playingSet = EnumSet.complementOf(notPlayingSet);
@@ -202,10 +203,6 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 	final String saveAsId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAs";
 	final String saveAsOriginalId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAsOriginal";
 
-	// This view is a composite of two other views.
-	protected AbstractPlottingSystem plottingSystem;	
-	private final IReusableEditor parent; /* This is used for setting input in parent
-	in PlotImageEditor (for stacking), we currently ignore this feature. */
 	protected IImageTrace imageTrace;
 	private boolean editorInputChanged = false;
 	protected ImageEditorRemotedDisplayState imageEditorRemotedDisplayState;
@@ -301,17 +298,9 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 	}
 
 	public ImageEditor(IReusableEditor parent) {
-		this.parent = parent;
 //		resultDataset = new AbstractDatasetAndFileSet();
 		fileLoader = new FileLoader();
 		fileLoader.addFileLoaderListener(this);
-		try {
-//			psf = new PSF( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
-			plottingSystem = PlottingFactory.createPlottingSystem();
-			getPlottingSystem().setColorOption(ColorOption.NONE); //this for 1D, not used in this editor
-		} catch (Exception ne) {
-			logger.error("Cannot locate any plotting systems!", ne);
-		}
 		traceListener = new ITraceListener.Stub() {
 			@Override
 			public void traceWillPlot(TraceWillPlotEvent evt) {
@@ -391,7 +380,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 		}
 		setSite(site);
 		super.setInput(input); //Must not call this.setInput, because there must call editorInputChanged, and for that GUI must be ready which is not ready at this point
-		setPartName(input.getName());
+		setPartName("dViewer image");
 	}
 
 	/**
@@ -420,17 +409,13 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
     	}
     	logger.debug("DEBUG: ImageEditor disposing");
 
-		if( crossHairExists() )
-			removeCrossHair();
-		releaseDetConfig();
-		releaseDiffEnvConfig();
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
        	if (getPlottingSystem() != null) {
        		if( !getPlottingSystem().isDisposed() ) {
        			getPlottingSystem().removeTraceListener(traceListener); //Although its dispose clears listeners
        			super.dispose();
        		}
-     		plottingSystem = null;
+//     		plottingSystem = null;
      	}
      	imageTrace = null;
      	super.dispose();
@@ -609,7 +594,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 
 		MenuAction dropdown = new MenuAction("Resolution rings");
 		dropdown.setImageDescriptor(Activator.getImageDescriptor("/icons/resolution_rings.png"));
-
+/*
 		standardRings = new Action("Standard rings", Activator.getImageDescriptor("/icons/standard_rings.png")) {
 			@Override
 			public void run() {
@@ -644,6 +629,8 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 		dropdown.add(calibrantRings);
 		dropdown.add(beamCentre);
 
+*/
+		augmenter.addActions(dropdown);
 		toolMan.add(dropdown);
 
 		//The problem with this solution is it does not consider order of tools and separators
@@ -1723,277 +1710,23 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 			if( imageTrace == null ) { //TODO
 				int a = 0; }
 			imageTrace.setRescaleHistogram(false); //dViewer's default
-			if( !crossHairExists() )
-				addCrossHair();
 			if( !psfToolActivated() )
 				psfTool.activate();
 		} else {
-			if( crossHairExists() )
-				removeCrossHair();
 			if( psfToolActivated() )
 				psfTool.deactivate();
 			imageTrace = null;
 		}
+		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+			public void run() {
+				processMetadata(originalSet);
+			}
+		});
 		editorInputChanged = false;
 	}
 
 	protected boolean psfToolActivated() {
 		return psfTool != null && psfTool.isActive();
-	}
-
-//	protected void addRegion(String jobName, IRegion region) {
-//		region.setVisible(false);
-//		region.setTrackMouse(true);
-//		region.setRegionColor(ColorConstants.red);
-//		region.setUserRegion(false); // They cannot see preferences or change it!
-//		getPlottingSystem().addRegion(region);
-//		region.addMouseListener(this);
-//		region.setVisible(false);
-//		region.addROIListener(this);
-//	}
-
-	protected boolean crossHairExists() {
-//		return xHair != null && yHair != null;
-		return infoPixelTool != null && infoPixelTool.isActive();
-	}
-
-	protected void addCrossHair() {
-		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-			public void run() {
-//		        try {
-//					xHair = getPlottingSystem().createRegion(RegionUtils.getUniqueName("dViewer X", getPlottingSystem()), IRegion.RegionType.XAXIS_LINE);
-//			        yHair = getPlottingSystem().createRegion(RegionUtils.getUniqueName("dViewer Y", getPlottingSystem()), IRegion.RegionType.YAXIS_LINE);
-//				} catch (Exception ne) {
-//					logger.error("Cannot locate any plotting systems!", ne);
-//					xHair = null;
-//					yHair = null;
-//					return;
-//				}
-//	        	addRegion("Updating x cross hair", xHair);
-//	        	addRegion("Updating y cross hair", yHair);
-				infoPixelTool.activate();
-			}
-		});
-	}
-
-	protected void removeCrossHair() {
-//		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
-//			public void run() {
-//				getPlottingSystem().removeRegion(xHair);
-//				xHair = null;
-//				getPlottingSystem().removeRegion(yHair);
-//				yHair = null;
-//			}
-//		});
-		infoPixelTool.deactivate();
-	}
-
-	protected IRegion drawBeamCentreCrosshairs(double[] beamCentre, double length, Color colour, Color labelColour, String nameStub, String labelText) {
-		IRegion region;
-		try {
-			final String regionName = RegionUtils.getUniqueName(nameStub, getPlottingSystem());
-			//do not appear in lineprofile
-			region = getPlottingSystem().createRegion(regionName, RegionType.LINE);
-		} catch (Exception e) {
-			logger.error("Can't create region", e);
-			return null;
-		}
-
-		final LinearROI lroi = new LinearROI(length, 0);
-		double dbc[] = {(double)beamCentre[0], (double)beamCentre[1]};
-		lroi.setMidPoint(dbc);
-		lroi.setCrossHair(true);
-		region.setROI(lroi);
-		region.setRegionColor(colour);
-		region.setAlpha(100);
-		region.setUserRegion(false);
-		region.setShowPosition(false);
-
-//		org.eclipse.draw2d.Label label = new org.eclipse.draw2d.Label(labelText);
-//		label.setForegroundColor(labelColour);
-
-		//not to display label
-		region.setLabel("");//labelText);
-		((AbstractSelectionRegion)region).setShowLabel(true);
-
-		getPlottingSystem().addRegion(region);
-		region.setMobile(false); // NOTE: Must be done **AFTER** calling the addRegion method.
-//		region.setLabel(label);  // NOTE: Must be done **AFTER** calling the addRegion method in order for the label colour to be used.
-
-		return region;
-	}
-	
-	protected double[] getBeamCentreAndLength() {
-		final int beamCentrePercent = 3;
-		double[] beamCentreAndLength;
-		if (detConfig != null) {
-//			double[] beamLocation = detConfig.getBeamLocation();
-			double[] beamLocation = detConfig.getBeamCentreCoords();
-			int beamLocationLength = beamLocation.length;
-			beamCentreAndLength = Arrays.copyOf(beamLocation, beamLocationLength + 1);
-			beamCentreAndLength[ beamLocationLength ] = (1 + Math.sqrt(detConfig.getPx() * detConfig.getPx() + detConfig.getPy() * detConfig.getPy()) * beamCentrePercent / 100);
-		} else {
-			final AbstractDataset image = (AbstractDataset)imageTrace.getData();
-			beamCentreAndLength = new double[] { image.getShape()[1]/2d, image.getShape()[0]/2d, image.getShape()[1] * beamCentrePercent /100.0 };
-		}
-		return beamCentreAndLength;
-	}
-
-	protected void drawBeamCentre() {
-		if (beamCentreRegion != null) {
-			getPlottingSystem().removeRegion(beamCentreRegion);
-			beamCentreRegion = null;
-		}
-		if (beamCentre.isChecked()) { 
-			double[] beamCentreAndLength = getBeamCentreAndLength();
-			DecimalFormat df = new DecimalFormat("#.##");
-			String label = df.format(beamCentreAndLength[0]) + "px, " + df.format(beamCentreAndLength[1])+" py";
-	    	beamCentreRegion = drawBeamCentreCrosshairs(beamCentreAndLength, beamCentreAndLength[beamCentreAndLength.length - 1], ColorConstants.red, ColorConstants.black, "beam centre", label);
-		}
-	}
-
-	/*
-	 * handle ring drawing, removal and clearing
-	 */
-	protected void removeRings(ArrayList<IRegion> regionList, ResolutionRingList resolutionRingList) {
-		for (IRegion region : regionList) {
-			getPlottingSystem().removeRegion(region);
-		}
-		regionList.clear();
-		resolutionRingList.clear();
-	}
-	
-	protected IRegion drawRing(double[] beamCentre, double innerRadius, double outerRadius, Color colour, Color labelColour, String nameStub, String labelText) {
-		IRegion region;
-		try {
-			final String regionName = RegionUtils.getUniqueName(nameStub, getPlottingSystem());
-			region = getPlottingSystem().createRegion(regionName, RegionType.RING);
-		} catch (Exception e) {
-			logger.error("Can't create region", e);
-			return null;
-		}
-	    final SectorROI sroi = new SectorROI(innerRadius, outerRadius);
-	    sroi.setPoint(beamCentre[0], beamCentre[1]);
-		region.setROI(sroi);
-		region.setRegionColor(colour);
-		region.setAlpha(100);
-		region.setUserRegion(false);
-		region.setMobile(false);
-		
-//		org.eclipse.draw2d.Label label = new org.eclipse.draw2d.Label(labelText);
-//		label.setForegroundColor(labelColour);
-//		region.setLabel(label);
-		region.setLabel(labelText);
-		((AbstractSelectionRegion)region).setShowLabel(true);
-		((AbstractSelectionRegion)region).setForegroundColor(labelColour);
-		
-		region.setShowPosition(false);
-		getPlottingSystem().addRegion(region);
-		
-		return region;
-	}
-	
-	protected IRegion drawResolutionRing(ResolutionRing ring, String name) {
-		if( detConfig == null || diffEnv == null ) {
-			logger.error("Drawing resolution rings is not possible without metadata.");
-			return null;
-		}
-//		double[] beamCentre = detConfig.getBeamLocation();
-		double[] beamCentre = detConfig.getBeamCentreCoords();
-//		double radius = Resolution.circularResolutionRingRadius(detConfig, diffEnv, ring.getResolution());
-		double radius = DSpacing.radiusFromDSpacing(detConfig, diffEnv, ring.getResolution());
-		DecimalFormat df = new DecimalFormat("#.00");
-		return drawRing(beamCentre, radius, radius+4.0, ring.getColour(), ring.getColour(), name, df.format(ring.getResolution())+"Å");
-	}
-	
-	protected ArrayList<IRegion> drawResolutionRings(ResolutionRingList ringList, String typeName) {
-		ArrayList<IRegion> regions = new ArrayList<IRegion>(); 
-		for (int i = 0; i < ringList.size(); i++) {
-			IRegion region = drawResolutionRing(ringList.get(i), typeName+i);
-			if( region != null )
-				regions.add(region);
-		}
-		return regions;
-	}
-	
-	protected void drawStandardRings() {
-		if (standardRingsRegionList != null && standardRingsList != null)
-			removeRings(standardRingsRegionList, standardRingsList);
-		if (standardRings.isChecked() ) {
-			if( diffEnv == null || detConfig == null) {
-				logger.error("Drawing resolution rings is not possible without metadata.");
-				return;
-			}
-			standardRingsList = new ResolutionRingList();
-			Double numberEvenSpacedRings = 6.0;
-			double lambda = diffEnv.getWavelength();
-			Vector3d longestVector = detConfig.getLongestVector();
-			double step = longestVector.length() / numberEvenSpacedRings; 
-			double d, twoThetaSpacing;
-			Vector3d toDetectorVector = new Vector3d();
-//			Vector3d beamVector = detConfig.getBeamPosition();
-			Vector3d beamVector = detConfig.getBeamCentrePosition();
-//			double[] beamCentre = detConfig.getBeamCentreCoords();
-			for (int i = 0; i < numberEvenSpacedRings - 1; i++) {
-				// increase the length of the vector by step.
-				longestVector.normalize();
-				longestVector.scale(step + (step * i));
-	
-				toDetectorVector.add(beamVector, longestVector);
-				twoThetaSpacing = beamVector.angle(toDetectorVector);
-				d = lambda / Math.sin(twoThetaSpacing);
-				standardRingsList.add(new ResolutionRing(d, true, ColorConstants.yellow, false, true, true));
-			}
-			standardRingsRegionList = drawResolutionRings(standardRingsList, "standard");
-		}
-	}
-
-	protected void drawIceRings() {
-		if (iceRingsRegionList!=null && iceRingsList!=null)
-			removeRings(iceRingsRegionList, iceRingsList);
-		if (iceRings.isChecked()) {
-			iceRingsList = new ResolutionRingList();
-		
-			for (double res : iceResolution) {
-				iceRingsList.add(new ResolutionRing(res, true, ColorConstants.blue, true, false, false));
-			}
-			iceRingsRegionList = drawResolutionRings(iceRingsList, "ice");
-		}
-	}
-	
-	protected void drawCalibrantRings() {
-		if (calibrantRingsRegionList!=null && calibrantRingsList != null) {
-			removeRings(calibrantRingsRegionList, calibrantRingsList);
-		}
-		if (calibrantRings.isChecked()) {
-			calibrantRingsList = new ResolutionRingList();
-
-			IPreferenceStore preferenceStore = AnalysisRCPActivator.getDefault().getPreferenceStore();
-			@SuppressWarnings("unused")
-			String standardName;
-			if (preferenceStore.isDefault(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME))
-				standardName = preferenceStore.getDefaultString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME);
-			else
-				standardName = preferenceStore.getString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_NAME);
-
-			String standardDistances;
-			if (preferenceStore.isDefault(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES))
-				standardDistances = preferenceStore
-				.getDefaultString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES);
-			else
-				standardDistances = preferenceStore.getString(PreferenceConstants.DIFFRACTION_VIEWER_STANDARD_DISTANCES);
-
-			ArrayList<Double> dSpacing = new ArrayList<Double>();
-			StringTokenizer st = new StringTokenizer(standardDistances, ",");
-			while (st.hasMoreTokens()) {
-				String temp = st.nextToken();
-				dSpacing.add(Double.valueOf(temp));
-			}
-			for (double d : dSpacing) {
-				calibrantRingsList.add(new ResolutionRing(d, true, ColorConstants.red, true, false, false));
-			}
-			calibrantRingsRegionList = drawResolutionRings(calibrantRingsList, "calibrant");
-		}
 	}
 
 	//TODO later this could be built into PHA or else where the array is fully iterated
@@ -2028,14 +1761,6 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 			System.out.println("Dataset HashCode=" + hashCode);
 			IMetaData localMetaData = resultSet.getMetadata();
-			if( localMetaData instanceof IDiffractionMetadata ) {
-				localDiffractionMetaData = (IDiffractionMetadata)localMetaData;
-				captureDetConfig(localDiffractionMetaData.getDetector2DProperties());
-				captureDiffEnvConfig(localDiffractionMetaData.getDiffractionCrystalEnvironment());
-			} else {
-				releaseDetConfig();
-				releaseDiffEnvConfig();
-			}
 /* TODO Could implement something like this aborting when switching to NOT_PLAYING while loading in remote display mode,
    but have to be careful because for example at this point the file is loaded in fileloader, how to undo it?
    At the moment when opening image from remote display window, it loads the file found in fileloader, because
@@ -2046,6 +1771,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 //			if( remotedImageEditor && ImageEditorRemotedDisplayState.isNotPlaying(imageEditorRemotedDisplayState))
 //				return;
 			createPlot(resultSet, true, monitor);
+/*
 			logger.debug("Setting name to " + resultSet.getName());
 			if( fileLoader.getLoadedLength() > 0 ) { //Checking for sure
 				CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
@@ -2054,6 +1780,7 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 					}
 				});
 			}
+*/
 		}
 	}
 
@@ -2189,93 +1916,12 @@ public class ImageEditor extends PlotImageEditor implements IReusableEditor, IEd
 //		imageLoaderManager = ExecutableManager.setRequest(job);
 //	}
 
-	protected void captureDetConfig(DetectorProperties newDetConfig) {
-		if( newDetConfig != detConfig ) {
-			releaseDetConfig();
-			detConfig = newDetConfig;
-			detConfig.addDetectorPropertyListener(this);
-		}
-	}
-
-	protected void releaseDetConfig() {
-		if( detConfig != null ) {
-			detConfig.removeDetectorPropertyListener(this);
-			detConfig = null;
-		}
-	}
-
-	protected void captureDiffEnvConfig(DiffractionCrystalEnvironment newDiffEnv) {
-		if( newDiffEnv != diffEnv ) {
-			releaseDiffEnvConfig();
-			diffEnv = newDiffEnv;
-			diffEnv.addDiffractionCrystalEnvironmentListener(this);
-		}
-	}
-
-	protected void releaseDiffEnvConfig() {
-		if( diffEnv != null ) {
-			diffEnv.removeDiffractionCrystalEnvironmentListener(this);
-			diffEnv = null;
-		}
-	}
-
-	@Override
-	public AbstractPlottingSystem getPlottingSystem() {
-		return plottingSystem;
-	}
-
 	@Override
 	public boolean isApplicable(String filePath, String extension,
 			String perspectiveId) {
 //		IPreferenceStore preferenceStore = AnalysisRCPActivator.getDefault().getPreferenceStore();
 		final String dviewerEnabled = "org.embl.cca.dviewer.enabled";
 		return JavaSystem.getPropertyAsBoolean(dviewerEnabled);
-	}
-
-	@Override
-	public void detectorPropertiesChanged(DetectorPropertyEvent evt) {
-		if( evt.hasBeamCentreChanged() ) {
-//		String property = evt.getPropertyName();
-//		if ("Beam Center".equals(property)) {
-			drawBeamCentre();
-			drawStandardRings();
-			drawIceRings();
-			drawCalibrantRings();
-		}
-		else if( evt.hasOriginChanged() ) {
-//		else if ("Origin".equals(property)) {
-			drawBeamCentre();
-			drawStandardRings();
-			drawIceRings();
-			drawCalibrantRings();
-		}
-	}
-	
-	@Override
-	public void diffractionCrystalEnvironmentChanged(DiffractionCrystalEnvironmentEvent evt) {
-		if( evt.hasWavelengthChanged() ) {
-//		String property = evt.getPropertyName();
-//		if ("Wavelength".equals(property)) {
-			drawStandardRings();
-			drawIceRings();
-			drawCalibrantRings();
-		}
-	}
-
-	@Override
-	public void diffractionMetadataCompositeChanged(DiffractionMetadataCompositeEvent evt) {
-		if( evt.hasBeamCentreChanged() ) {
-//		String property = evt.getPropertyName();
-//		if ("Beam Center".equals(property)) {
-			if (beamCentre.isChecked()) {
-				beamCentre.setChecked(false);
-				getPlottingSystem().removeRegion(beamCentreRegion);
-			}
-			else {
-				beamCentre.setChecked(true);
-				drawBeamCentre();
-			}
-		}
 	}
 
 	/**
