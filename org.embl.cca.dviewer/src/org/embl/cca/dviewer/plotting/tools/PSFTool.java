@@ -7,6 +7,7 @@ import org.dawnsci.plotting.api.trace.IImageTrace;
 import org.dawnsci.plotting.api.trace.ITrace;
 import org.dawnsci.plotting.api.trace.ITraceListener;
 import org.dawnsci.plotting.api.trace.TraceEvent;
+import org.dawnsci.plotting.api.trace.TraceWillPlotEvent;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -66,45 +67,46 @@ public class PSFTool extends AbstractToolPage {
 	public PSFTool() {
 		psf = new PSF();
 		traceListener = new ITraceListener.Stub() {
-//			@Override
-//			public void tracesAltered(TraceEvent evt) {
+			@Override
+			public void traceWillPlot(TraceWillPlotEvent evt) {
+				// Does not all update(...) intentionally.
+			}
+
+			@Override
+			public void tracesUpdated(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void tracesCleared(TraceEvent evt) {
+			}
+
+			@Override
+			public void tracesRemoved(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void tracesPlotted(TraceEvent evt) {
+			}
+
+			@Override
+			public void tracesAdded(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void traceCreated(TraceEvent evt) {
+			}
+
+			@Override
+			public void traceCreated(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void traceUpdated(TraceEvent evt) {
+			}
+
+			@Override
+			public void traceUpdated(TraceEvent evt) {
+				update(evt);
+			}
+
+			@Override
+			public void traceAdded(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void traceAdded(TraceEvent evt) {
-//				if (evt.getSource() instanceof IImageTrace) {
-//					originalSet = null; 
-//					applyPSF(); //TODO
-//				}
+			}
+
+			@Override
+			public void traceRemoved(TraceEvent evt) {
 //				update(evt);
-//			}
-//
-//			@Override
-//			public void traceRemoved(TraceEvent evt) {
-//				update(evt);
-//			}
-//			
+			}
+
 			@Override
 			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
