@@ -5,7 +5,6 @@ import gda.analysis.io.ScanFileHolderException;
 import java.io.FileNotFoundException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -14,7 +13,6 @@ import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.editors.IEditorExtension;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
-import org.dawb.common.ui.plot.roi.ResolutionRingList;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
@@ -75,6 +73,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.part.MultiPageEditorSite;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.plotting.tools.InfoPixelTool;
 import org.embl.cca.dviewer.plotting.tools.PSFTool;
@@ -101,10 +100,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
-import uk.ac.diamond.scisoft.analysis.diffraction.DetectorProperties;
-import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
-import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
 import uk.ac.diamond.scisoft.analysis.roi.IROI;
@@ -180,16 +176,16 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	final String saveAsId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAs";
 	final String saveAsOriginalId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAsOriginal";
 
+	/**
+	 * In DAWN, ImageEditor can be also inserted into a MultiEditor, then it becomes a subEditor.
+	 * Currently our goal is using dViewer ImageEditor as a standalone editor, thus subEditor
+	 * should be usually false.
+	 */
+	protected boolean subEditor = false;
 	protected IImageTrace imageTrace;
 	private boolean editorInputChanged = false;
 	protected ImageEditorRemotedDisplayState imageEditorRemotedDisplayState;
-//	protected IPropertyChangeListener propertyChangeListener;
-//	protected IDetectorPropertyListener detectorPropertyListener;
-	IDiffractionMetadata localDiffractionMetaData;
-	DetectorProperties detConfig;
-	DiffractionCrystalEnvironment diffEnv;
 
-//	protected IRegion xHair, yHair;
 	protected InfoPixelTool infoPixelTool;
 //	protected double cursorImagePosX, cursorImagePosY; 
 	protected InfoPixelLabelProvider infoPixelToolLabelResolution;
@@ -226,27 +222,6 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //	ExecutableManager imageLoaderManager = null; //TODO will be removed soon
 	Thread imageFilesAutoLatestThread = null;
 
-	//Rings from MXPlotImageEditor [begin]
-	protected final static double[] iceResolution = new double[] { 3.897, 3.669, 3.441, 2.671, 2.249, 2.072, 1.948,
-		1.918, 1.883, 1.721 };// angstrom
-
-	// Standard rings
-	ResolutionRingList standardRingsList;
-	ArrayList<IRegion> standardRingsRegionList;
-
-	// Ice rings
-	ResolutionRingList iceRingsList;
-	ArrayList<IRegion> iceRingsRegionList;
-
-	// Calibrant rings
-	ResolutionRingList calibrantRingsList;
-	ArrayList<IRegion> calibrantRingsRegionList;
-
-	IRegion beamCentreRegion;
-
-	Action standardRings, iceRings, calibrantRings, beamCentre;
-	//Rings from MXPlotImageEditor [end]
-
 	protected Composite controlComposite = null;
 	private Text minValueText = null;
 //	private LogScale userMinimumScale = null;
@@ -275,6 +250,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 
 	public ImageEditor(IReusableEditor parent) {
+		super();
 //		resultDataset = new AbstractDatasetAndFileSet();
 		fileLoader = new FileLoader();
 		fileLoader.addFileLoaderListener(this);
@@ -347,6 +323,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+		if( site instanceof MultiPageEditorSite )
+			subEditor = true;
 //		if( updateInputIfFilePathEditorInput(input) )
 //			remotedImageEditor = true;
 		if( input instanceof FilePathEditorInput ) {
@@ -357,7 +335,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		}
 		setSite(site);
 		super.setInput(input); //Must not call this.setInput, because there must call editorInputChanged, and for that GUI must be ready which is not ready at this point
-		setPartName("dViewer image");
+		setPartName(getEditorInput().getName());
 	}
 
 	/**
@@ -464,9 +442,13 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 	@Override
 	public void setPartName(final String name) {
+		String flaggedName;
+		if( subEditor )
+			flaggedName = "dViewer image";
+		else
+			flaggedName = remotedImageEditor ? (selectedDisplayImageByRemoteRequest ? "▶" : "❙❙") + name : name;
 		//This works only at first, later does not, because the parent should listen
 		//to IWorkbenchPartConstants.PROP_PART_NAME and act accordingly.
-		String flaggedName = remotedImageEditor ? (selectedDisplayImageByRemoteRequest ? "▶" : "❙❙") + name : name;
 		super.setPartName(flaggedName); //Well, now it seems working, since calling it from fileIsReady
 	}
 
