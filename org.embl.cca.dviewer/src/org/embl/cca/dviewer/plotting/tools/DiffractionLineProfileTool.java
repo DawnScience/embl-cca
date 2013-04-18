@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
+import uk.ac.diamond.scisoft.analysis.roi.IROI;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
-import uk.ac.diamond.scisoft.analysis.roi.ROIBase;
 import uk.ac.diamond.scisoft.analysis.roi.ROIProfile;
 import uk.ac.diamond.scisoft.analysis.roi.RectangularROI;
 //import org.dawb.hdf5.IHierarchicalDataFile;
@@ -284,7 +284,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 	@Override
 	protected void createProfile(	IImageTrace  image, 
 						            IRegion      region, 
-						            ROIBase      rbs, 
+						            IROI         rbs, 
 						            boolean      tryUpdate,
 				                    boolean      isDrag,
 						            IProgressMonitor monitor) {
