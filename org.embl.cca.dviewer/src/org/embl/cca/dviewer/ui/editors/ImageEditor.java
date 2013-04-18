@@ -82,9 +82,12 @@ import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IPartService;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
@@ -99,6 +102,7 @@ import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 import org.embl.cca.utils.datahandling.file.IFileLoaderListener;
 import org.embl.cca.utils.datahandling.text.StringUtil;
+import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.imageviewer.ConverterUtils;
@@ -145,7 +149,7 @@ import uk.ac.diamond.sda.meta.page.IDiffractionMetadataCompositeListener;
  * @since   20120601
  */
 public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, IEditorExtension, IShowEditorInput, IPropertyChangeListener /*, MouseListener, IROIListener, IRegionListener*/
-	, IFileLoaderListener, Disposable {
+	, IFileLoaderListener, Disposable, IPartListener {
 	protected final static EnumSet<ImageEditorRemotedDisplayState> notPlayingSet = EnumSet.of(ImageEditorRemotedDisplayState.NOT_PLAYING_AND_REMOTE_UPDATED, ImageEditorRemotedDisplayState.NOT_PLAYING);
 	protected final static EnumSet<ImageEditorRemotedDisplayState> playingSet = EnumSet.complementOf(notPlayingSet);
 	protected final static EnumSet<ImageEditorRemotedDisplayState> notUpdatedSet = EnumSet.of(ImageEditorRemotedDisplayState.NOT_PLAYING, ImageEditorRemotedDisplayState.PLAYING);
@@ -306,7 +310,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			public void traceWillPlot(TraceWillPlotEvent evt) {
 				// Does not all update(...) intentionally.
 			}
-			
+
 			@Override
 			public void tracesUpdated(TraceEvent evt) {
 //				update(evt);
@@ -341,7 +345,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			public void traceRemoved(TraceEvent evt) {
 //				update(evt);
 			}
-			
+
 			@Override
 			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
@@ -409,6 +413,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
     	}
     	logger.debug("DEBUG: ImageEditor disposing");
 
+		IPartService service = (IPartService) getSite().getService(IPartService.class);
+		service.removePartListener(this);
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
        	if (getPlottingSystem() != null) {
        		if( !getPlottingSystem().isDisposed() ) {
@@ -821,8 +827,10 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 		psfStateSelected();
 		getPlottingSystem().addTraceListener(traceListener);
-        editorInputChanged();
-   	}
+		editorInputChanged();
+		IPartService service = (IPartService) getSite().getService(IPartService.class);
+		service.addPartListener(this);
+	}
 /*	//TODO
 	private void setThreshold() {
 		IMetaData md = data.getMetadata();
@@ -1115,7 +1123,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 				try {
 					updateBatchAmount( decimalFormat.parse( imageFilesWindowWidthText.getText() ).intValue() );
 				} catch (ParseException exc) {
-					logger.error("Unable to parse batch amount value: " + imageFilesWindowWidthText.getText(), exc);
+					ExceptionUtils.logError(logger, "Unable to parse batch amount value: " + imageFilesWindowWidthText.getText(), exc, this);
 				}
 			}
 		});
@@ -1161,7 +1169,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 					try {
 						CommonExtension.openEditor(EclipseUtils.getPage(), fPEI, ID, false, false);
 					} catch (Exception ex) { //PartInitException, and Exception from uk.ac.diamond.scisoft.analysis.rcp.editors.ImageEditor.createFile
-						logger.error("Can not open editor. " + ex.getMessage());
+						ExceptionUtils.logError(logger, "Can not open editor", ex, this);
 					}
 				}
 				@Override
@@ -1641,7 +1649,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 					min = stats[0];
 					max = stats[1]; //In real, max() is a (weird) mean
 				} catch (Exception ne) {
-					logger.error("Internal error cannot process Image histogram!", ne);
+					ExceptionUtils.logError(logger, "Cannot process Image histogram!", ne, this);
 					min = imageTrace.getMin().doubleValue();
 					max = imageTrace.getMax().doubleValue(); //In real, max() is a (weird) mean
 				}
@@ -1946,6 +1954,50 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //				updatePsfRadiusSlider((Integer)event.getNewValue());
 //			}
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * Using partActivated to activate augmenter is quite good solution. However it
+	 * is not fully compatible with DiffractionTool which also activates augmenter
+	 * if there is an opened DiffractionTool.
+	 * Currently it is no problem if same ImageEditors are used, but in a mixed
+	 * environment the augmenter will display things at wrong plottingSystem.
+	 * For this reason, this method is marked as TODO
+	 * @see org.eclipse.ui.IPartListener#partActivated(org.eclipse.ui.IWorkbenchPart)
+	 */
+	@Override
+	public void partActivated(IWorkbenchPart part) {
+		if( part == this )
+			augmenter.activate();
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPart part) {
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPart part) {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * Using partDeactivated to deactivate augmenter is quite good solution. However it
+	 * is not fully compatible with DiffractionTool which also deactivates augmenter
+	 * if there is an opened DiffractionTool.
+	 * Currently it is no problem if same ImageEditors are used, but in a mixed
+	 * environment the augmenter will display things at wrong plottingSystem.
+	 * For this reason, this method is marked as TODO
+	 * @see org.eclipse.ui.IPartListener#partDeactivated(org.eclipse.ui.IWorkbenchPart)
+	 */
+	@Override
+	public void partDeactivated(IWorkbenchPart part) {
+		if( part == this )
+			augmenter.deactivate();
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPart part) {
 	}
 
 }
