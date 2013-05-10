@@ -9,7 +9,6 @@ import java.util.Vector;
 import javax.vecmath.Vector3d;
 
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
-import org.dawb.gda.extensions.loaders.H5Utils;
 import org.dawnsci.plotting.api.annotation.AnnotationUtils;
 import org.dawnsci.plotting.api.annotation.IAnnotation;
 import org.dawnsci.plotting.api.region.IRegion;
@@ -45,8 +44,6 @@ import uk.ac.diamond.scisoft.analysis.roi.IROI;
 import uk.ac.diamond.scisoft.analysis.roi.LinearROI;
 import uk.ac.diamond.scisoft.analysis.roi.ROIProfile;
 import uk.ac.diamond.scisoft.analysis.roi.RectangularROI;
-//import org.dawb.hdf5.IHierarchicalDataFile;
-//import ncsa.hdf.object.Group;
 
 public class DiffractionLineProfileTool extends ProfileTool {
 
@@ -351,8 +348,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			AbstractDataset[] profileData = ROIProfile.line((AbstractDataset)slice.getData(), (AbstractDataset)image.getMask(), (LinearROI)region.getROI(), 1d, false);
 			final AbstractDataset intensity = profileData[0];
 			intensity.setName(region.getName().replace(' ', '_'));
-			
-			H5Utils.appendDataset(slice.getFile(), slice.getParent(), intensity);
+			slice.appendData(intensity);
 		}
         return new DataReductionInfo(Status.OK_STATUS);
 	}
