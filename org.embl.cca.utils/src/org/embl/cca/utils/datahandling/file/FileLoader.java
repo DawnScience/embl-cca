@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.embl.cca.utils.datahandling.AbstractDatasetAndFileDescriptor;
 import org.embl.cca.utils.datahandling.DatasetNumber;
+import org.embl.cca.utils.datahandling.DatasetTypeSeparatedUtils;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileWithTag;
 import org.embl.cca.utils.eventhandling.ListenerList;
@@ -93,7 +94,7 @@ public class FileLoader {
 	protected AbstractDataset summedBadMask; //Valid when layeredImageMode == true
 
 	protected ExecutableManager imageLoaderManager;
-	protected Boolean fileLoadingLock; //Value does not matter, this data is used for locking by synchronising it: ... TODO 
+	protected Boolean fileLoadingLock; //Value does not matter, this data is used for locking by synchronising it: ... TODO what?
 
 	public FileLoader() {
 		loadedFileAndMetadatas = new Vector<FileAndMetadata>();
@@ -252,428 +253,29 @@ public class FileLoader {
 		return loadedFileAndMetadatas.size();
 	}
 
-	/**
-	 * This method is similar to AbstractDataset.iadd( set ), but handles not measured values and bad values.
-	 * @param set the dataset to add
-	 * @param maxValidNumber the maximum valid value. Above this value the values are considered bad. 
-	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
-	 */
-	protected void addSplitImageInternal(AbstractDataset set, Number maxValidNumber, Number notMeasuredNumber) {
-		int type = set.getDtype();
-		//In case of BOOL, maxValidNumber and notMeasuredNumber have no sense
-		boolean maxValidValueValid = type != AbstractDataset.BOOL && maxValidNumber != null;
-		boolean notMeasuredValueValid = type != AbstractDataset.BOOL && notMeasuredNumber != null;
-		switch (type) {
-			case AbstractDataset.BOOL: {
-				boolean[] currentData = ((BooleanDataset)set).getData();
-				boolean[] setData = ((BooleanDataset)summedSet).getData();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					setData[i] |= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT32: {
-				int[] currentData = ((IntegerDataset)set).getData();
-				int[] setData = ((IntegerDataset)summedSet).getData();
-				int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
-				int[] badMaskData = ((IntegerDataset)summedBadMask).getData();
-				int maxValidValue = maxValidNumber.intValue();
-				int notMeasuredValue = notMeasuredNumber.intValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT8: {
-				byte[] currentData = ((ByteDataset)set).getData();
-				byte[] setData = ((ByteDataset)summedSet).getData();
-				byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
-				byte[] badMaskData = ((ByteDataset)summedBadMask).getData();
-				byte maxValidValue = maxValidNumber.byteValue();
-				byte notMeasuredValue = notMeasuredNumber.byteValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT16: {
-				short[] currentData = ((ShortDataset)set).getData();
-				short[] setData = ((ShortDataset)summedSet).getData();
-				short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
-				short[] badMaskData = ((ShortDataset)summedBadMask).getData();
-				short maxValidValue = maxValidNumber.shortValue();
-				short notMeasuredValue = notMeasuredNumber.shortValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT64: {
-				long[] currentData = ((LongDataset)set).getData();
-				long[] setData = ((LongDataset)summedSet).getData();
-				long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
-				long[] badMaskData = ((LongDataset)summedBadMask).getData();
-				long maxValidValue = maxValidNumber.longValue();
-				long notMeasuredValue = notMeasuredNumber.longValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT32: {
-				float[] currentData = ((FloatDataset)set).getData();
-				float[] setData = ((FloatDataset)summedSet).getData();
-				float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
-				float[] badMaskData = ((FloatDataset)summedBadMask).getData();
-				float maxValidValue = maxValidNumber.floatValue();
-				float notMeasuredValue = notMeasuredNumber.floatValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT64: {
-				double[] currentData = ((DoubleDataset)set).getData();
-				double[] setData = ((DoubleDataset)summedSet).getData();
-				double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
-				double[] badMaskData = ((DoubleDataset)summedBadMask).getData();
-				double maxValidValue = maxValidNumber.doubleValue();
-				double notMeasuredValue = notMeasuredNumber.doubleValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]++;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]++;
-					else
-						setData[i] += currentData[i];
-				}
-				break;
-			}
-			default:
-				throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
-		}
-	}
-
-	/**
-	 * This method is similar to AbstractDataset.isubstract( set ), but handles not measured values and bad values.
-	 * @param set the dataset to substract
-	 * @param maxValidNumber the maximum valid value. Above this value the values are considered bad. 
-	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
-	 */
-	protected void removeSplitImageInternal(AbstractDataset set, Number maxValidNumber, Number notMeasuredNumber) {
-		int type = set.getDtype();
-		//In case of BOOL, maxValidNumber and notMeasuredNumber have no sense
-		boolean maxValidValueValid = type != AbstractDataset.BOOL && maxValidNumber != null;
-		boolean notMeasuredValueValid = type != AbstractDataset.BOOL && notMeasuredNumber != null;
-		switch (type) {
-			case AbstractDataset.BOOL: {
-				boolean[] currentData = ((BooleanDataset)set).getData();
-				boolean[] setData = ((BooleanDataset)summedSet).getData();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					setData[i] &= !currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT32: {
-				int[] currentData = ((IntegerDataset)set).getData();
-				int[] setData = ((IntegerDataset)summedSet).getData();
-				int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
-				int[] badMaskData = ((IntegerDataset)summedBadMask).getData();
-				int maxValidValue = maxValidNumber.intValue();
-				int notMeasuredValue = notMeasuredNumber.intValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT8: {
-				byte[] currentData = ((ByteDataset)set).getData();
-				byte[] setData = ((ByteDataset)summedSet).getData();
-				byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
-				byte[] badMaskData = ((ByteDataset)summedBadMask).getData();
-				byte maxValidValue = maxValidNumber.byteValue();
-				byte notMeasuredValue = notMeasuredNumber.byteValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT16: {
-				short[] currentData = ((ShortDataset)set).getData();
-				short[] setData = ((ShortDataset)summedSet).getData();
-				short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
-				short[] badMaskData = ((ShortDataset)summedBadMask).getData();
-				short maxValidValue = maxValidNumber.shortValue();
-				short notMeasuredValue = notMeasuredNumber.shortValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.INT64: {
-				long[] currentData = ((LongDataset)set).getData();
-				long[] setData = ((LongDataset)summedSet).getData();
-				long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
-				long[] badMaskData = ((LongDataset)summedBadMask).getData();
-				long maxValidValue = maxValidNumber.longValue();
-				long notMeasuredValue = notMeasuredNumber.longValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT32: {
-				float[] currentData = ((FloatDataset)set).getData();
-				float[] setData = ((FloatDataset)summedSet).getData();
-				float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
-				float[] badMaskData = ((FloatDataset)summedBadMask).getData();
-				float maxValidValue = maxValidNumber.floatValue();
-				float notMeasuredValue = notMeasuredNumber.floatValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT64: {
-				double[] currentData = ((DoubleDataset)set).getData();
-				double[] setData = ((DoubleDataset)summedSet).getData();
-				double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
-				double[] badMaskData = ((DoubleDataset)summedBadMask).getData();
-				double maxValidValue = maxValidNumber.doubleValue();
-				double notMeasuredValue = notMeasuredNumber.doubleValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( maxValidValueValid && currentData[ i ] > maxValidValue )
-						badMaskData[ i ]--;
-					else if( notMeasuredValueValid && currentData[ i ] == notMeasuredValue )
-						notMeasuredMaskData[ i ]--;
-					else
-						setData[i] -= currentData[i];
-				}
-				break;
-			}
-			default:
-				throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
-		}
-	}
-
-	/**
-	 * This method is similar to AbstractDataset.isubstract( set ), but handles not measured values and bad values.
-	 * @param set the dataset to substract
-	 * @param badNumber the value representing bad value. 
-	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
-	 */
-	protected void mixSplitted(Number badNumber, Number notMeasuredNumber) {
-		int type = resultSet.getDtype();
-		//In case of BOOL, badNumber and notMeasuredNumber have no sense
-		switch (type) {
-			case AbstractDataset.BOOL: {
-				boolean[] currentData = ((BooleanDataset)resultSet).getData();
-				boolean[] setData = ((BooleanDataset)summedSet).getData();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.INT32: {
-				int[] currentData = ((IntegerDataset)resultSet).getData();
-				int[] setData = ((IntegerDataset)summedSet).getData();
-				int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
-				int[] badMaskData = ((IntegerDataset)summedBadMask).getData();
-				int badValue = badNumber.intValue();
-				int notMeasuredValue = notMeasuredNumber.intValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.INT8: {
-				byte[] currentData = ((ByteDataset)resultSet).getData();
-				byte[] setData = ((ByteDataset)summedSet).getData();
-				byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
-				byte[] badMaskData = ((ByteDataset)summedBadMask).getData();
-				byte badValue = badNumber.byteValue();
-				byte notMeasuredValue = notMeasuredNumber.byteValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.INT16: {
-				short[] currentData = ((ShortDataset)resultSet).getData();
-				short[] setData = ((ShortDataset)summedSet).getData();
-				short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
-				short[] badMaskData = ((ShortDataset)summedBadMask).getData();
-				short badValue = badNumber.shortValue();
-				short notMeasuredValue = notMeasuredNumber.shortValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.INT64: {
-				long[] currentData = ((LongDataset)resultSet).getData();
-				long[] setData = ((LongDataset)summedSet).getData();
-				long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
-				long[] badMaskData = ((LongDataset)summedBadMask).getData();
-				long badValue = badNumber.longValue();
-				long notMeasuredValue = notMeasuredNumber.longValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT32: {
-				float[] currentData = ((FloatDataset)resultSet).getData();
-				float[] setData = ((FloatDataset)summedSet).getData();
-				float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
-				float[] badMaskData = ((FloatDataset)summedBadMask).getData();
-				float badValue = badNumber.floatValue();
-				float notMeasuredValue = notMeasuredNumber.floatValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			case AbstractDataset.FLOAT64: {
-				double[] currentData = ((DoubleDataset)resultSet).getData();
-				double[] setData = ((DoubleDataset)summedSet).getData();
-				double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
-				double[] badMaskData = ((DoubleDataset)summedBadMask).getData();
-				double badValue = badNumber.doubleValue();
-				double notMeasuredValue = notMeasuredNumber.doubleValue();
-				int iSup = currentData.length;
-				for( int i = 0; i < iSup; i++ ) {
-					if( badMaskData[ i ] > 0 )
-						currentData[ i ] = badValue;
-					else if( notMeasuredMaskData[ i ] > 0 )
-						currentData[ i ] = notMeasuredValue;
-					else
-						currentData[ i ] = setData[ i ];
-				}
-				break;
-			}
-			default:
-				throw new RuntimeException("Not supported dataset type: " + resultSet.getDtype() );
-		}
-	}
-
-	protected void addSplitImage(AbstractDataset set, Number maxValidNumber, Number notMeasuredValue) {
+	protected void addSplitImage(AbstractDataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		if( loadedFileAndMetadatas.size() == 1 && !layeredImageMode) {
 			summedSet = AbstractDataset.zeros(resultSet);
 			summedNotMeasuredMask = AbstractDataset.zeros(resultSet);
 			summedBadMask = AbstractDataset.zeros(resultSet);
-			addSplitImageInternal(resultSet, maxValidNumber, notMeasuredValue); //TODO save threshold into set, because here we use threshold of 2nd image on 1st image, not the best
+			DatasetTypeSeparatedUtils.splitAddSet(resultSet, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue); //TODO save threshold into set, because here we use threshold of 2nd image on 1st image, not the best
 			layeredImageMode = true;
 		}
-		addSplitImageInternal(set, maxValidNumber, notMeasuredValue);
+		DatasetTypeSeparatedUtils.splitAddSet(set, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue);
 	}
 
-	protected void removeSplitImage(AbstractDataset set, Number maxValidNumber, Number notMeasuredValue) {
-		removeSplitImageInternal(set, maxValidNumber, notMeasuredValue);
+	protected void removeSplitImage(AbstractDataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+		DatasetTypeSeparatedUtils.splitRemoveSet(set, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue);
 	}
 
-	protected void add(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number notMeasuredValue) {
+	protected void add(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetaData metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = 0;
 		if( loadedFileAndMetadatas.size() == 0 ) {
 			resultSet = set;
 			fAM.setMetadata(metadata != null ? metadata.clone() : null);
+			DatasetTypeSeparatedUtils.splitJoinIntoSelf(set, maxValidNumber, badNumber, notMeasuredValue);
 		} else {
 			IMetaData resultMetadata = resultSet.getMetadata();
 			if( (resultMetadata == null && metadata != null) || (resultMetadata != null && metadata == null)
@@ -682,13 +284,13 @@ public class FileLoader {
 			localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
 			if( localIndex < 0 )
 				localIndex = -(localIndex + 1);
-			addSplitImage(set, maxValidNumber, notMeasuredValue);
+			addSplitImage(set, maxValidNumber, badNumber, notMeasuredValue);
 		}
 		loadedFileAndMetadatas.add( localIndex, fAM );
 		resultSetNeedsUpdate = true;
 	}
 
-	protected void remove(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number notMeasuredValue) {
+	protected void remove(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetaData metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
@@ -698,7 +300,7 @@ public class FileLoader {
 		if( loadedFileAndMetadatas.size() == 0 ) {
 			clearLoaded();
 		} else {
-			removeSplitImage(set, maxValidNumber, notMeasuredValue);
+			removeSplitImage(set, maxValidNumber, badNumber, notMeasuredValue);
 			resultSetNeedsUpdate = true;
 		}
 	}
@@ -719,13 +321,13 @@ public class FileLoader {
 	protected void loadAndAddFile(FileWithTag imageFile) throws IOException {
 		AbstractDataset set = loadFileInternal(imageFile).clone();
 		Number maxValidNumber = DatasetNumber.getMaxValidNumber(set, true);
-		add( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
+		add( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
 	}
 
 	protected void loadAndRemoveFile(FileWithTag imageFile) throws IOException {
 		AbstractDataset set = loadFileInternal(imageFile).clone();
 		Number maxValidNumber = DatasetNumber.getMaxValidNumber(set, true);
-		remove( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
+		remove( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
 	}
 
 	public boolean isLoading() {
@@ -921,7 +523,7 @@ public class FileLoader {
 			resultSet.setName( name );
 			if( layeredImageMode ) {
 				//TODO little bit hardcoded: CBF images typically have badPixelValue (-2) and notMeasuredValue (-1), but what about others?
-				mixSplitted(DatasetNumber.getNumber(resultSet, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(resultSet, NOT_MEASURED_VALUE, true));
+				DatasetTypeSeparatedUtils.joinSplittedSets(resultSet, summedSet, summedBadMask, summedNotMeasuredMask, DatasetNumber.getNumber(resultSet, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(resultSet, NOT_MEASURED_VALUE, true));
 			}
 			resultSetNeedsUpdate = false;
 		}
