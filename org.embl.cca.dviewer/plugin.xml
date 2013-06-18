@@ -47,7 +47,7 @@
        <editor
             class="org.embl.cca.dviewer.ui.editors.ImageEditor"
              default="false"
-             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker"
+             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker, raw"
              icon="icons/image_editor.png"
              id="org.embl.cca.dviewer.ui.editors.ImageEditor"
              name="dViewer Image Editor">
