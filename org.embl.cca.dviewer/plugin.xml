@@ -28,6 +28,7 @@
    </extension>
    <extension
          point="org.dawb.common.ui.toolPage">
+      <!-- Fix to http://jira.diamond.ac.uk/browse/DAWNSCI-604
       <plotting_tool_page
             class="org.embl.cca.dviewer.plotting.tools.PSFTool"
             icon="icons/psf.png"
@@ -35,6 +36,7 @@
             label="PHA"
             tooltip="A tool for highlighting spots of images.">
       </plotting_tool_page>
+      -->
       <plotting_tool_page
             class="org.embl.cca.dviewer.plotting.tools.DiffractionLineProfileTool"
             icon="icons/plot-tool-line-profile.png"
