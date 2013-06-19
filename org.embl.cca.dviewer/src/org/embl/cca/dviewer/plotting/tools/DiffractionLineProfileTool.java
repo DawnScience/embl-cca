@@ -8,6 +8,7 @@ import java.util.Vector;
 
 import javax.vecmath.Vector3d;
 
+import org.dawb.common.ui.monitor.ProgressMonitorWrapper;
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawnsci.plotting.api.annotation.AnnotationUtils;
 import org.dawnsci.plotting.api.annotation.IAnnotation;
@@ -133,7 +134,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 				AbstractDataset y  = (AbstractDataset)selectedTrace.getYData();
 	
 				try {
-					final FittedFunctions bean = FittingUtils.getFittedPeaks(new FittedPeaksInfo(x, y, monitor, getPlottingSystem(), selectedTrace,10));
+					final FittedFunctions bean = FittingUtils.getFittedPeaks(new FittedPeaksInfo(x, y, new ProgressMonitorWrapper(monitor), getPlottingSystem(), selectedTrace,10));
 					createFittedPeaks(bean);
 					
 				} catch (Exception ne) {
