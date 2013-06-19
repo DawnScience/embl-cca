@@ -107,15 +107,19 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.draw2d"/>
       <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.dawb.common.services" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.dawb.common.ui" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.embl.cca.utils" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="uk.ac.diamond.scisoft.analysis" version="1.3.0" match="greaterOrEqual"/>
-      <import plugin="com.springsource.slf4j.api"/>
       <import plugin="org.dawnsci.plotting" version="1.1.0" match="greaterOrEqual"/>
-      <import plugin="uk.ac.diamond.scisoft.analysis.rcp" version="1.3.0" match="greaterOrEqual"/>
-      <import plugin="uk.ac.gda.libs" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.dawb.common.services" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="com.springsource.slf4j.api"/>
+      <import plugin="javax.vecmath" version="1.5.2" match="greaterOrEqual"/>
+      <import plugin="org.dawnsci.plotting.api" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.dawnsci.mx.ui" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.dawb.hdf5" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="ncsa.hdf" version="2.8.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide" version="3.8.2" match="greaterOrEqual"/>
+      <import plugin="org.dawb.gda.extensions"/>
    </requires>
 
    <plugin

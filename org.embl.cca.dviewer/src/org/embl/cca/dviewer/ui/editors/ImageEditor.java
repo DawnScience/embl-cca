@@ -1,8 +1,16 @@
 package org.embl.cca.dviewer.ui.editors;
 
+import gda.analysis.io.IFileSaver;
 import gda.analysis.io.ScanFileHolderException;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -73,6 +81,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.MultiPageEditorSite;
 import org.embl.cca.dviewer.Activator;
 import org.embl.cca.dviewer.plotting.tools.InfoPixelTool;
@@ -84,7 +93,7 @@ import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 import org.embl.cca.utils.datahandling.file.IFileLoaderListener;
-import org.embl.cca.utils.datahandling.text.StringUtil;
+import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.Disposable;
@@ -102,7 +111,9 @@ import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
+import uk.ac.diamond.scisoft.analysis.io.PNGSaver;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
+import uk.ac.diamond.scisoft.analysis.io.RawBinaryLoader;
 import uk.ac.diamond.scisoft.analysis.roi.IROI;
 //import org.dawb.workbench.plotting.tools.InfoPixelTool;
 
@@ -174,7 +185,9 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 	final String prefPage = "org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage";
 	final String saveAsId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAs";
+	final String saveAsScaledId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAsScaled";
 	final String saveAsOriginalId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAsOriginal";
+	final String saveAsScaledOriginalId = "org.embl.cca.dviewer.ui.editors.ImageEditor.saveAsScaledOriginal";
 
 	/**
 	 * In DAWN, ImageEditor can be also inserted into a MultiEditor, then it becomes a subEditor.
@@ -198,7 +211,9 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	protected Action psfAction;
 	protected Action dviewerPrefAction;
 	protected Action dviewerSaveAsAction;
+	protected Action dviewerSaveAsScaledAction;
 	protected Action dviewerSaveAsOriginalAction;
+	protected Action dviewerSaveAsScaledOriginalAction;
 	
 	/**
 	 * The objects which contain the image.
@@ -390,7 +405,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		int a = 0;
 	}
 
-	protected void saveAs(AbstractDataset ds, double min, double max) {
+	protected void saveAs(AbstractDataset ds, boolean autoscale, double min, double max) {
 		do {
 			FileDialog saveAsDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 //			Object a = Display.getDefault().getShells()[0];
@@ -401,27 +416,43 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 				break;
 			DataHolder dh = new DataHolder();
 			dh.addDataset("image", ds);
-			PNGScaledSaver pngSaver = new PNGScaledSaver(path, min, max);
+			IFileSaver fileSaver = null;
+			if( autoscale )
+				fileSaver = new PNGScaledSaver(path, min, max);
+			else
+				fileSaver = new PNGSaver(path);
 			try {
-				pngSaver.saveFile(dh);
+				fileSaver.saveFile(dh);
 			} catch (ScanFileHolderException e) {
 				e.printStackTrace();
 			}
 		} while( false );
 	}
 
-	public void doSaveAsOriginal() {
-		do {
-//			System.out.println("Min and max=" + originalSet.min().doubleValue() + ", " + originalSet.max().doubleValue());
-			saveAs(originalSet, originalSet.min().doubleValue(), originalSet.max().doubleValue());
-		} while( false );
-	}
-
 	@Override
 	public void doSaveAs() {
 		do {
+			saveAs((AbstractDataset)imageTrace.getData(), false, 0, 0);
+		} while( false );
+	}
+
+	public void doSaveAsScaled() {
+		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs((AbstractDataset)imageTrace.getData(), imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs((AbstractDataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+		} while( false );
+	}
+
+	public void doSaveAsOriginal() {
+		do {
+			saveAs(originalSet, false, 0, 0);
+	} while( false );
+	}
+
+	public void doSaveAsScaledOriginal() {
+		do {
+//			System.out.println("Min and max=" + originalSet.min().doubleValue() + ", " + originalSet.max().doubleValue());
+			saveAs(originalSet, true, originalSet.min().doubleValue(), originalSet.max().doubleValue());
 		} while( false );
 	}
 
@@ -652,7 +683,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			dviewerPrefAction.setId(prefPage);
 			menuMan.add(dviewerPrefAction);
 //		}
-    	dviewerSaveAsAction = new Action("Save image as...", null) {
+		dviewerSaveAsAction = new Action("Save image as...", null) {
 	    	@Override
 	    	public void run() {
 	    		doSaveAs();
@@ -660,6 +691,15 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		};
 		dviewerSaveAsAction.setId(saveAsId);
 		menuMan.add(dviewerSaveAsAction);
+
+		dviewerSaveAsScaledAction = new Action("Save image as scaled...", null) {
+	    	@Override
+	    	public void run() {
+	    		doSaveAsScaled();
+	    	}
+		};
+		dviewerSaveAsScaledAction.setId(saveAsScaledId);
+		menuMan.add(dviewerSaveAsScaledAction);
 
 		dviewerSaveAsOriginalAction = new Action("Save original image as...", null) {
 	    	@Override
@@ -669,6 +709,15 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		};
 		dviewerSaveAsOriginalAction.setId(saveAsOriginalId);
 		menuMan.add(dviewerSaveAsOriginalAction);
+
+		dviewerSaveAsScaledOriginalAction = new Action("Save original image as scaled...", null) {
+	    	@Override
+	    	public void run() {
+	    		doSaveAsScaledOriginal();
+	    	}
+		};
+		dviewerSaveAsScaledOriginalAction.setId(saveAsScaledOriginalId);
+		menuMan.add(dviewerSaveAsScaledOriginalAction);
 
 		if( menuMan.getSize() > 0 ) {
 		    Action menuAction = new Action("", Activator.getImageDescriptor("/icons/DropDown.png")) {
@@ -1062,7 +1111,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			@Override
 			public void verifyText(VerifyEvent e) {
 				try {
-					String newValue = StringUtil.replaceRange(imageFilesWindowWidthText.getText(), e.text, e.start, e.end );
+					String newValue = StringUtils.replaceRange(imageFilesWindowWidthText.getText(), e.text, e.start, e.end );
 					e.doit = isBatchAmountValid( decimalFormat.parse( newValue ).intValue() );
 				} catch (ParseException e1) {
 					e.doit = e.text.isEmpty();
@@ -1536,6 +1585,45 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 */
 			}
 			updatePlot(set);
+		} else if (getEditorInput() instanceof FileStoreEditorInput && getEditorInput().getName().endsWith(".raw")) {
+			FileStoreEditorInput fsei = (FileStoreEditorInput)getEditorInput();
+			File f = EclipseUtils.getFile(fsei);
+			final int width = 1024;
+			final int height = 1024;
+			final int shape[] = new int[] {width, height};
+			FileInputStream fi = null;
+			FileChannel fc = null;
+			AbstractDataset set = null;
+			try {
+				fi = new FileInputStream(f);
+				fc = fi.getChannel();
+				MappedByteBuffer fBuffer = fc.map(MapMode.READ_ONLY, 0, fc.size());
+				fBuffer.order(ByteOrder.LITTLE_ENDIAN);
+				set = RawBinaryLoader.loadRawDataset(fBuffer, AbstractDataset.INT16, 2, width*height, shape);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ScanFileHolderException e) {
+				e.printStackTrace();
+			} finally {
+				if( fc != null ) {
+					try {
+						fc.close();
+					} catch (IOException e) {
+					}
+					fc = null;
+				}
+				if( fi != null ) {
+					try {
+						fi.close();
+					} catch (IOException e) {
+					}
+					fi = null;
+				}
+			}
+			if( set != null )
+				updatePlot(set);
 		} else {
 			if( !remotedImageEditor || selectedDisplayImageByRemoteRequest )
 				updateSlider( getPath( getEditorInput() ) );
@@ -1586,32 +1674,45 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		final ITrace trace = getPlottingSystem().updatePlot2D( set, null, monitor );
 		if (trace instanceof IImageTrace) {
 			imageTrace = (IImageTrace) trace;
-			double min;
-			double max;
-			final double realMax;
-			final double realMean;
+			final boolean autoUseSuggested = editorInputChanged;
+//			double min;
+//			double max;
+			double realMin;
+			double realMax;
+			double realMean;
 			
-			realMax = imageTrace.getData().max().doubleValue();
-			realMean = ((Number)imageTrace.getData().mean()).doubleValue();
-			
-			if( editorInputChanged ) { //If input changed, updatePlot2D has already calculated the stats
-				min = imageTrace.getMin().doubleValue();
-				max = imageTrace.getMax().doubleValue(); //In real, max() is a (weird) mean
-			} else {
-				try {
-					IImageService service = (IImageService)ServiceManager.getService(IImageService.class);
-					float stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
-					min = stats[0];
-					max = stats[1]; //In real, max() is a (weird) mean
-				} catch (Exception ne) {
-					ExceptionUtils.logError(logger, "Cannot process Image histogram!", ne, this);
-					min = imageTrace.getMin().doubleValue();
-					max = imageTrace.getMax().doubleValue(); //In real, max() is a (weird) mean
-				}
+			try {
+				IImageService service = (IImageService)ServiceManager.getService(IImageService.class);
+				float stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
+				realMin = stats[0];
+				realMax = stats[3];
+				realMean = stats[2];
+			} catch (Exception ne) {
+				ExceptionUtils.logError(logger, "Cannot process Image histogram!", ne, this);
+				realMin = imageTrace.getData().min().doubleValue(); //This value is determined and stored in dataset by the low level file loader
+				realMax = imageTrace.getData().max().doubleValue(); //This value is determined and stored in dataset by the low level file loader
+				realMean = ((Number)imageTrace.getData().mean()).doubleValue();
 			}
-			final double suggestedMin = min;
 			final double ourMean = Math.min(Math.ceil(realMean * 6), realMax); //6 is an experimental number, should find out by algorithm
-			logger.debug( "createPlot min=" + min + ", max=" + max + ", realMax=" + realMax + ", realMean=" + realMean + ", ourMean=" + ourMean);
+			
+//			if( editorInputChanged ) { //If input changed, updatePlot2D has already calculated the stats
+//				min = imageTrace.getMin().doubleValue();
+//				max = imageTrace.getMax().doubleValue(); //In real, max() is a (weird) mean
+//			} else {
+//				try {
+//					IImageService service = (IImageService)ServiceManager.getService(IImageService.class);
+//					float stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
+//					min = stats[0];
+//					max = stats[1]; //In real, max() is a (weird) mean
+//				} catch (Exception ne) {
+//					ExceptionUtils.logError(logger, "Cannot process Image histogram!", ne, this);
+//					min = imageTrace.getMin().doubleValue();
+//					max = imageTrace.getMax().doubleValue(); //In real, max() is a (weird) mean
+//				}
+//			}
+//			logger.debug( "createPlot min=" + min + ", max=" + max + ", realMin=" + realMin + ", realMax=" + realMax + ", realMean=" + realMean + ", ourMean=" + ourMean);
+			logger.debug( "createPlot realMin=" + realMin + ", realMax=" + realMax + ", realMean=" + realMean + ", ourMean=" + ourMean);
+			final double suggestedMin = realMin;
 			final double suggestedMax = ourMean;
 			if( imageCreation ) //If creation, then PSFTool updated trigger is not called, we do it here then
 				psfTool.updatePSFMinValue(((Number)imageTrace.getMax()).doubleValue()); //In real, max() is a (weird) mean
@@ -1650,19 +1751,20 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //				});
 //			}
 			
-			final double fmin = min;
+			final double fMin = realMin;
+			final double fMax = realMax;
 
 			CommonThreading.execSynced(new Runnable() {
 				public void run() {
-					minValueText.setText(ConverterUtils.doubleAsString(fmin));
-					maxValueText.setText(ConverterUtils.doubleAsString(realMax));
+					minValueText.setText(ConverterUtils.doubleAsString(fMin));
+					maxValueText.setText(ConverterUtils.doubleAsString(fMax));
 					setSuggestedMinimum(suggestedMin);
 					setSuggestedMaximum(suggestedMax);
-//					userMinimumScale.setLogicalMinMax(min, realMax);
-					userMinimumScale.setMinMax(fmin, realMax);
-//					userMaximumScale.setLogicalMinMax(min, realMax);
-					userMaximumScale.setMinMax(fmin, realMax);
-					if( editorInputChanged ) {
+//					userMinimumScale.setLogicalMinMax(fMin, fMax);
+					userMinimumScale.setMinMax(fMin, fMax);
+//					userMaximumScale.setLogicalMinMax(fMin, fMax);
+					userMaximumScale.setMinMax(fMin, fMax);
+					if( autoUseSuggested ) {
 						System.out.println("GRRR: createPlot/editorInputChanged, setUserMinimum(" + suggestedMin + ")");
 						setUserMinimum(suggestedMin); //Modifies histogram min, thus recolors the display
 						System.out.println("GRRR: createPlot/editorInputChanged, setUserMaximum(" + suggestedMax + ")");
@@ -1923,16 +2025,10 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	 */
 	@Override
 	public void partActivated(IWorkbenchPart part) {
-		if( part == this )
+		if( part == this ) {
 			augmenter.activate();
-	}
-
-	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {
-	}
-
-	@Override
-	public void partClosed(IWorkbenchPart part) {
+			infoPixelTool.activate();
+		}
 	}
 
 	/*
@@ -1947,8 +2043,18 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	 */
 	@Override
 	public void partDeactivated(IWorkbenchPart part) {
-		if( part == this )
+		if( part == this ) {
 			augmenter.deactivate();
+			infoPixelTool.deactivate();
+		}
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPart part) {
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPart part) {
 	}
 
 	@Override
