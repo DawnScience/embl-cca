@@ -9,6 +9,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -17,6 +19,8 @@ public class Activator extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.embl.cca.dviewer"; //$NON-NLS-1$
+
+	Logger logger = LoggerFactory.getLogger(Activator.class);
 
 	// The shared instance
 	private static Activator plugin;
@@ -30,11 +34,16 @@ public class Activator extends AbstractUIPlugin {
 	public Activator() {
 	}
 
+	protected String getPackageName() {
+		return getClass().getName().split("\\." + getClass().getSimpleName())[0];
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
+		logger.debug("Starting " + getPackageName());
 		super.start(context);
 		plugin = this;
 		startConnectionManager();
@@ -45,6 +54,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		logger.debug("Stopping " + getPackageName());
 		stopConnectionManager();
 		plugin = null;
 		super.stop(context);
