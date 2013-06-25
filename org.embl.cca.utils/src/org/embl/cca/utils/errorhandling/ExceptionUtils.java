@@ -12,7 +12,7 @@ public class ExceptionUtils {
 				found = i; //Looking for deepest occurance of where class
 			}
 		}
-		logger.error(message + " [" + e.getMessage() + " at " + stes[found] + "]");
+		logger.error(message + " [" + e.toString() + " at " + stes[found] + "]");
 	}
 
 }
