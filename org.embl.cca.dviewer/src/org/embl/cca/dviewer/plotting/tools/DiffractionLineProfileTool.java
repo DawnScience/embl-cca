@@ -9,7 +9,7 @@ import java.util.Vector;
 import javax.vecmath.Vector3d;
 
 import org.dawb.common.ui.monitor.ProgressMonitorWrapper;
-import org.dawb.common.ui.plot.AbstractPlottingSystem;
+import org.dawnsci.plotting.api.IPlottingSystem;
 import org.dawnsci.plotting.api.annotation.AnnotationUtils;
 import org.dawnsci.plotting.api.annotation.IAnnotation;
 import org.dawnsci.plotting.api.region.IRegion;
@@ -274,7 +274,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 	}
 	@Override
-	protected void configurePlottingSystem(AbstractPlottingSystem plotter) {
+	protected void configurePlottingSystem(IPlottingSystem plotter) {
 		plotter.getSelectedXAxis().setTitle("Pixel");
 		plotter.getSelectedYAxis().setTitle("Intensity");
 	}
