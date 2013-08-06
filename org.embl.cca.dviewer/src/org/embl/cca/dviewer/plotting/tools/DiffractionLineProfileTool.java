@@ -12,6 +12,8 @@ import org.dawb.common.ui.monitor.ProgressMonitorWrapper;
 import org.dawnsci.plotting.api.IPlottingSystem;
 import org.dawnsci.plotting.api.annotation.AnnotationUtils;
 import org.dawnsci.plotting.api.annotation.IAnnotation;
+import org.dawnsci.plotting.api.preferences.BasePlottingConstants;
+import org.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.dawnsci.plotting.api.region.IRegion;
 import org.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.dawnsci.plotting.api.region.RegionUtils;
@@ -83,11 +85,11 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 		super.createControl(parent);
 		
-		site.getActionBars().getToolBarManager().remove("org.dawb.workbench.ui.editors.plotting.swtxy.removeRegions");
+		site.getActionBars().getToolBarManager().remove(BasePlottingConstants.REMOVE_REGION);
 		site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.undo.ZoomType.HORIZONTAL_ZOOM");
 		site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.undo.ZoomType.ZOOM_OUT");
 		site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.undo.ZoomType.RUBBERBAND_ZOOM");
-		site.getActionBars().getToolBarManager().remove("org.dawb.common.ui.plot.tool.ROLE_1D");
+		site.getActionBars().getToolBarManager().remove(ToolbarConfigurationConstants.TOOL1D.getId());
 		//site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.autoscale");
 		site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.undo.ZoomType.VERTICAL_ZOOM");
 		site.getActionBars().getToolBarManager().remove("org.csstudio.swt.xygraph.undo.ZoomType.ZOOM_IN");
