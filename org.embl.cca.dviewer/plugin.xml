@@ -15,6 +15,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
+            category="org.edna.workbench.editors.preferencePage"
             class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
             id="org.embl.cca.dviewer.rcp.preference.root"
             name="dViewer">
