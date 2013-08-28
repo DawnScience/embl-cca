@@ -2044,7 +2044,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	@Override
 	public void partDeactivated(IWorkbenchPart part) {
 		if( part == this ) {
-			augmenter.deactivate();
+			augmenter.deactivate(true);
 			infoPixelTool.deactivate();
 		}
 	}
