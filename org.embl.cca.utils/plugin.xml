@@ -13,6 +13,14 @@
             name="EMBL File Explorer"
             restorable="true">
       </view>
+      <view
+            category="uk.ac.diamond.scisoft.analysis.rcp"
+            class="org.embl.cca.utils.ui.view.nexusfileviewer.NexusFileView"
+            icon="icons/folder.gif"
+            id="org.embl.cca.utils.ui.view.nexusfilesviewer.NexusFileView"
+            name="EMBL Nexus File Viewer"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -44,7 +52,7 @@
          </command>
          <command
                commandId="org.embl.cca.utils.ui.view.fileexplorer.exploreros"
-               icon="icons/folder.png"
+               icon="icons/folder.gif"
                label="Open in File Explorer"
                style="push">
          </command>
