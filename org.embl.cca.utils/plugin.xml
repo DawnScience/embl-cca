@@ -26,7 +26,7 @@
          point="org.eclipse.ui.preferencePages">
          <page
             category="uk.ac.diamond.scisoft.analysis.rcp.preferences.root"
-            class="org.embl.cca.utils.ui.view.fileexplorer.FileExplorerPreferencePage"
+            class="org.embl.cca.utils.ui.view.fileexplorer.preference.FileExplorerPreferencePage"
             id="org.embl.cca.utils.ui.view.fileexplorer.rcp.fileExplorerPreferencePage"
             name="EMBL File Explorer">
       </page>

@@ -7,9 +7,7 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.embl.cca.utils.Activator;
-
-import uk.ac.diamond.scisoft.analysis.rcp.AnalysisRCPActivator;
-import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
+import org.embl.cca.utils.ui.view.fileexplorer.preference.FileExplorerPreferenceConstants;
 
 public class FileColumnsLabelProvider implements IFileColumnsLabelProvider {
 
@@ -28,11 +26,11 @@ public class FileColumnsLabelProvider implements IFileColumnsLabelProvider {
 
 	public FileColumnsLabelProvider() {
 		store = Activator.getDefault().getPreferenceStore();
-		showDate = store.getBoolean(PreferenceConstants.SHOW_DATE_COLUMN);
-		showType = store.getBoolean(PreferenceConstants.SHOW_TYPE_COLUMN); //TODO Should be index range
-		showSize = store.getBoolean(PreferenceConstants.SHOW_SIZE_COLUMN);
-		showComment = store.getBoolean(PreferenceConstants.SHOW_COMMENT_COLUMN);
-		showScanCmd = store.getBoolean(PreferenceConstants.SHOW_SCANCMD_COLUMN);
+		showDate = store.getBoolean(FileExplorerPreferenceConstants.SHOW_DATE_COLUMN);
+		showType = store.getBoolean(FileExplorerPreferenceConstants.SHOW_TYPE_COLUMN); //TODO Should be index range
+		showSize = store.getBoolean(FileExplorerPreferenceConstants.SHOW_SIZE_COLUMN);
+		showComment = store.getBoolean(FileExplorerPreferenceConstants.SHOW_COMMENT_COLUMN);
+		showScanCmd = store.getBoolean(FileExplorerPreferenceConstants.SHOW_SCANCMD_COLUMN);
 		if( !showDate )
 			widths[1] = 0;
 		if( !showType )

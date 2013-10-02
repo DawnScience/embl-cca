@@ -64,7 +64,7 @@ import org.embl.cca.utils.datahandling.FileWithTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.rcp.preference.PreferenceConstants;
+import org.embl.cca.utils.ui.view.fileexplorer.preference.FileExplorerPreferenceConstants;
 import uk.ac.diamond.sda.navigator.views.IFileView;
 import uk.ac.gda.util.OSUtils;
 
@@ -311,19 +311,19 @@ public class FileView extends ViewPart implements IFileView {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				if (event.getProperty().equals(
-						PreferenceConstants.SHOW_DATE_COLUMN)) {
+						FileExplorerPreferenceConstants.SHOW_DATE_COLUMN)) {
 					setColumnVisible(1, (Boolean) event.getNewValue());
 				} else if (event.getProperty().equals(
-						PreferenceConstants.SHOW_TYPE_COLUMN)) {
+						FileExplorerPreferenceConstants.SHOW_TYPE_COLUMN)) {
 					setColumnVisible(2, (Boolean) event.getNewValue());
 				} else if (event.getProperty().equals(
-						PreferenceConstants.SHOW_SIZE_COLUMN)) {
+						FileExplorerPreferenceConstants.SHOW_SIZE_COLUMN)) {
 					setColumnVisible(3, (Boolean) event.getNewValue());
 				} else if (event.getProperty().equals(
-						PreferenceConstants.SHOW_COMMENT_COLUMN)) {
+						FileExplorerPreferenceConstants.SHOW_COMMENT_COLUMN)) {
 					setColumnVisible(4, (Boolean) event.getNewValue());
 				} else if (event.getProperty().equals(
-						PreferenceConstants.SHOW_SCANCMD_COLUMN)) {
+						FileExplorerPreferenceConstants.SHOW_SCANCMD_COLUMN)) {
 					setColumnVisible(5, (Boolean) event.getNewValue());
 				}
 			}
