@@ -39,6 +39,7 @@
       </plotting_tool_page>
       -->
       <plotting_tool_page
+            category="org.dawnsci.plotting.tools.category.Science"
             class="org.embl.cca.dviewer.plotting.tools.DiffractionLineProfileTool"
             icon="icons/plot-tool-line-profile.png"
             id="org.embl.cca.dviewer.plotting.tools.diffractionLineProfile"
