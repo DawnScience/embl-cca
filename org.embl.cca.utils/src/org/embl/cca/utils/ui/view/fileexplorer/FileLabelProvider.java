@@ -19,7 +19,6 @@ import org.embl.cca.utils.datahandling.file.VirtualCollectionFile;
 import org.embl.cca.utils.ui.view.fileexplorer.preference.FileExplorerPreferenceConstants;
 
 import uk.ac.diamond.sda.navigator.util.NavigatorUtils;
-import uk.ac.gda.util.OSUtils;
 
 public class FileLabelProvider extends ColumnLabelProvider {
 
@@ -129,12 +128,18 @@ public class FileLabelProvider extends ColumnLabelProvider {
 	}
 
 	private String getRootLabel(File node) {
-    	if (OSUtils.isWindowsOS()) {
+    	if (isWindowsOS()) {
     		return	"("+node.getAbsolutePath().substring(0, node.getAbsolutePath().length()-1)+")";
     	}
 		return node.getPath();
     }
- 
+	/**
+	 * @return true if windows
+	 */
+	static public boolean isWindowsOS() {
+		return (System.getProperty("os.name").indexOf("Windows") == 0);
+	}
+
 	protected double getColumnIndex() {
 		return columnIndex;
 	}

@@ -63,10 +63,9 @@ import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.datahandling.FileWithTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.embl.cca.utils.ui.view.fileexplorer.preference.FileExplorerPreferenceConstants;
+
 import uk.ac.diamond.sda.navigator.views.IFileView;
-import uk.ac.gda.util.OSUtils;
 
 /**
  * This class navigates a file system and remembers where you last left it.
@@ -210,7 +209,7 @@ public class FileView extends ViewPart implements IFileView {
 			IFileIconService service = (IFileIconService) ServiceManager
 					.getService(IFileIconService.class);
 			final Image icon = service
-					.getIconForFile(OSUtils.isWindowsOS() ? new File(
+					.getIconForFile(isWindowsOS() ? new File(
 							"C:/Windows/") : new File("/"));
 			fileLabel.setImage(icon);
 		} catch (Exception e) {
@@ -425,6 +424,12 @@ public class FileView extends ViewPart implements IFileView {
 
 	}
 
+	/**
+	 * @return true if windows
+	 */
+	static public boolean isWindowsOS() {
+		return (System.getProperty("os.name").indexOf("Windows") == 0);
+	}
 	@Override
 	public void collapseAll() {
 		this.tree.collapseAll();
