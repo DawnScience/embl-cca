@@ -8,7 +8,7 @@ import java.util.List;
 import org.eclipse.jface.fieldassist.IContentProposal;
 import org.eclipse.jface.fieldassist.IContentProposalProvider;
 
-import uk.ac.gda.ui.content.IFilterExtensionProvider;
+import org.dawnsci.common.widgets.content.IFilterExtensionProvider;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 
