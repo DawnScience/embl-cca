@@ -47,6 +47,7 @@ public class Activator extends AbstractUIPlugin {
 		super.start(context);
 		plugin = this;
 		startConnectionManager();
+		logger.debug("Started " + getPackageName());
 	}
 
 	/*
@@ -58,6 +59,7 @@ public class Activator extends AbstractUIPlugin {
 		stopConnectionManager();
 		plugin = null;
 		super.stop(context);
+		logger.debug("Stopped " + getPackageName());
 	}
 
 	/**
