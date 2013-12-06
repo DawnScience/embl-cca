@@ -1,6 +1,6 @@
 package org.embl.cca.utils.threading.MUSC;
 
-import org.embl.cca.utils.eventhandling.ListenerList;
+import org.dawb.common.util.list.ListenerList;
 import org.embl.cca.utils.threading.MUSC.IMultiUserStaticClassListener.WrappedObject;
 
 public class MultiUserStaticClass<CLASS> {
@@ -48,7 +48,7 @@ public class MultiUserStaticClass<CLASS> {
 
 	protected void fireCreateObject() {
 		WrappedObject<CLASS> wrappedObject = new WrappedObject<CLASS>(null);
-		users.getListeners().firstElement().createObject(wrappedObject);
+		users.firstElement().createObject(wrappedObject);
 		object = wrappedObject.getObject();
 		if( object == null )
 			throw new RuntimeException("Listener did not returned the object");

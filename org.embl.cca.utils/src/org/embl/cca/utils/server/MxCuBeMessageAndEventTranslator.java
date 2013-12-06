@@ -3,9 +3,9 @@ package org.embl.cca.utils.server;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.dawb.common.util.list.ListenerList;
 import org.embl.cca.utils.datahandling.socket.ConnectionHandler;
 import org.embl.cca.utils.datahandling.socket.IMessageHandler;
-import org.embl.cca.utils.eventhandling.ListenerList;
 
 public class MxCuBeMessageAndEventTranslator implements IMessageHandler {
 	public MxCuBeMessageAndEventTranslator() {

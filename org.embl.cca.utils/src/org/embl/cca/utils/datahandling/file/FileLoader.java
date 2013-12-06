@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.Vector;
 
 import org.dawb.common.services.ServiceManager;
+import org.dawb.common.util.list.ListenerList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -18,20 +19,12 @@ import org.embl.cca.utils.datahandling.DatasetNumber;
 import org.embl.cca.utils.datahandling.DatasetTypeSeparatedUtils;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileWithTag;
-import org.embl.cca.utils.eventhandling.ListenerList;
 import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.BooleanDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.ByteDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.LongDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.ShortDataset;
 import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.ILoaderService;
