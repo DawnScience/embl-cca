@@ -512,7 +512,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //		GridUtils.removeMargins(tools);
 //		tools.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
 
-		final ToolBarManager toolMan = new ToolBarManager(SWT.FLAT|SWT.RIGHT);
+		final ToolBarManager toolMan = new ToolBarManager(SWT.FLAT|SWT.RIGHT|SWT.WRAP);
 		final ToolBar toolBar = toolMan.createControl(main);
 		toolBar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
