@@ -28,4 +28,4 @@ Export-Package: org.embl.cca.utils.datahandling,
  org.embl.cca.utils.threading.MUSC,
  org.embl.cca.utils.ui.widget,
  org.embl.cca.utils.ui.widget.support
-Import-Package: org.slf4j;version="[1.7.5,1.7.6)"
+Import-Package: org.slf4j;version="[1.7.6,1.7.7)"
