@@ -93,25 +93,24 @@ public class Activator extends AbstractUIPlugin {
 		final String portOption = "-port=";
 		if( mxCuBeConnectionManager == null ) {
 			int port = DefaultPort;
+			getLog().log(new Status(IStatus.INFO, PLUGIN_ID, "Looking for \"" + portOption + "\" CLP"));
 			for( String arg : Platform.getCommandLineArgs() ) {
 				if( arg.startsWith(portOption)) {
 					try {
+						getLog().log(new Status(IStatus.INFO, PLUGIN_ID, "Found \"" + portOption + "\" CLP"));
 						port = Integer.parseInt(arg.substring(portOption.length()));
 					} catch( final NumberFormatException e ) {
-						// Important - this is the activator to an OSGI plugin you do not know 
-						// at what point it will be loaded. If this line was entered in the old way it caused a crash.
 						getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, "Using default port " + DefaultPort + " for socket listener because the specified port is not valid.", e));
 					}
 				}
 			}
-			final int finalPort = port;
 			try {
-				if( finalPort > 0 )
+				if( port > 0 ) {
+					getLog().log(new Status(IStatus.INFO, PLUGIN_ID, "Opening port " + port));
 					mxCuBeConnectionManager = new MxCuBeConnectionManager(port, new MxCuBeMessageAndEventTranslator());
+				}
 			} catch (final Exception e) {
-				// Important - this is the activator to an OSGI plugin you do not know 
-				// at what point it will be loaded. If this line was entered in the old way it caused a crash.
-				getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, "Can not start socket listener on port " + finalPort + ".\n" + e.getMessage(), e));
+				getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, "Can not start socket listener on port " + port + ".\n" + e.getMessage(), e));
 			}
 		}
 	}
