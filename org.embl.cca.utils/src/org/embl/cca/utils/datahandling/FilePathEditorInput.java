@@ -85,7 +85,7 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 	 * @param equalityID
 	 */
 	public FilePathEditorInput(String filePath, String equalityID) {
-		this(filePath, null, filePath);
+		this(filePath, equalityID, filePath);
 	}
 
 	/**
