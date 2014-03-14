@@ -7,12 +7,6 @@
          <startup class="org.embl.cca.dviewer.DviewerStartup"/>
    </extension>
    <extension
-         point="org.dawb.common.ui.editorExtension">
-      <editor_extension
-            class="org.embl.cca.dviewer.ui.editors.ImageEditor">
-      </editor_extension>
-   </extension>
-   <extension
          point="org.eclipse.ui.preferencePages">
       <page
             category="org.edna.workbench.editors.preferencePage"
@@ -49,14 +43,34 @@
    <extension
          point="org.eclipse.ui.editors">
        <editor
-            class="org.embl.cca.dviewer.ui.editors.ImageEditor"
+            class="org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart"
              default="false"
-             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker, raw"
-             icon="icons/image_editor.png"
-             id="org.embl.cca.dviewer.ui.editors.ImageEditor"
+             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker, raw, png, jpg, jpeg"
+             icon="icons/dViewer-16x16-icon.png"
+             id="org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart"
              name="dViewer Image Editor">
        </editor>
     </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective"
+            icon="icons/dViewer-16x16-icon.png"
+            id="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective"
+            name="dViewer">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="uk.ac.diamond.scisoft.analysis.rcp"
+            class="org.embl.cca.dviewer.ui.views.DViewerView"
+            icon="icons/dViewer-16x16-icon.png"
+            id="org.embl.cca.dviewer.ui.views.dViewerView"
+            name="dViewer"
+            restorable="true">
+      </view>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.commands">
