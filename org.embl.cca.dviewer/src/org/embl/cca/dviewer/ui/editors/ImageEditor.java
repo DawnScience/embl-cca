@@ -1,8 +1,5 @@
 package org.embl.cca.dviewer.ui.editors;
 
-import gda.analysis.io.IFileSaver;
-import gda.analysis.io.ScanFileHolderException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -110,10 +107,12 @@ import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
+import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.io.PNGSaver;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
 import uk.ac.diamond.scisoft.analysis.io.RawBinaryLoader;
+import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 import uk.ac.diamond.scisoft.analysis.roi.IROI;
 //import org.dawb.workbench.plotting.tools.InfoPixelTool;
 
