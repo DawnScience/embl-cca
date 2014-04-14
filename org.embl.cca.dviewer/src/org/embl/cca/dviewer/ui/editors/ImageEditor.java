@@ -1,7 +1,7 @@
 package org.embl.cca.dviewer.ui.editors;
 
-import gda.analysis.io.IFileSaver;
-import gda.analysis.io.ScanFileHolderException;
+import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
+import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,10 +83,10 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.MultiPageEditorSite;
-import org.embl.cca.dviewer.Activator;
+import org.embl.cca.dviewer.DViewerActivator;
 import org.embl.cca.dviewer.plotting.tools.InfoPixelTool;
 import org.embl.cca.dviewer.plotting.tools.PSFTool;
-import org.embl.cca.dviewer.ui.editors.preference.EditorConstants;
+import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
 import org.embl.cca.dviewer.ui.editors.utils.PSF;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
@@ -381,7 +381,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 		IPartService service = (IPartService) getSite().getService(IPartService.class);
 		service.removePartListener(this);
-		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
+		DViewerActivator.getDefault().getPreferenceStore().removePropertyChangeListener(this);
        	if (getPlottingSystem() != null) {
        		if( !getPlottingSystem().isDisposed() ) {
        			getPlottingSystem().removeTraceListener(traceListener); //Although its dispose clears listeners
@@ -535,7 +535,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		GridUtils.setVisible(point, true);
 		point.setBackground(infoLine.getBackground());
 
-		Activator.getDefault().getPreferenceStore().addPropertyChangeListener(this); 
+		DViewerActivator.getDefault().getPreferenceStore().addPropertyChangeListener(this); 
 
 		final MenuManager menuMan = new MenuManager();
 		final IActionBars bars = this.getEditorSite().getActionBars();
@@ -561,8 +561,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		psfAction.setId(getClass().getName() + "." + PSF.featureIdentifierName);
 		psfAction.setText("Apply " + PSF.featureName);
 		psfAction.setToolTipText("Apply " + PSF.featureFullName + " (" + PSF.featureName + ") on the image");
-		psfAction.setImageDescriptor(Activator.getImageDescriptor("/icons/psf.png"));
-		psfAction.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(EditorConstants.PREFERENCE_APPLY_PSF));
+		psfAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/psf.png"));
+		psfAction.setChecked(DViewerActivator.getDefault().getPreferenceStore().getBoolean(DViewerEditorConstants.PREFERENCE_APPLY_PHA));
 
 //        IPlotActionSystem actionsys = getPlottingSystem().getPlotActionSystem();
 //        actionsys.fillZoomActions(toolMan);
@@ -585,7 +585,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		toolMan.add( psfAction );
 
 		MenuAction dropdown = new MenuAction("Resolution rings");
-		dropdown.setImageDescriptor(Activator.getImageDescriptor("/icons/resolution_rings.png"));
+		dropdown.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/resolution_rings.png"));
 /*
 		standardRings = new Action("Standard rings", Activator.getImageDescriptor("/icons/standard_rings.png")) {
 			@Override
@@ -637,7 +637,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		dviewerDownsamplingAction.setId(getClass().getName()+".downsamplingType");
 //		dviewerDownsamplingAction.setImageDescriptor(Activator.getImageDescriptor("icons/origins.png"));
 		CheckableActionGroup group = new CheckableActionGroup();
-		DownsampleType downsampleType = (DownsampleType.values()[ Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
+		DownsampleType downsampleType = (DownsampleType.values()[ DViewerActivator.getDefault().getPreferenceStore().getInt(DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE) ]);
         IAction selectedAction  = null;
         
         String dTypeNames[] = new String[DownsampleType.values().length];
@@ -720,7 +720,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		menuMan.add(dviewerSaveAsScaledOriginalAction);
 
 		if( menuMan.getSize() > 0 ) {
-		    Action menuAction = new Action("", Activator.getImageDescriptor("/icons/DropDown.png")) {
+		    Action menuAction = new Action("", DViewerActivator.getImageDescriptor("/icons/DropDown.png")) {
 		        @Override
 		        public void run() {
 	                final Menu mbar = menuMan.createContextMenu(toolBar);
@@ -749,82 +749,82 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 		getEditorSite().setSelectionProvider(getPlottingSystem().getSelectionProvider());
 
-    	infoPixelTool = new InfoPixelTool(getPlottingSystem(), 1.0) {
-    		@Override
-    		public void setVisible(boolean visible) {
-    			super.setVisible(visible);
-    			if( point != null && !point.isDisposed() )
-    				point.setVisible(isVisible());
-    		}
-    		@Override
-    		public void roiDragged(ROIEvent evt) {
-    			IRegion region = (IRegion) evt.getSource();
-    			RegionType rt = region.getRegionType();
-    			IROI rb = evt.getROI();
-    			if( rt == RegionType.XAXIS_LINE ) {
-    				xValues[0] = evt.getROI().getPointX();
-			  	} else if( rt == RegionType.YAXIS_LINE ) {
-    				yValues[0] = evt.getROI().getPointY();
-			  	} else //POINT or whatever
-			  		return;
-//    			logger.debug("DEBUG: updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
-    			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
-    				if( (int)xValues[0] < 0 || (int)yValues[0] < 0 )
-    					logger.debug( "DEBUG: Too small! " + (int)xValues[0] + ", " + (int)yValues[0] );
-    				if( (int)xValues[0] < originalSet.getShape()[1] && (int)yValues[0] < originalSet.getShape()[0] ) {
-    					Object oriValue = originalSet.getObject(new int[] {(int)yValues[0], (int)xValues[0]});
-//    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
-//    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
-//    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
-    					point.setText( String.format("x=%d y=%d intensity=%s resolution=%s S=%s",
-//    							(int)xValues[0], (int)yValues[0], oriValue.toString(), infoPixelToolLabelResolution.getText(region), infoPixelToolLabelQ.getText(region)));
-    							(int)xValues[0], (int)yValues[0], oriValue.toString(), getText(region, 8), getText(region, 20)));
-    					infoLine.layout(true);
-    				} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
-    					logger.debug( "DEBUG: Too big! " + (int)xValues[0] + ", " + (int)yValues[0] );
-    			}
-    		}
-/*
-    		@Override
-    		protected void addRegion(IRegion region) {
-    			if( getPlottingSystem().getRegion(region.getName()) == null ) {
-    				getPlottingSystem().addRegion(region);
-//    				getPlottingSystem().removeRegion(region);
-    			}
-    		}
-*/
-    		@Override
-    		public void regionAdded(RegionEvent evt) {
-    			int a = 0;
-    		}
-
-    		@Override
-    		public void regionRemoved(RegionEvent evt) {
-    			int a = 0;
-    		}
-/*
-    		@Override
-    		public void mousePressed(MouseEvent evt) {
-    			logger.info("button clicked: " + evt.button);
-    		}
-
-    		@Override
-    		public void mouseReleased(MouseEvent me) {
-    		}
-
-    		@Override
-    		public void mouseDoubleClicked(MouseEvent me) {
-    		}
-*/
-    	};
-//    	infoPixelTool.createControl(top);
-
-//		infoPixelTool.setToolSystem(getPlottingSystem());
-//TODO    	infoPixelTool.setPlottingSystem(getPlottingSystem());
-//TODO		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8); //Resolution ID = 8
-//TODO		infoPixelToolLabelQ = new InfoPixelLabelProvider(infoPixelTool, 20); //Q vector = 8
-//TODO		infoPixelToolLabelQ.setQscale(1.0);
-//		infoPixelTool.setPart(getPlottingSystem().getPart());
+//    	infoPixelTool = new InfoPixelTool(getPlottingSystem(), 1.0) {
+//    		@Override
+//    		public void setVisible(boolean visible) {
+//    			super.setVisible(visible);
+//    			if( point != null && !point.isDisposed() )
+//    				point.setVisible(isVisible());
+//    		}
+//    		@Override
+//    		public void roiDragged(ROIEvent evt) {
+//    			IRegion region = (IRegion) evt.getSource();
+//    			RegionType rt = region.getRegionType();
+//    			IROI rb = evt.getROI();
+//    			if( rt == RegionType.XAXIS_LINE ) {
+//    				xValues[0] = evt.getROI().getPointX();
+//			  	} else if( rt == RegionType.YAXIS_LINE ) {
+//    				yValues[0] = evt.getROI().getPointY();
+//			  	} else //POINT or whatever
+//			  		return;
+////    			logger.debug("DEBUG: updateRegion:" + region.toString() + ", x=" + region.getROI().getPointX() + ", y=" + region.getROI().getPointY());
+//    			if( originalSet != null ) { //Checking because rarely it is null at starting (startup problem somewhere)
+//    				if( (int)xValues[0] < 0 || (int)yValues[0] < 0 )
+//    					logger.debug( "DEBUG: Too small! " + (int)xValues[0] + ", " + (int)yValues[0] );
+//    				if( (int)xValues[0] < originalSet.getShape()[1] && (int)yValues[0] < originalSet.getShape()[0] ) {
+//    					Object oriValue = originalSet.getObject(new int[] {(int)yValues[0], (int)xValues[0]});
+////    					Object psfValue = psfSet.getObject(new int[] {(int)cursorImagePosY, (int)cursorImagePosX});
+////    					point.setText( String.format("x=%d y=%d oriValue=%s psfValue=%s, res=%s",
+////    							(int)cursorImagePosX, (int)cursorImagePosY, oriValue.toString(), psfValue.toString(), infoPixelToolLabelResolution.getText(region)));
+//    					point.setText( String.format("x=%d y=%d intensity=%s resolution=%s S=%s",
+////    							(int)xValues[0], (int)yValues[0], oriValue.toString(), infoPixelToolLabelResolution.getText(region), infoPixelToolLabelQ.getText(region)));
+//    							(int)xValues[0], (int)yValues[0], oriValue.toString(), getText(region, 8), getText(region, 20)));
+//    					infoLine.layout(true);
+//    				} else //invalid position received, it is bug in underlying layer, happens after panning ended and mouse released outside
+//    					logger.debug( "DEBUG: Too big! " + (int)xValues[0] + ", " + (int)yValues[0] );
+//    			}
+//    		}
+///*
+//    		@Override
+//    		protected void addRegion(IRegion region) {
+//    			if( getPlottingSystem().getRegion(region.getName()) == null ) {
+//    				getPlottingSystem().addRegion(region);
+////    				getPlottingSystem().removeRegion(region);
+//    			}
+//    		}
+//*/
+//    		@Override
+//    		public void regionAdded(RegionEvent evt) {
+//    			int a = 0;
+//    		}
+//
+//    		@Override
+//    		public void regionRemoved(RegionEvent evt) {
+//    			int a = 0;
+//    		}
+///*
+//    		@Override
+//    		public void mousePressed(MouseEvent evt) {
+//    			logger.info("button clicked: " + evt.button);
+//    		}
+//
+//    		@Override
+//    		public void mouseReleased(MouseEvent me) {
+//    		}
+//
+//    		@Override
+//    		public void mouseDoubleClicked(MouseEvent me) {
+//    		}
+//*/
+//    	};
+////    	infoPixelTool.createControl(top);
+//
+////		infoPixelTool.setToolSystem(getPlottingSystem());
+////TODO    	infoPixelTool.setPlottingSystem(getPlottingSystem());
+////TODO		infoPixelToolLabelResolution = new InfoPixelLabelProvider(infoPixelTool, 8); //Resolution ID = 8
+////TODO		infoPixelToolLabelQ = new InfoPixelLabelProvider(infoPixelTool, 20); //Q vector = 8
+////TODO		infoPixelToolLabelQ.setQscale(1.0);
+////		infoPixelTool.setPart(getPlottingSystem().getPart());
 
 
 //        getPlottingSystem().addRegionListener(this);
@@ -1070,7 +1070,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		if( imageEditorRemotedDisplayState.equals(ImageEditorRemotedDisplayState.PLAYING_AND_REMOTE_UPDATED)) {
 			editorInputChanged();
 		} else {
-			fileLoader.interrupt();
+			fileLoader.cancelLoading();
 			setPartName(getEditorInput().getName());
 		}
 	}
@@ -1187,7 +1187,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		psfRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
 //		psfRadiusUI.setToolTipText(PSF.featureName + " radius selector");
 //		psfRadiusUI.setThumb(1);
-		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(Activator.getDefault().getPreferenceStore(), EditorConstants.PREFERENCE_PSF_RADIUS),
+		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(DViewerActivator.getDefault().getPreferenceStore(), DViewerEditorConstants.PREFERENCE_PHA_RADIUS),
 				1, 100, 0, 1, 10, 1, 10);
 //		psfRadiusUI.setBounds(115, 50, 25, 15);
 		psfRadiusUI.addSelectionListener(new SelectionAdapter() {
@@ -1195,7 +1195,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 				updatePsfRadiusSlider( psfRadiusUI.getSelectionAsInteger() );
 			}
 		});
-		updatePsfRadiusSlider( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
+		updatePsfRadiusSlider( DViewerActivator.getDefault().getPreferenceStore().getInt(DViewerEditorConstants.PREFERENCE_PHA_RADIUS) );
 
 	}
 
@@ -1634,7 +1634,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	private void setDownsampleType(final DownsampleType downsampleType) {
 		if( imageTrace != null && imageTrace.getDownsampleType() != downsampleType ) {
 			logger.debug( "DEBUG: Setting DownsampleType from " + imageTrace.getDownsampleType().getLabel() + " to " + downsampleType.getLabel() );
-			CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+			CommonThreading.execUISynced(new Runnable() {
 				public void run() {
 					imageTrace.setDownsampleType(downsampleType);
 				}
@@ -1689,9 +1689,9 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 				realMean = stats[2];
 			} catch (Exception ne) {
 				ExceptionUtils.logError(logger, "Cannot process Image histogram!", ne, this);
-				realMin = imageTrace.getData().min().doubleValue(); //This value is determined and stored in dataset by the low level file loader
-				realMax = imageTrace.getData().max().doubleValue(); //This value is determined and stored in dataset by the low level file loader
-				realMean = ((Number)imageTrace.getData().mean()).doubleValue();
+				realMin = imageTrace.getData().min(true, true).doubleValue(); //This value is determined and stored in dataset by the low level file loader
+				realMax = imageTrace.getData().max(true, true).doubleValue(); //This value is determined and stored in dataset by the low level file loader
+				realMean = ((Number)imageTrace.getData().mean(true)).doubleValue();
 			}
 			final double ourMean = Math.min(Math.ceil(realMean * 6), realMax); //6 is an experimental number, should find out by algorithm
 			
@@ -1754,7 +1754,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			final double fMin = realMin;
 			final double fMax = realMax;
 
-			CommonThreading.execSynced(new Runnable() {
+			CommonThreading.execUISynced(new Runnable() {
 				public void run() {
 					minValueText.setText(ConverterUtils.doubleAsString(fMin));
 					maxValueText.setText(ConverterUtils.doubleAsString(fMax));
@@ -1782,7 +1782,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 				psfTool.deactivate();
 			imageTrace = null;
 		}
-		CommonThreading.execFromUIThreadNowOrSynced(new Runnable() {
+		CommonThreading.execUISynced(new Runnable() {
 			public void run() {
 				processMetadata(originalSet);
 			}
@@ -1811,7 +1811,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 
 	private void loadFilesForPlotting(int from, int amount) {
-		fileLoader.loadFiles(from, amount);
+		fileLoader.loadFiles(from, amount, false); //TODO Passing false now, because must do, but passing concept changed
 	}
 
 	private long getHashCode(AbstractDataset dataset) {
@@ -1819,7 +1819,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 
 	@Override
-	public void fileIsReady(Object source, IProgressMonitor monitor) {
+	public void fileLoadingDone(Object source, boolean newFile,
+			IProgressMonitor monitor) {
 		if( source instanceof FileLoader ) {
 			FileLoader fileLoader = (FileLoader)source; //Since using only 1 file loader, this must be same as this.fileLoader
 			final AbstractDataset resultSet = fileLoader.getMergedDataset();
@@ -1847,6 +1848,18 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			}
 */
 		}
+	}
+
+	@Override
+	public void fileLoadingCancelled(Object source, boolean newFile,
+			IProgressMonitor monitor) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void fileLoadingFailed(Object source, boolean newFile,
+			IProgressMonitor monitor) {
+		// TODO Auto-generated method stub
 	}
 
 //	private void loadFilesForPlotting(final FileWithTag[] toLoadImageFiles) {
@@ -1995,17 +2008,17 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 //		Object o = event.getOldValue();
-		if (EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE.equals(event.getProperty())) {
+		if (DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE.equals(event.getProperty())) {
 			DownsampleType currentDType = getDownsampleType(); 
 			if( currentDType != null && currentDType == DownsampleType.values()[ Integer.valueOf((String)event.getOldValue()) ])
 				setDownsampleType(DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ]);
-		} else if (EditorConstants.PREFERENCE_APPLY_PSF.equals(event.getProperty())) {
+		} else if (DViewerEditorConstants.PREFERENCE_APPLY_PHA.equals(event.getProperty())) {
 			Boolean currentApplyPsf = psfAction.isChecked();
 			if( currentApplyPsf == (Boolean)event.getOldValue() ) {
 				psfAction.setChecked((Boolean)event.getNewValue());
 				psfAction.run();
 			}
-		} else if (EditorConstants.PREFERENCE_PSF_RADIUS.equals(event.getProperty())) {
+		} else if (DViewerEditorConstants.PREFERENCE_PHA_RADIUS.equals(event.getProperty())) {
 //			int currentPsfRadius = psf.getRadius();
 //			if( currentPsfRadius == (Integer)event.getOldValue() ) {
 //				updatePsfRadiusSlider((Integer)event.getNewValue());
@@ -2027,7 +2040,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	public void partActivated(IWorkbenchPart part) {
 		if( part == this ) {
 			augmenter.activate();
-			infoPixelTool.activate();
+//			infoPixelTool.activate();
 		}
 	}
 
@@ -2045,7 +2058,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	public void partDeactivated(IWorkbenchPart part) {
 		if( part == this ) {
 			augmenter.deactivate(true);
-			infoPixelTool.deactivate();
+//			infoPixelTool.deactivate();
 		}
 	}
 
