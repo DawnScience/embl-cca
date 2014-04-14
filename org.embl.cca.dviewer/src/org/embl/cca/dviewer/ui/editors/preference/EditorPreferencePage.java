@@ -9,6 +9,8 @@
  */ 
 package org.embl.cca.dviewer.ui.editors.preference;
 
+import java.util.Arrays;
+
 import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
@@ -16,8 +18,9 @@ import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.embl.cca.dviewer.Activator;
-import org.embl.cca.dviewer.ui.editors.utils.PSF;
+import org.embl.cca.dviewer.DViewerActivator;
+import org.embl.cca.dviewer.ui.editors.DViewerImageEditorPart;
+import org.embl.cca.dviewer.ui.editors.utils.PHA;
 
 
 /**
@@ -31,8 +34,6 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 
 	public EditorPreferencePage() {
 		super(GRID);
-		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Preferences for dViewer editor.");
 	}
 
 	/**
@@ -40,25 +41,25 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 	 * GUI blocks needed to manipulate various types of preferences. Each field
 	 * editor knows how to save and restore itself.
 	 */
+	@Override
 	public void createFieldEditors() {
-
-//		final ITrace trace = plottingSystem.updatePlot2D( !psfAction.isChecked() ? originalSet : psfSet, null, monitor );
-//		if (trace instanceof IImageTrace) {
-//			final IImageTrace imageTrace = (IImageTrace) trace;
-//			System.out.println( "DownsampleType = " + imageTrace.getDownsampleType().getLabel() );
-//		}
-		DownsampleType[] downsampleTypes = DownsampleType.values();
-		String[][] choices = new String[downsampleTypes.length][2];
-		int i = -1;
-		for (DownsampleType downsampleType : downsampleTypes) {
-			i++;
-			choices[i] = new String[] { downsampleType.getLabel(), "" + downsampleType.getIndex() };
+		final String dTypeNames[] = DViewerEditorConstants.getSortedDownsampleTypeNames();
+		final String[][] choices = new String[dTypeNames.length][2];
+		int i = 0;
+		for (final String dTypeName : dTypeNames) {
+			final DownsampleType dType = DownsampleType.valueOf(dTypeName);
+			choices[i++] = new String[] { dType.getLabel(), "" + dType.getIndex() };
 		}
-		addField(new ComboFieldEditor(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE,
+		addField(new ComboFieldEditor(DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE,
 				"&Downsampling type :", choices, getFieldEditorParent()));
 
-		addField(new BooleanFieldEditor(EditorConstants.PREFERENCE_APPLY_PSF, "Apply " + PSF.featureName, getFieldEditorParent()));
-		addField(new IntegerFieldEditor(EditorConstants.PREFERENCE_PSF_RADIUS, PSF.featureName + " radius", getFieldEditorParent(), 2));
+		addField(new BooleanFieldEditor(DViewerEditorConstants.PREFERENCE_APPLY_PHA, "Apply " + PHA.featureShortName, getFieldEditorParent()));
+		final IntegerFieldEditor phaRadiusEditor = new IntegerFieldEditor(DViewerEditorConstants.PREFERENCE_PHA_RADIUS,
+			PHA.featureShortName + " radius", getFieldEditorParent(), 1+Math.round((float)Math.log10(DViewerEditorConstants.PHA_RADIUS_MAX)));
+		phaRadiusEditor.setValidRange(DViewerEditorConstants.PHA_RADIUS_MIN, DViewerEditorConstants.PHA_RADIUS_MAX);
+		addField(phaRadiusEditor);
+//		phaRadiusEditor.isValid();
+//		phaRadiusEditor.checkState()
 	}
 
 	/*
@@ -67,7 +68,14 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 	 * @see
 	 * org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
 	 */
-	public void init(IWorkbench workbench) {
+	@Override
+	public void init(final IWorkbench workbench) {
+		setPreferenceStore(DViewerActivator.getLocalPreferenceStore());
+		setDescription("Preferences for dViewer editor.");
 	}
 
+	@Override
+	protected void checkState() {
+		super.checkState();
+	}
 }

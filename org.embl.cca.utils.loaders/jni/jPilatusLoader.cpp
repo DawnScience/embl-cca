@@ -571,7 +571,9 @@ consoleMessage(e.what());
 void test() {
 	CCallTrace ct( __PRETTY_FUNCTION__ );
 	cbf_handle cbf = NULL;
-	const char *filename = "/home/naray/workspace@eclipse/debug_dawb_workspace/data/data/MSG_xtal1/MSG_xtal1_w1_1_0004.cbf";
+//	const char *filename = "/home/naray/workspace@eclipse/debug_dawb_workspace/data/data/MSG_xtal1/MSG_xtal1_w1_1_0004.cbf";
+//	const char *filename = "/home/naray/DAWN_test/data/MSG_xtal1//MSG_xtal1_w1_1_0004.cbf";
+	const char *filename = "/buffer/linnaray1/naray/eclipse.workspace/runtime-org.dawnsci.base.product/data/GAIN.cbf";
 	try {
 consoleMessage( "Java_loaders_pilatus_PilatusLoader_loadPilatus.cbf_make_handle" );
 		cbf_checkerror( cbf_make_handle( &cbf ) );

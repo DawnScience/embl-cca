@@ -698,24 +698,21 @@ public final class JavaSystem {
 	 *      java.lang.String, boolean)
 	 */
 	public static boolean getPropertyAsBoolean(String key, boolean ignoreCase) {
-		boolean result = false;
-		try {
-			result = toBoolean(getProperty(key), ignoreCase);
-		} catch (IllegalArgumentException e) {
-		} catch (NullPointerException e) {
-		}
-		return result;
+		return getPropertyAsBoolean(key, false, ignoreCase);
 	}
 
 	/**
 	 * Returns <code>true</code> if and only if the system property named by the
-	 * argument exists and is equal to the string {@code "true"}. The ignoreCase
+	 * key argument exists and is equal to the string {@code "true"}, or does not
+	 * exist and def argument is equal to the string {@code "true"}. The ignoreCase
 	 * argument specifies if the test of this string is case insensitive. A
 	 * system property is accessible through <code>getProperty</code>, a method
 	 * defined by the <code>System</code> class.
 	 * <p>
-	 * If there is no property with the specified name, or if the specified name
-	 * is empty or null, then <code>false</code> is returned.
+	 * If the specified name is empty or null, then <code>false</code> is returned.
+	 * If there is no property with the specified name and def argument is equal to
+	 * the string {@code "true"} considering ignoreCase argument,
+	 * then true is returned, else false.
 	 * 
 	 * @param key
 	 *            the name of the system property.
@@ -723,6 +720,10 @@ public final class JavaSystem {
 	 *            a default value.
 	 * @return the <code>boolean</code> value of the system property or the
 	 *         default value if there is no property with that key.
+	 * @return the <code>boolean</code> value of the system property or
+	 *         true if there is no property with that key and def argument is
+	 *         equal to the string {@code "true"}, or false if
+	 *         the key argument is empty or null.
 	 * @param ignoreCase
 	 *            true to ignore case sensitivity, false to consider it
 	 * @see java.lang.System#getProperty(java.lang.String)
@@ -738,13 +739,52 @@ public final class JavaSystem {
 	 * @see java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
 	 * @see java.lang.System#getProperties()
 	 */
-	public static boolean getPropertyAsBoolean(String key, String def,
+	public static boolean getPropertyAsBoolean(final String key, final String def,
+			final boolean ignoreCase) {
+		return getPropertyAsBoolean(key, toBoolean(def, ignoreCase), ignoreCase);
+	}
+
+	/**
+	 * Returns <code>true</code> if and only if the system property named by the
+	 * key argument exists and is equal to the string {@code "true"}, or does not
+	 * exist and def argument is true. The ignoreCase
+	 * argument specifies if the test of this string is case insensitive. A
+	 * system property is accessible through <code>getProperty</code>, a method
+	 * defined by the <code>System</code> class.
+	 * <p>
+	 * If the specified name is empty or null, then <code>false</code> is returned.
+	 * If there is no property with the specified name, then def argument is returned.
+	 * 
+	 * @param key
+	 *            the name of the system property.
+	 * @param def
+	 *            a default value.
+	 * @return the <code>boolean</code> value of the system property or the
+	 *         def argument if there is no property with that key, or false if
+	 *         the key argument is empty or null.
+	 * @param ignoreCase
+	 *            true to ignore case sensitivity, false to consider it
+	 * @see java.lang.System#getProperty(java.lang.String)
+	 * @see java.lang.System#getProperty(java.lang.String, java.lang.String)
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getProperty(java.lang.String)
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getProperty(java.lang.String,
+	 *      java.lang.String)
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getPropertyAsBoolean(java.lang.String)
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getPropertyAsBoolean(java.lang.String,
+	 *      boolean)
+	 * 
+	 * @see #setProperty
+	 * @see java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
+	 * @see java.lang.System#getProperties()
+	 */
+	public static boolean getPropertyAsBoolean(String key, boolean def,
 			boolean ignoreCase) {
 		boolean result = false;
 		try {
-			result = toBoolean(getProperty(key, def), ignoreCase);
-		} catch (IllegalArgumentException e) {
-		} catch (NullPointerException e) {
+			final String value = getProperty(key);
+			result = value == null ? def : toBoolean(value, ignoreCase);
+		} catch (IllegalArgumentException e) { //key is empty
+		} catch (NullPointerException e) { //key is null
 		}
 		return result;
 	}
@@ -766,6 +806,88 @@ public final class JavaSystem {
 		final String trueAsString = "true";
 		return ((name != null) && (ignoreCase ? name
 				.equalsIgnoreCase(trueAsString) : name.equals(trueAsString)));
+	}
+
+	/**
+	 * Returns the converted <code>int</code> value of the system property
+	 * named by the key argument.
+	 * A system property is accessible through <code>getProperty</code>, a method
+	 * defined by the <code>System</code> class.
+	 * <p>
+	 * If the specified key is empty or null, or the property not found,
+	 * then <code>0</code> is returned. If the property value of the specified
+	 * key is not parsable integer, NumberFormatException is thrown.
+	 * 
+	 * @param key
+	 *            the name of the system property.
+	 * @return the <code>int</code> value of the system property if the
+	 *         property exists and is a parsable integer, else 0.
+     * @exception  NumberFormatException  if the property does not contain a
+     *             parsable integer.
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getProperty(java.lang.String)
+	 * 
+	 * @see #setProperty
+	 * @see java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
+	 * @see java.lang.System#getProperties()
+	 */
+	public static int getPropertyAsInt(final String key) throws NumberFormatException {
+		int result = 0;
+		try {
+			final String value = getProperty(key);
+			result = value == null ? 0 : toInt(value);
+		} catch (NumberFormatException e) { //value is invalid
+			throw e;
+		} catch (IllegalArgumentException e) { //key is empty
+		} catch (NullPointerException e) { //key is null
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the converted <code>int</code> value of the system property
+	 * named by the key argument.
+	 * A system property is accessible through <code>getProperty</code>, a method
+	 * defined by the <code>System</code> class.
+	 * <p>
+	 * If the specified key is empty or null, or the property value of the
+	 * specified key is not integer, then <code>0</code> is returned.
+	 * If there is no property with the specified key, then def argument
+	 * is returned.
+	 * 
+	 * @param key
+	 *            the name of the system property.
+	 * @param def
+	 *            a default value.
+	 * @return the <code>int</code> value of the system property if the
+	 *         property exists and is a valid integer, the def argument if
+	 *         the property does not exist, else 0.
+	 * @see org.embl.cca.utils.datahandling.JavaSystem#getProperty(java.lang.String)
+	 * 
+	 * @see #setProperty
+	 * @see java.lang.SecurityManager#checkPropertyAccess(java.lang.String)
+	 * @see java.lang.System#getProperties()
+	 */
+	public static int getPropertyAsInt(final String key, final int def) {
+		int result = def;
+		try {
+			result = getPropertyAsInt(key);
+		} catch (NumberFormatException e) { //value is invalid
+		}
+		return result;
+	}
+	/**
+	 * Returns the converted <code>int</code> value of the specified name.
+	 * A system property is accessible through
+	 * <code>getProperty</code>, a method defined by the <code>System</code>
+	 * class.
+	 * <p>
+	 * 
+	 * @param name
+	 *            name.
+	 * @return the <code>int</code> value of the name.
+	 */
+	protected static int toInt(final String name) throws NumberFormatException {
+		return Integer.parseInt(name);
 	}
 
 	/**

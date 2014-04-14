@@ -71,33 +71,22 @@
             restorable="true">
       </view>
    </extension>
-<!--
    <extension
-         point="org.eclipse.ui.commands">
-      <category
-         name="dViewer Tools"
-         id="dViewer.category"
-         description="dViewer.saveToFile.command"/>
-      <command
-         name="%saveToFile"
-         categoryId="dViewer.category"
-         id="dViewer.saveToFile.command"
-         defaultHandler="org.embl.cca.dviewer.actions.SaveToFileAction"/>
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective">
+         <hiddenMenuItem
+               id="org.eclipse.ui.run">
+         </hiddenMenuItem>
+         <hiddenMenuItem
+               id="navigate">
+         </hiddenMenuItem>
+         <hiddenMenuItem
+               id="project">
+         </hiddenMenuItem>
+         <hiddenMenuItem
+               id="org.eclipse.search.menu">
+         </hiddenMenuItem>
+      </perspectiveExtension>
    </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-         locationURI="menu:file?after=save.ext">
-         <menu
-               label="Save As... (Original)"
-               mnemonic="Mnemonic"
-               id="org.eclipse.ui.examples.contributions.menus.globalMenu">
-         <command
-               commandId="dViewer.saveToFile.command"
-               mnemonic="%mnemonic what?">
-         </command>
-         </menu>
-      </menuContribution>
-   </extension>
--->
 </plugin>

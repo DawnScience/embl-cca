@@ -10,6 +10,8 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 
+import org.embl.cca.utils.datahandling.text.StringUtils;
+
 public class EFile extends File implements Cloneable {
 	private static final long serialVersionUID = 3394163669035862731L;
 
@@ -608,6 +610,68 @@ public class EFile extends File implements Cloneable {
     	EFile result = create(absPath);
     	return result;
     }
+
+	/**
+	 * Get file extension (result will NOT include ".")
+	 * 
+	 * @return String file extension value, or empty String ("") if no extension
+	 */
+	public String getFileExtension() {
+		return getFileExtension(this);
+	}
+
+	/**
+	 * Get file extension (result will NOT include ".")
+	 * 
+	 * @param file File to get filename from
+	 * @return String file extension value, or empty String ("") if no extension
+	 */
+	public static String getFileExtension(final File file) {
+		return getFileExtension(file.getName());
+	}
+
+	/**
+	 * Get file extension (result will NOT include ".")
+	 * 
+	 * @param fileName path to get filename of
+	 * @return String file extension value, or empty String ("") if no extension
+	 */
+	public static String getFileExtension(final String fileName) {
+		final int posExt = fileName.lastIndexOf('.');
+		return posExt == -1 ? StringUtils.EMPTY_STRING : fileName.substring(posExt + 1);
+	}
+
+	/**
+	 * Get Filename minus it's extension if present
+	 * 
+	 * @return String filename minus its extension
+	 */
+	public String getFileNameNoExtension() {
+		return getFileNameNoExtension(this);
+	}
+	
+	/**
+	 * Get Filename minus it's extension if present
+	 * 
+	 * @param file
+	 *            File to get filename from
+	 * @return String filename minus its extension
+	 */
+	public static String getFileNameNoExtension(final File file) {
+		return getFileNameNoExtension(file.getName());
+	}
+	
+	/**
+	 * Get Filename minus it's extension if present
+	 * 
+	 * @param fileName path to get filename of
+	 * @return String filename minus its extension
+	 */
+	public static String getFileNameNoExtension(final String fileName) {
+		int posExt = fileName.lastIndexOf('.');
+		return posExt == -1 ? fileName : fileName.substring(0, posExt);
+
+	}
 
     @Override
     public EFile clone() {

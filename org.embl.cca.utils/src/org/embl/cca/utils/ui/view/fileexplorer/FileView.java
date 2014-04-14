@@ -60,6 +60,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 import org.embl.cca.utils.datahandling.FileWithTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -566,8 +567,7 @@ public class FileView extends ViewPart implements IFileView {
 				setSort(FileSortType.ALPHA_NUMERIC_DIRS_FIRST);
 			}
 		};
-		dirsTop.setImageDescriptor(Activator
-				.getImageDescriptor("icons/alpha_mode_folder.png"));
+		dirsTop.setImageDescriptor(Activator.getDefault().getImageRegistry().getDescriptor(ImageConstants.IMG_ALPHA_MODE_FOLDER));
 		if (defaultFileSortType.equals(FileSortType.ALPHA_NUMERIC_DIRS_FIRST))
 			dirsTop.setChecked(true);
 		grp.add(dirsTop);
@@ -580,8 +580,7 @@ public class FileView extends ViewPart implements IFileView {
 				setSort(FileSortType.ALPHA_NUMERIC);
 			}
 		};
-		alpha.setImageDescriptor(Activator
-				.getImageDescriptor("icons/alpha_mode.gif"));
+		alpha.setImageDescriptor(Activator.getDefault().getImageRegistry().getDescriptor(ImageConstants.IMG_ALPHA_MODE));
 		if (defaultFileSortType.equals(FileSortType.ALPHA_NUMERIC))
 			alpha.setChecked(true);
 		grp.add(alpha);

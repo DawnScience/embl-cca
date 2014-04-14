@@ -12,7 +12,7 @@ package org.embl.cca.dviewer.ui.editors.preference;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import org.embl.cca.dviewer.Activator;
+import org.embl.cca.dviewer.DViewerActivator;
 
 /**
  * Class used to initialize default preference values.
@@ -30,12 +30,12 @@ public class EditorPreferenceInitializer extends AbstractPreferenceInitializer {
 	 */
 	public void initializeDefaultPreferences() {
 		//Better adjust current values if they are invalid
-		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-		EditorPreferenceHelper.setStoreDefaultValue(store, EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE);
-		EditorPreferenceHelper.fixStoreValue(store, EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE);
-		EditorPreferenceHelper.setStoreDefaultValue(store, EditorConstants.PREFERENCE_APPLY_PSF);
-		EditorPreferenceHelper.setStoreDefaultValue(store, EditorConstants.PREFERENCE_PSF_RADIUS);
-		EditorPreferenceHelper.fixStoreValue(store, EditorConstants.PREFERENCE_PSF_RADIUS);
+		final IPreferenceStore store = DViewerActivator.getLocalPreferenceStore();
+		EditorPreferenceHelper.setStoreDefaultValue(store, DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE);
+//		EditorPreferenceHelper.fixStoreValue(store, DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE);
+		EditorPreferenceHelper.setStoreDefaultValue(store, DViewerEditorConstants.PREFERENCE_APPLY_PHA);
+		EditorPreferenceHelper.setStoreDefaultValue(store, DViewerEditorConstants.PREFERENCE_PHA_RADIUS);
+//		EditorPreferenceHelper.fixStoreValue(store, DViewerEditorConstants.PREFERENCE_PHA_RADIUS);
 	}
 
 }

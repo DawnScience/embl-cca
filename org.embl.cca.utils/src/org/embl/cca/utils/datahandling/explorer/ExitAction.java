@@ -4,6 +4,7 @@ import org.eclipse.jface.action.*;
 import org.eclipse.jface.resource.*;
 import org.eclipse.jface.window.*;
 import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 
 public class ExitAction extends Action
 {
@@ -16,7 +17,7 @@ public class ExitAction extends Action
     setToolTipText("Exit the application");
     setImageDescriptor(
 //      ImageDescriptor.createFromURL(Util.newURL("file:icons/close.gif")));
-      Util.getImageRegistry().getDescriptor("close"));
+      Activator.getDefault().getImageRegistry().getDescriptor(ImageConstants.IMG_CLOSE));
   }
 
   public void run()

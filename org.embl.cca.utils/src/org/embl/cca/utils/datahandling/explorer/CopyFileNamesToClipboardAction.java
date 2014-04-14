@@ -8,6 +8,7 @@ import org.eclipse.jface.resource.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.dnd.*;
 import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 
 public class CopyFileNamesToClipboardAction extends Action
 {
@@ -19,8 +20,7 @@ public class CopyFileNamesToClipboardAction extends Action
     setToolTipText("Copy absolute file names of selected files to the clipboard");
     setText("Copy File &Names@Ctrl+Shift+C");
     setImageDescriptor(
-//      ImageDescriptor.createFromURL(Util.newURL("file:icons/copy.gif")));
-    	Util.getImageRegistry().getDescriptor("copy"));
+    	Activator.getDefault().getImageRegistry().getDescriptor(ImageConstants.IMG_COPY));
   }
 
   public void run()

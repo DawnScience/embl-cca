@@ -1,14 +1,32 @@
 package org.embl.cca.utils.extension;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.spi.ImageWriterSpi;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.ui.widget.SaveFileDialog;
 
 public class CommonExtension {
 	/**
@@ -59,6 +77,8 @@ public class CommonExtension {
 	 * or restored from saved data.
 	 * </p>
 	 * 
+	 * @param workbenchPage
+	 *            the workbench page where to open editor
 	 * @param input
 	 *            the editor input
 	 * @param editorId
@@ -72,23 +92,130 @@ public class CommonExtension {
 	 * @exception PartInitException
 	 *                if the editor could not be created or initialized
 	 */
-	public static IEditorPart openEditor(IWorkbenchPage iWP, IEditorInput input, String editorId,
-			boolean bringToTop, boolean activate) throws PartInitException {
+	public static IEditorPart openEditor(final IWorkbenchPage workbenchPage,
+			final IEditorInput input, final String editorId,
+			final boolean bringToTop, final boolean activate) throws PartInitException {
 //		return openEditor(input, editorID, activate, MATCH_INPUT); //Original from WorkbenchPage.class
 		IEditorPart iEP = null;
 		if( bringToTop ) {
-			iEP = iWP.openEditor(input, editorId, activate );
+			iEP = workbenchPage.openEditor(input, editorId, activate );
 		} else {
-			iEP = iWP.findEditor(input);
+			iEP = workbenchPage.findEditor(input);
 			if( iEP != null ) {
 				if (iEP instanceof IShowEditorInput) {
 					((IShowEditorInput) iEP).showEditorInput(input);
 				}
 				//iWP.showEditor(activate, iEP); //Original from WorkbenchPage.class, but can not use it, because protected, thus not in interface
 			} else {
-				iEP = iWP.openEditor(input, editorId, activate );
+				iEP = workbenchPage.openEditor(input, editorId, activate );
 			}
 		}
 		return iEP;
 	}
+
+	/**
+	 * Opens an editor on the given input.
+	 * <p>
+	 * If current page already has an editor open on the target input and that
+	 * editor is IShowEditorInput then that editor is notified and brought to
+	 * top if requested; otherwise, a new editor is opened, and brought to top.
+	 * In both case, only if editor is brought to top, then it can be activated.
+	 * Two editor inputs are considered the same if they equal. See
+	 * <code>Object.equals(Object)<code>
+	 * and <code>IEditorInput</code>. If <code>activate == true</code> the
+	 * editor will be activated.
+	 * </p>
+	 * <p>
+	 * The editor type is determined by mapping <code>editorId</code> to an
+	 * editor extension registered with the workbench. An editor id is passed
+	 * rather than an editor object to prevent the accidental creation of more
+	 * than one editor for the same input. It also guarantees a consistent
+	 * lifecycle for editors, regardless of whether they are created by the user
+	 * or restored from saved data.
+	 * </p>
+	 * 
+	 * @param input
+	 *            the editor input
+	 * @param editorId
+	 *            the id of the editor extension to use
+	 * @param bringToTop
+	 *            if <code>true</code> the editor will be brought to top
+	 * @param activate
+	 *            if <code>true</code> the editor will be activated
+	 * @return an open editor, or <code>null</code> if an external editor was
+	 *         opened
+	 * @exception PartInitException
+	 *                if the editor could not be created or initialized
+	 */
+	public static IEditorPart openEditor(final IEditorInput input, final String editorId,
+			final boolean bringToTop, final boolean activate) throws PartInitException {
+		return openEditor(getCurrentPage(), input, editorId, bringToTop, activate);
+	}
+
+	/**
+	 * Gets the current page, even during startup. Current means either active,
+	 * or default when active is null.
+	 * @return the current page, or null if there is no current page
+	 * @see #getActivePage
+	 * @see #getDefaultPage
+	 */
+	public static IWorkbenchPage getCurrentPage() {
+		final IWorkbenchPage activePage = getActivePage();
+		if (activePage!=null) return activePage;
+		return getDefaultPage();
+	}
+	
+	/**
+	 * Gets the active page.
+	 * @return the active page, or null if there is no active page
+	 */
+	public static IWorkbenchPage getActivePage() {
+		final IWorkbench bench = PlatformUI.getWorkbench();
+		if (bench==null) return null;
+		final IWorkbenchWindow window = bench.getActiveWorkbenchWindow();
+		if (window==null) return null;
+		return window.getActivePage();
+	}
+	
+	
+	/**
+	 * Gets the default page. Default means the active page of first
+	 * workbench window.
+	 * @return the active page of first workbench window, or null if there is
+	 * no workbench window or active page
+	 */
+	public static IWorkbenchPage getDefaultPage() {
+		final IWorkbenchWindow[] windows = getWorkbenchWindows();
+		if (windows==null) return null;
+		return windows[0].getActivePage();
+	}
+
+	/**
+	 * Gets the workbench windows.
+	 * @return the workbench windows, or null if there is no workbench window
+	 */
+	public static IWorkbenchWindow[] getWorkbenchWindows() {
+		final IWorkbench bench = PlatformUI.getWorkbench();
+		if (bench==null) return null;
+		return bench.getWorkbenchWindows();
+	}
+
+	/**
+	 * Gets the workbench windows as list.
+	 * @return the workbench windows as list, which might be empty
+	 */
+	public static List<IWorkbenchWindow> getWorkbenchWindowList() {
+		return Arrays.asList(getWorkbenchWindows());
+	}
+
+	/**
+	 * Gets the current editor, which is the active editor of current page.
+	 * @return the current editor, or null if there is no current editor
+	 * @see #getCurrentPage
+	 */
+	public static IEditorPart getCurrentEditor() {
+		final IWorkbenchPage page = getCurrentPage();
+		return page.getActiveEditor();
+	}
+
 }

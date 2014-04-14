@@ -1,4 +1,4 @@
 output32/JNIException.d2 : JNIException.cpp JNIException.h \
- ../../../embl-cca/org.embl.cca.utils/cpp/String.h \
- ../../../embl-cca/org.embl.cca.utils/cpp/CallTrace.h \
- ../../../embl-cca/org.embl.cca.utils/cpp/String.h
+ ../../../embl-cca.git/org.embl.cca.utils/cpp/String.h \
+ ../../../embl-cca.git/org.embl.cca.utils/cpp/CallTrace.h \
+ ../../../embl-cca.git/org.embl.cca.utils/cpp/String.h

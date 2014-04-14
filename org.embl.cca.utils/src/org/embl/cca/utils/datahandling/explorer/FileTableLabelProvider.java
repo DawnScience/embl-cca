@@ -4,6 +4,8 @@ import java.io.*;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.*;
+import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 
 public class FileTableLabelProvider implements ITableLabelProvider
 {
@@ -49,11 +51,11 @@ public class FileTableLabelProvider implements ITableLabelProvider
 
     if (((File) element).isDirectory())
     {
-      return Util.getImageRegistry().get("folder");
+      return Activator.getDefault().getImageRegistry().get(ImageConstants.IMG_FOLDER);
     }
     else
     {
-      return Util.getImageRegistry().get("file");
+      return Activator.getDefault().getImageRegistry().get(ImageConstants.IMG_FILE);
     }
   }
 }

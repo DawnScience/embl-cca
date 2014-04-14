@@ -80,7 +80,7 @@ public class ExecutableManager extends Thread {
 					currentRun = runnableQueue.lastElement();
 //					System.out.println("ExecutableManager.run: runnableQueue.size=" + runnableQueue.size() + " (" + currentRun.toString() + ")");
 					runnableQueue.clear();
-					CommonThreading.execAsynced(currentRun);
+					CommonThreading.execUIAsynced(currentRun);
 					currentRun.waitForFinish();
 					currentRun = null;
 				} else {

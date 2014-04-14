@@ -14,7 +14,9 @@ Require-Bundle: org.eclipse.ui,
  org.dawnsci.common.widgets;bundle-version="1.2.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: org.embl.cca.utils.datahandling,
+Export-Package: org.embl.cca.utils,
+ org.embl.cca.utils.datahandling,
+ org.embl.cca.utils.datahandling.explorer,
  org.embl.cca.utils.datahandling.file,
  org.embl.cca.utils.datahandling.socket,
  org.embl.cca.utils.datahandling.text,
@@ -26,6 +28,11 @@ Export-Package: org.embl.cca.utils.datahandling,
  org.embl.cca.utils.sorting,
  org.embl.cca.utils.threading,
  org.embl.cca.utils.threading.MUSC,
+ org.embl.cca.utils.ui.view.fileexplorer,
+ org.embl.cca.utils.ui.view.fileexplorer.preference,
+ org.embl.cca.utils.ui.view.nexusfileviewer,
  org.embl.cca.utils.ui.widget,
  org.embl.cca.utils.ui.widget.support
-Import-Package: org.slf4j;version="[1.7.6,1.7.7)"
+Import-Package: javax.measure.unit;version="4.3.1",
+ org.jscience.physics.amount;version="4.3.1",
+ org.slf4j;version="[1.7.6,1.7.7)"

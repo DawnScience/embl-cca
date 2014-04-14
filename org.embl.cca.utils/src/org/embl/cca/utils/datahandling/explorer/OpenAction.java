@@ -7,6 +7,7 @@ import org.eclipse.jface.resource.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.program.*;
 import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 
 public class OpenAction
   extends Action
@@ -22,7 +23,7 @@ public class OpenAction
     setEnabled(false);
     setImageDescriptor(
 //      ImageDescriptor.createFromURL(Util.newURL("file:icons/run.gif")));
-    	Util.getImageRegistry().getDescriptor("run"));
+        Activator.getDefault().getImageRegistry().getDescriptor(ImageConstants.IMG_RUN));
   }
 
   public void run()

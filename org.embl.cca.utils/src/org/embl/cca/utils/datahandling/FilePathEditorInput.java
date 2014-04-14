@@ -101,16 +101,28 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (o instanceof FilePathEditorInput) {
-			FilePathEditorInput other = (FilePathEditorInput)o;
+	public boolean equals(Object obj) {
+		if( this == obj )
+			return true;
+		if (obj instanceof FilePathEditorInput) {
+			FilePathEditorInput other = (FilePathEditorInput)obj;
 			if( equalityID != null && other.equalityID != null )
 				return equalityID.equals(other.equalityID);
 			if( equalityID == null && other.equalityID == null )
 				return filePath.equals(other.filePath);
 			return false;
 		}
-		return super.equals(o);
+		return super.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		long result = filePath.hashCode();
+		if( equalityID != null )
+			result = result * 19 + equalityID.hashCode();
+		if( name != null )
+			result = result * 19 + name.hashCode();
+		return (int)result % Integer.MAX_VALUE;
 	}
 
 	@SuppressWarnings("unchecked")

@@ -18,11 +18,11 @@ public class SocketListener {
 	protected class WrappedBoolean {
 		protected boolean bool;
 
-		public WrappedBoolean(boolean bool) {
+		public WrappedBoolean(final boolean bool) {
 			this.bool = bool;
 		}
 
-		public void setServeConnection(boolean bool) {
+		public void setServeConnection(final boolean bool) {
 			this.bool = bool;
 		}
 
@@ -58,13 +58,13 @@ public class SocketListener {
 	protected ServerSocketListeningState serverSocketListeningState;
 	protected Boolean stopListening;
 	protected final Boolean waitStopListeningLock; //This is a lock, has no value
-	Thread serverSocketListener;
+	protected Thread serverSocketListener;
 
 	public SocketListener() {
 		this(0, null);
 	}
 
-	public SocketListener(int port, ConnectionManager connectionManager) {
+	public SocketListener(final int port, final ConnectionManager connectionManager) {
 		this.port = port;
 		this.connectionManager = connectionManager;
 		serverSocket = null;
@@ -78,7 +78,7 @@ public class SocketListener {
 		return port;
 	}
 
-	public void setPort(int port) throws IOException, InterruptedException {
+	public void setPort(final int port) throws IOException, InterruptedException {
 		if( this.port != port ) {
 			ServerSocketListeningState savedServerSocketState;
 			synchronized (serverSocketListeningState) {
@@ -107,7 +107,7 @@ public class SocketListener {
 		serverSocket.setSoTimeout(50); //TODO Could be option
 	}
 
-	protected boolean checkStopListening(boolean forceStopListening) {
+	protected boolean checkStopListening(final boolean forceStopListening) {
 		synchronized (serverSocketListeningState) {
 			if( forceStopListening && !stopListening )
 				stopListening = true;
@@ -159,17 +159,17 @@ public class SocketListener {
 					//Thread.interrupted() is for compatibility, this way converted to stopListening which is more flexible
 					if( checkStopListening(Thread.interrupted()) )
 						break;
-					ConnectionHandler connectionHandler;
+					final ConnectionHandler connectionHandler;
 					try {
 						connectionHandler = new ConnectionHandler(clientSocket, connectionManager);
 					} catch (IOException e1) {
 						continue;
 					}
 					clientSocket = null;
-					WrappedBoolean connectionStartedAnswer = new WrappedBoolean(false);
+					final WrappedBoolean connectionStartedAnswer = new WrappedBoolean(false);
 					//Here could send the client a MOTD (as not part of serving), for example
 					connectionManager.connectionStarted(connectionHandler, connectionStartedAnswer);
-					if( !connectionStartedAnswer.bool )
+					if( !connectionStartedAnswer.getServeConnection() )
 						continue;
 					try {
 						connectionHandler.startServing();
@@ -184,6 +184,7 @@ public class SocketListener {
 				}
 			}
 		};
+		serverSocketListener.setDaemon(true);
 		serverSocketListener.start();
 	}
 

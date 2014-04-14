@@ -36,7 +36,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.IPageSite;
-import org.embl.cca.dviewer.Activator;
+import org.embl.cca.dviewer.DViewerActivator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,13 +69,13 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 		final IPageSite site = getSite();
 		
-		final Action refit = new Action("Fit the Traces.", Activator.getImageDescriptor("icons/plot-tool-peak-fit.png")) {
+		final Action refit = new Action("Fit the Traces.", DViewerActivator.getImageDescriptor("icons/plot-tool-peak-fit.png")) {
 			public void run() {
 				fitTraces();
 			}
 		};
 		site.getActionBars().getToolBarManager().add(refit);
-		final Action delfit = new Action("Delete Fit Results.", Activator.getImageDescriptor("icons/plot-tool-peak-fit-clear.png")) {
+		final Action delfit = new Action("Delete Fit Results.", DViewerActivator.getImageDescriptor("icons/plot-tool-peak-fit-clear.png")) {
 			public void run() {
 				deleteFitTraces();
 			}

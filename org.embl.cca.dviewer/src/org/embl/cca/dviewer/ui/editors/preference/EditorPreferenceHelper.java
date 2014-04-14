@@ -1,9 +1,12 @@
 package org.embl.cca.dviewer.ui.editors.preference;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.embl.cca.dviewer.ui.editors.utils.PHA;
 
 public class EditorPreferenceHelper {
 //	public abstract class ValueChecker {
@@ -17,48 +20,63 @@ public class EditorPreferenceHelper {
 //	}
 	static Hashtable<String, Object> defaultValues = new Hashtable<String, Object>();
 	static {
-		defaultValues.put(EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, DownsampleType.MEAN.getIndex());
-		defaultValues.put(EditorConstants.PREFERENCE_APPLY_PSF, false);
-		defaultValues.put(EditorConstants.PREFERENCE_PSF_RADIUS, 8);
+		defaultValues.put(DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, DownsampleType.MEAN.getIndex());
+		defaultValues.put(DViewerEditorConstants.PREFERENCE_APPLY_PHA, false);
+		defaultValues.put(DViewerEditorConstants.PREFERENCE_PHA_RADIUS, PHA.radiusDefault);
 	}
 
-	public static Object getDefaultValue(String preferenceName) {
-		if( !defaultValues.containsKey(preferenceName))
-			throw new RuntimeException("PreferenceName not supported: " + preferenceName);
+	protected final static String PreferenceNameNotSupported(final String preferenceName) {
+		return new StringBuilder("PreferenceName not supported: ").append(preferenceName).toString();
+	}
+
+	public static Object getDefaultValue(final String preferenceName) {
+		Assert.isLegal(defaultValues.containsKey(preferenceName), PreferenceNameNotSupported(preferenceName));
 		return defaultValues.get(preferenceName);
 	}
 
-	public static void setStoreDefaultValue(IPreferenceStore store, String preferenceName) {
-		if( preferenceName == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
+	public static void setStoreDefaultValue(final IPreferenceStore store, final String preferenceName) {
+		if( DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE.equals(preferenceName) ) {
 			store.setDefault(preferenceName, ((Integer)getDefaultValue(preferenceName)).intValue());
-		} else if( preferenceName == EditorConstants.PREFERENCE_APPLY_PSF ) {
+		} else if( DViewerEditorConstants.PREFERENCE_APPLY_PHA.equals(preferenceName) ) {
 			store.setDefault(preferenceName, ((Boolean)getDefaultValue(preferenceName)).booleanValue());
-		} else if( preferenceName == EditorConstants.PREFERENCE_PSF_RADIUS ) {
+		} else if( DViewerEditorConstants.PREFERENCE_PHA_RADIUS.equals(preferenceName) ) {
 			store.setDefault(preferenceName, ((Integer)getDefaultValue(preferenceName)).intValue());
 		} else
-			throw new RuntimeException("PreferenceName not supported: " + preferenceName);
+			throw new IllegalArgumentException(PreferenceNameNotSupported(preferenceName));
 	}
 
+//	public static void setStoreDefaultValues(final IPreferenceStore store) {
+//		final Enumeration<String> preferenceNames = defaultValues.keys();
+//		while( preferenceNames.hasMoreElements() ) {
+//			final String preferenceName = preferenceNames.nextElement();
+//			final Object preferenceValue = getDefaultValue(preferenceName);
+//			preferenceValue.getClass().
+//			switch(preferenceValue.getClass().)
+//			store.setDefault(preferenceName, ((Integer)asd).intValue());
+//			
+//		}
+//	}
+
 	public static Object getStoreValue(IPreferenceStore store, String preferenceName) {
-		if( preferenceName == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
+		if( DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE.equals(preferenceName) ) {
 			return store.getInt(preferenceName);
-		} else if( preferenceName == EditorConstants.PREFERENCE_APPLY_PSF ) {
+		} else if( DViewerEditorConstants.PREFERENCE_APPLY_PHA.equals(preferenceName) ) {
 			return store.getBoolean(preferenceName);
-		} else if( preferenceName == EditorConstants.PREFERENCE_PSF_RADIUS ) {
+		} else if( DViewerEditorConstants.PREFERENCE_PHA_RADIUS.equals(preferenceName) ) {
 			return store.getInt(preferenceName);
 		} else
-			throw new RuntimeException("PreferenceName not supported: " + preferenceName);
+			throw new IllegalArgumentException(PreferenceNameNotSupported(preferenceName));
 	}
 
 	public static void setStoreValue(IPreferenceStore store, String preferenceName, Object value) {
-		if( preferenceName == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
+		if( preferenceName == DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
 			store.setValue(preferenceName, ((Integer)value).intValue());
-		} else if( preferenceName == EditorConstants.PREFERENCE_APPLY_PSF ) {
+		} else if( preferenceName == DViewerEditorConstants.PREFERENCE_APPLY_PHA ) {
 			store.setValue(preferenceName, ((Boolean)value).booleanValue());
-		} else if( preferenceName == EditorConstants.PREFERENCE_PSF_RADIUS ) {
+		} else if( preferenceName == DViewerEditorConstants.PREFERENCE_PHA_RADIUS ) {
 			store.setValue(preferenceName, ((Integer)value).intValue());
 		} else
-			throw new RuntimeException("PreferenceName not supported: " + preferenceName);
+			throw new IllegalArgumentException("PreferenceName not supported: " + preferenceName);
 	}
 
 	public static void setStoreValueByDefault(IPreferenceStore store, String preferenceName) {
@@ -67,12 +85,12 @@ public class EditorPreferenceHelper {
 
 	public static void fixStoreValue(IPreferenceStore store, String preferenceName) {
 		if( !store.contains(preferenceName) )
-			throw new RuntimeException("PreferenceName not supported: " + preferenceName);
-		if( preferenceName == EditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
+			throw new IllegalArgumentException("PreferenceName not supported: " + preferenceName);
+		if( preferenceName == DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE ) {
 			int value = store.getInt(preferenceName); 
 			if( value < 0 || value >= DownsampleType.values().length )
 				store.setValue(preferenceName, store.getDefaultInt(preferenceName));
-		} else if( preferenceName == EditorConstants.PREFERENCE_PSF_RADIUS ) {
+		} else if( preferenceName == DViewerEditorConstants.PREFERENCE_PHA_RADIUS ) {
 			int value = store.getInt(preferenceName); 
 			if( value < 1 || value > 99 ) {
 				store.setValue(preferenceName, store.getDefaultInt(preferenceName));

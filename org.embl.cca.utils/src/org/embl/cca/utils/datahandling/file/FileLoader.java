@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
+import org.eclipse.ui.IEditorInput;
 import org.embl.cca.utils.datahandling.AbstractDatasetAndFileDescriptor;
 import org.embl.cca.utils.datahandling.DatasetNumber;
 import org.embl.cca.utils.datahandling.DatasetTypeSeparatedUtils;
@@ -77,7 +78,7 @@ public class FileLoader {
 	protected static Logger logger = LoggerFactory.getLogger(FileLoader.class);
 
 	protected ICollectionFile vcFile = null;
-	protected Vector<FileAndMetadata> loadedFileAndMetadatas; //The loaded files (without content, the content is summed) and their metadata
+	protected final Vector<FileAndMetadata> loadedFileAndMetadatas; //The loaded files (without content, the content is summed) and their metadata
 	protected boolean resultSetNeedsUpdate; //True if the result dataset must be updated (lazily)
 	protected AbstractDataset resultSet; //Dataset of single file, or merged datasets of multiple files, see layeredImageMode
 	protected boolean layeredImageMode; //False until at least 2 images are loaded, else true (becomes false on clear()).
@@ -86,14 +87,160 @@ public class FileLoader {
 	protected AbstractDataset summedNotMeasuredMask; //Valid when layeredImageMode == true
 	protected AbstractDataset summedBadMask; //Valid when layeredImageMode == true
 
-	protected ExecutableManager imageLoaderManager;
-	protected Boolean fileLoadingLock; //Value does not matter, this data is used for locking by synchronising it: ... TODO what?
+//	protected ExecutableManager imageLoaderManager;
+//	protected final Boolean fileLoadingLock = new Boolean(false);  //This is a lock, has no value. This data is used for locking by synchronising it: ... TODO what?
+	protected final FileLoaderJob fileLoaderJob;
+
+	protected class FileLoaderJob extends Job {
+//		Vector<FileWithTag> toLoadImageFilesJob = new Vector<FileWithTag>( Arrays.asList(toLoadImageFiles) );
+		protected final FileLoader fileLoader = FileLoader.this;
+		protected int batchIndex;
+		protected int batchSize;
+		protected boolean newFile;
+
+		public FileLoaderJob() {
+			super("Read image data");
+			setUser(false);
+			setSystem(true);
+			setPriority(Job.SHORT);
+		}
+
+		public void reschedule(final int batchIndex, final int batchSize, final boolean newFile) {
+			cancel();
+			this.batchIndex = batchIndex; //earlier from
+			this.batchSize = batchSize; //earlier amount
+			this.newFile = newFile;
+			schedule();
+		}
+
+//		public IStatus processImage(FileWithTag imageFile, boolean add) {
+//			AbstractDataset set = null;
+//			IMetaData localMetaData = null;
+//			boolean loadedAtLeast2;
+////			synchronized (resultDataset) {
+//				if( isAborting() )
+//					return Status.CANCEL_STATUS;
+//				loadedAtLeast2 = loadedMetaAndFiles.size() > 1;
+////			}
+//			if( add || loadedAtLeast2 ) { //When removing last set, no need to load it
+//				final String filePath = imageFile.getAbsolutePath();
+//				try {
+////					imageModel = ImageModelFactory.getImageModel(filePath);
+//					final ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
+//					set = service.getDataset(filePath).clone(); //TODO check if set is null
+//					localMetaData = set.getMetadata();
+//					if (!(localMetaData instanceof IDiffractionMetadata))
+//						throw new RuntimeException("File has no diffraction metadata");
+//				} catch (Throwable e) {
+//					logger.error("Cannot load file "+filePath, e);
+//					return Status.CANCEL_STATUS;
+//				}
+//			}
+//			if( isAborting() )
+//				return Status.CANCEL_STATUS;
+//			final int ind = 143336;
+//			//Warning: getMergedDataset updates the dataset, which slows down execution if batch amount is big
+////			if( resultDataset.getMergedDataset() == null )
+////				logger.debug("HRMM, before [add=" + add + "], s[ind]=" + set.getElementLongAbs(ind));
+////			else
+////				logger.debug("HRMM, before [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
+//			Double cutoff = Double.NaN;
+//			try {
+//				IDiffractionMetadata localDiffractionMetaData2 = (IDiffractionMetadata)localMetaData;
+////				Serializable s = localDiffractionMetaData2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
+//				cutoff = Double.parseDouble(localDiffractionMetaData2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
+//				logger.debug("Converting values above cutoff=" + cutoff);
+////				convertAboveCutoffToError(set, threshold);
+//			} catch (Exception e) {
+//			}
+//			final double BAD_PIXEL_VALUE = -1; //TODO hardcoded
+////			synchronized (resultDataset) {
+//				if( isAborting() )
+//					return Status.CANCEL_STATUS;
+//				if( add ) {
+//					add( set, imageFile, cutoff, BAD_PIXEL_VALUE );
+//				} else {
+//					remove( set, imageFile, cutoff, BAD_PIXEL_VALUE );
+//				}
+//				//Warning: getMergedDataset updates the dataset, which slows down execution if batch amount is big
+////				logger.debug("HRMM, after  [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
+////			}
+//			return Status.OK_STATUS;
+//		}
+
+		@Override
+		public IStatus run(final IProgressMonitor monitor) {
+			/* Since running this and others as well through imageLoaderManager,
+			 * the single thread of this loading is guaranteed.
+			 */
+			IStatus result = Status.CANCEL_STATUS;
+			//We have to load files into fileLoader with imageLoaderManager from from the amount of amount
+			do {
+				Vector<FileWithTag> adding = new Vector<FileWithTag>(0);
+				Vector<FileWithTag> removing = new Vector<FileWithTag>(0);
+//				synchronized (fileLoadingLock) {
+					if( monitor.isCanceled() )
+						break;
+					getFilesToAddAndRemove(batchIndex, batchSize, adding, removing);
+					System.out.println("batchIndex=" + batchIndex + ", batchSize=" + batchSize + ", adding=" + adding + ", removing=" + removing);
+					if( monitor.isCanceled() ) //Better check ASAP if must abort here, because if yes, the adding and removing are not valid
+						break;
+					if( removing.isEmpty() && adding.isEmpty() ) //This means nothing to add or remove, then return without doing anything
+						return Status.OK_STATUS;
+//				}
+				result = Status.OK_STATUS;
+				monitor.beginTask("Loading file(s)", adding.size() + removing.size());
+				for( FileWithTag i : adding ) {
+					if( monitor.isCanceled() )
+						break;
+//					logger.debug("EHM, adding " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
+//					result = processImage(i, true);
+					try {
+						loadAndAddFile(i);
+						monitor.internalWorked(1);
+					} catch (Exception e) { //IOException, RuntimeException
+						result = Status.CANCEL_STATUS;
+						logger.error("Can not load the file: " + i.toString(), e);
+						break;
+					}
+				}
+				if( result != Status.OK_STATUS || monitor.isCanceled() )
+					break;
+				for( FileWithTag i : removing ) {
+					if( monitor.isCanceled() )
+						break;
+//					logger.debug("EHM, removing " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
+//					result = processImage(i, false);
+					try {
+						loadAndRemoveFile(i);
+						monitor.internalWorked(1);
+					} catch (Exception e) { //IOException, RuntimeException
+						logger.error("Can not load the file: " + i.toString(), e);
+						result = Status.CANCEL_STATUS;
+						break;
+					}
+				}
+				if( result != Status.OK_STATUS || monitor.isCanceled() )
+					break;
+				result = Status.OK_STATUS;
+			} while( false );
+			if( monitor.isCanceled() ) {
+				result = Status.CANCEL_STATUS;
+				fireLoadingCancelled(newFile, monitor);
+			} else if( result == Status.CANCEL_STATUS ) {
+				fireLoadingFailed(newFile, monitor);
+			} else if( result == Status.OK_STATUS )
+				fireLoadingDone(newFile, monitor);
+			//TODO else fire error
+			return result;
+		}
+	};
 
 	public FileLoader() {
 		loadedFileAndMetadatas = new Vector<FileAndMetadata>();
-		imageLoaderManager = null;
+//		imageLoaderManager = null;
 		clearLoaded();
-//		fileLoadingLock = new Boolean(false);
+		fileLoaderJob = new FileLoaderJob();
 	}
 
 	/* VirtualCollectionFile related methods, probably should not duplicate them here, instead
@@ -111,9 +258,11 @@ public class FileLoader {
 	}
 
 	public synchronized boolean refreshAllFiles() throws FileNotFoundException {
-		boolean result = vcFile.refreshAllFiles();
-		if( result && imageLoaderManager != null )
-			imageLoaderManager.interrupt(); //Because vcFile was refreshed, stop loading previously started crap
+		final boolean result = vcFile.refreshAllFiles();
+		if( result )
+			cancelLoading();
+//		if( result && imageLoaderManager != null )
+//			imageLoaderManager.interrupt(); //Because vcFile was refreshed, stop loading previously started crap
 		return result;
 	}
 
@@ -125,9 +274,11 @@ public class FileLoader {
 	 * @throws FileNotFoundException
 	 */
 	public synchronized boolean refreshNewAllFiles() throws FileNotFoundException {
-		boolean result = vcFile.refreshNewAllFiles();
-		if( result && imageLoaderManager != null )
-			imageLoaderManager.interrupt(); //Because vcFile was refreshed, stop loading previously started crap
+		final boolean result = vcFile.refreshNewAllFiles();
+		if( result )
+			cancelLoading();
+//		if( result && imageLoaderManager != null )
+//			imageLoaderManager.interrupt(); //Because vcFile was refreshed, stop loading previously started crap
 		return result;
 	}
 
@@ -204,6 +355,19 @@ public class FileLoader {
 //	public synchronized int getIndexOfFile(String filePath) {
 //		return vcFile.getIndexOfFile(filePath);
 //	}
+
+	public synchronized String getFirstLoadedLegacyPath() {
+		return loadedFileAndMetadatas.firstElement().getFile().getAbsolutePathWithoutProtocol();
+	}
+
+	/**
+	 * Return the number of files in the collection, or 0 if the collection is null.
+	 * 
+	 * @return number of files in the collection, or 0 if collection is null.
+	 */
+	public int getAllLength() {
+		return vcFile == null ? 0 : vcFile.getAllLength();
+	}
 
 	protected synchronized Vector<FileWithTag> getFilesFromLoaded() {
 		Vector<FileWithTag> result = new Vector<FileWithTag>(loadedFileAndMetadatas.size());
@@ -324,155 +488,26 @@ public class FileLoader {
 	}
 
 	public boolean isLoading() {
-		return imageLoaderManager != null && imageLoaderManager.isAlive();
+		return fileLoaderJob.getState() != Job.NONE;
+//		return imageLoaderManager != null && imageLoaderManager.isAlive();
 	}
 
-	public void interrupt() {
-		imageLoaderManager.interrupt();
+	public void cancelLoading() {
+		fileLoaderJob.cancel();
+//		imageLoaderManager.interrupt();
 	}
 
 	/**
 	 * 
-	 * @param from Index of first file in allImageFiles
+	 * @param from the index of first file in allImageFiles
 	 * @param amount the amount of files in allImageFiles
 	 */
-	public void loadFiles(final int from, final int amount) {
-//		FileWithTag[] toLoadImageFiles = null;
-//		synchronized (resultDataset) {
-//			int iSup = imageFilesWindowWidth;
-//			int firstIndex = pos - 1;
-//			toLoadImageFiles = new FileWithTag[iSup];
-//			for( int i = 0; i < iSup; i++ )
-//				toLoadImageFiles[ i ] = resultDataset.getAllImageFilesElement( firstIndex + i );
-//		}
-		final TrackableJob job = new TrackableJob(imageLoaderManager, "Read image data") {
-//			Vector<FileWithTag> toLoadImageFilesJob = new Vector<FileWithTag>( Arrays.asList(toLoadImageFiles) );
-			FileLoader fileLoader = FileLoader.this;
-
-//			public IStatus processImage(FileWithTag imageFile, boolean add) {
-//				AbstractDataset set = null;
-//				IMetaData localMetaData = null;
-//				boolean loadedAtLeast2;
-////				synchronized (resultDataset) {
-//					if( isAborting() )
-//						return Status.CANCEL_STATUS;
-//					loadedAtLeast2 = loadedMetaAndFiles.size() > 1;
-////				}
-//				if( add || loadedAtLeast2 ) { //When removing last set, no need to load it
-//					final String filePath = imageFile.getAbsolutePath();
-//					try {
-////						imageModel = ImageModelFactory.getImageModel(filePath);
-//						final ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
-//						set = service.getDataset(filePath).clone(); //TODO check if set is null
-//						localMetaData = set.getMetadata();
-//						if (!(localMetaData instanceof IDiffractionMetadata))
-//							throw new RuntimeException("File has no diffraction metadata");
-//					} catch (Throwable e) {
-//						logger.error("Cannot load file "+filePath, e);
-//						return Status.CANCEL_STATUS;
-//					}
-//				}
-//				if( isAborting() )
-//					return Status.CANCEL_STATUS;
-//				final int ind = 143336;
-//				//Warning: getMergedDataset updates the dataset, which slows down execution if batch amount is big
-////				if( resultDataset.getMergedDataset() == null )
-////					logger.debug("HRMM, before [add=" + add + "], s[ind]=" + set.getElementLongAbs(ind));
-////				else
-////					logger.debug("HRMM, before [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
-//				Double cutoff = Double.NaN;
-//				try {
-//					IDiffractionMetadata localDiffractionMetaData2 = (IDiffractionMetadata)localMetaData;
-////					Serializable s = localDiffractionMetaData2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
-//					cutoff = Double.parseDouble(localDiffractionMetaData2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
-//					logger.debug("Converting values above cutoff=" + cutoff);
-////					convertAboveCutoffToError(set, threshold);
-//				} catch (Exception e) {
-//				}
-//				final double BAD_PIXEL_VALUE = -1; //TODO hardcoded
-////				synchronized (resultDataset) {
-//					if( isAborting() )
-//						return Status.CANCEL_STATUS;
-//					if( add ) {
-//						add( set, imageFile, cutoff, BAD_PIXEL_VALUE );
-//					} else {
-//						remove( set, imageFile, cutoff, BAD_PIXEL_VALUE );
-//					}
-//					//Warning: getMergedDataset updates the dataset, which slows down execution if batch amount is big
-////					logger.debug("HRMM, after  [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
-////				}
-//				return Status.OK_STATUS;
-//			}
-
-			public IStatus runThis(IProgressMonitor monitor) {
-				/* Since running this and others as well through imageLoaderManager,
-				 * the single thread of this loading is guaranteed.
-				 */
-				IStatus result = Status.CANCEL_STATUS;
-				//We have to load files into fileLoader with imageLoaderManager from from the amount of amount
-				do {
-					Vector<FileWithTag> adding = new Vector<FileWithTag>(0);
-					Vector<FileWithTag> removing = new Vector<FileWithTag>(0);
-//					synchronized (fileLoadingLock) {
-						if( isAborting() )
-							break;
-						System.out.println("from=" + from + ", amount=" + amount + ", adding=" + adding + ", removing=" + removing);
-						getFilesToAddAndRemove(from, amount, adding, removing);
-						if( isAborting() ) //Better check ASAP if must abort here, because if yes, the adding and removing are not valid
-							break;
-						if( removing.isEmpty() && adding.isEmpty() ) //This means nothing to add or remove, then return without doing anything
-							return Status.OK_STATUS;
-//					}
-					result = Status.OK_STATUS;
-					for( FileWithTag i : adding ) {
-						if( isAborting() )
-							break;
-//						logger.debug("EHM, adding " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
-//						result = processImage(i, true);
-						try {
-							loadAndAddFile(i);
-						} catch (Exception e) { //IOException, RuntimeException
-							result = Status.CANCEL_STATUS;
-							logger.error("Can not load the file: " + i.toString(), e);
-							break;
-						}
-					}
-					if( result != Status.OK_STATUS || isAborting() )
-						break;
-					for( FileWithTag i : removing ) {
-						if( isAborting() )
-							break;
-//						logger.debug("EHM, removing " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
-//						result = processImage(i, false);
-						try {
-							loadAndRemoveFile(i);
-						} catch (Exception e) { //IOException, RuntimeException
-							logger.error("Can not load the file: " + i.toString(), e);
-							result = Status.CANCEL_STATUS;
-							break;
-						}
-					}
-					if( result != Status.OK_STATUS || isAborting() )
-						break;
-					result = Status.OK_STATUS;
-				} while( false );
-				if( isAborting() ) {
-					setAborted();
-					return Status.CANCEL_STATUS;
-				}
-				if( result == Status.OK_STATUS )
-					fireFileIsReady(monitor);
-				//TODO else fire error
-				return result;
-			}
-		};
-		job.setUser(false);
-		job.setPriority(Job.BUILD);
-		imageLoaderManager = ExecutableManager.setRequest(job);
+	public void loadFiles(final int from, final int amount, final boolean newFile) {
+		fileLoaderJob.reschedule(from, amount, newFile);
 	}
 
 	public void loadFile() {
-		loadFiles(vcFile.getAllLength() - 1, 1);
+		loadFiles(vcFile.getAllLength() - 1, 1, false);
 //		loadFiles(getIndexFromPathFromAll(filesOrigin), 1);
 	}
 
@@ -549,9 +584,19 @@ public class FileLoader {
 		fileLoaderListeners.remove(listener);
 	}
 
-	public void fireFileIsReady(IProgressMonitor monitor) {
-		for( IFileLoaderListener listener : fileLoaderListeners )
-			listener.fileIsReady(this, monitor);
+	public void fireLoadingDone(final boolean newFile, final IProgressMonitor monitor) {
+		for( final IFileLoaderListener listener : fileLoaderListeners )
+			listener.fileLoadingDone(this, newFile, monitor);
+	}
+
+	public void fireLoadingCancelled(final boolean newFile, final IProgressMonitor monitor) {
+		for( final IFileLoaderListener listener : fileLoaderListeners )
+			listener.fileLoadingCancelled(this, newFile, monitor);
+	}
+
+	public void fireLoadingFailed(final boolean newFile, final IProgressMonitor monitor) {
+		for( final IFileLoaderListener listener : fileLoaderListeners )
+			listener.fileLoadingFailed(this, newFile, monitor);
 	}
 
 }

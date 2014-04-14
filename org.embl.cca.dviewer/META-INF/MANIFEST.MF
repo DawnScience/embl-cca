@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: dViewer
 Bundle-SymbolicName: org.embl.cca.dviewer;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.embl.cca.dviewer.Activator
+Bundle-Activator: org.embl.cca.dviewer.DViewerActivator
 Bundle-Vendor: EMBL
 Require-Bundle: org.eclipse.core.resources,
  org.eclipse.core.runtime,
@@ -21,9 +21,33 @@ Require-Bundle: org.eclipse.core.resources,
  org.dawb.hdf5;bundle-version="1.2.0",
  ncsa.hdf;bundle-version="2.8.0",
  org.eclipse.ui.ide,
- org.dawnsci.plotting.tools;bundle-version="1.2.0"
+ org.dawnsci.plotting.tools;bundle-version="1.2.0",
+ uk.ac.diamond.sda.navigator;bundle-version="1.3.0",
+ org.eclipse.ui.navigator.resources;bundle-version="3.4.400",
+ org.eclipse.ui.console;bundle-version="3.5.100",
+ org.dawnsci.slicing.api;bundle-version="1.0.0",
+ org.dawb.workbench.ui;bundle-version="1.1.0",
+ org.dawnsci.plotting.system;bundle-version="1.2.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Import-Package: org.eclipse.ui.ide,
- org.slf4j;version="[1.7.6,1.7.7)"
-Export-Package: org.embl.cca.dviewer.ui.editors
+Import-Package: ch.qos.logback.classic;version="1.1.1",
+ ch.qos.logback.classic.joran;version="1.1.1",
+ ch.qos.logback.core;version="1.1.1",
+ ch.qos.logback.core.joran;version="1.1.1",
+ ch.qos.logback.core.joran.spi;version="1.1.1",
+ ch.qos.logback.core.spi;version="1.1.1",
+ org.dawb.common.util.list,
+ org.dawnsci.common.widgets.editor,
+ org.eclipse.ui.ide,
+ org.slf4j;version="[1.7.6,1.7.7)",
+ uk.ac.diamond.sda.polling,
+ uk.ac.diamond.sda.polling.preferences
+Export-Package: org.embl.cca.dviewer,
+ org.embl.cca.dviewer.actions,
+ org.embl.cca.dviewer.plotting.tools,
+ org.embl.cca.dviewer.rcp.perspectives,
+ org.embl.cca.dviewer.server,
+ org.embl.cca.dviewer.ui.editors,
+ org.embl.cca.dviewer.ui.editors.preference,
+ org.embl.cca.dviewer.ui.editors.utils,
+ org.embl.cca.dviewer.ui.views

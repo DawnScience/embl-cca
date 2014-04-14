@@ -24,7 +24,7 @@ public class ConnectionManager {
 		messageHandler = null;
 	}
 
-	public ConnectionManager(int port, IMessageHandler messageHandler) throws IOException, InterruptedException { //TODO Make this more generic argumentwise?
+	public ConnectionManager(final int port, final IMessageHandler messageHandler) throws IOException, InterruptedException { //TODO Make this more generic argumentwise?
 		this();
 		this.messageHandler = messageHandler;
 		socketListener = new SocketListener(port, this);
@@ -75,7 +75,7 @@ public class ConnectionManager {
 		return messageHandler;
 	}
 
-	protected void connectionStarted(ConnectionHandler connectionHandler, WrappedBoolean connectionStartedAnswer) {
+	protected void connectionStarted(final ConnectionHandler connectionHandler, final WrappedBoolean connectionStartedAnswer) {
 		getMessageHandler().connectionStartedMessage(connectionHandler);
 		if( servingConnectionsState && !stopServingConnections )
 			connectionStartedAnswer.setServeConnection( true );
@@ -83,11 +83,11 @@ public class ConnectionManager {
 			connections.add(connectionHandler);
 	}
 
-	protected void connectionTerminatingListener(ConnectionHandler connectionHandler) {
+	protected void connectionTerminatingListener(final ConnectionHandler connectionHandler) {
 		getMessageHandler().connectionTerminatingMessage(connectionHandler);
 	}
 
-	protected void connectionTerminatedListener(ConnectionHandler connectionHandler) {
+	protected void connectionTerminatedListener(final ConnectionHandler connectionHandler) {
 		connections.removeElement(connectionHandler);
 	}
 
@@ -152,6 +152,7 @@ public class ConnectionManager {
 		} catch (IOException e) {
 		} catch (InterruptedException e) {
 		}
+		socketListener = null;
 		try {
 			connectionManager.stopServingConnectionsSynced();
 		} catch (InterruptedException e) {

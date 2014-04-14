@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.dawb.common.ui.util.EclipseUtils;
-import org.embl.cca.dviewer.ui.editors.ImageEditor;
+import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.socket.ConnectionHandler;
 import org.embl.cca.utils.datahandling.socket.ConnectionManager;
@@ -21,10 +21,9 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 	private static Logger logger = LoggerFactory.getLogger(MxCuBeConnectionManager.class);
 
 	protected ExecutableManager remotedImageDisplayTracker = null;
-//	protected final static String DVIEWER_EDITOR = org.dawb.workbench.ui.editors.ImageEditor.ID;
-	protected final static String REMOTED_IMAGE_EDITOR = org.embl.cca.dviewer.ui.editors.ImageEditor.ID;
+	protected final static String REMOTED_IMAGE_EDITOR = org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart.ID;
 
-	public MxCuBeConnectionManager(int port, IMessageHandler messageHandler) throws IOException, InterruptedException { //TODO Make this more generic argumentwise?
+	public MxCuBeConnectionManager(final int port, final IMessageHandler messageHandler) throws IOException, InterruptedException { //TODO Make this more generic argumentwise?
 		super(port, messageHandler);
 		addMxCuBeEventListenerTry(this);
 	}
@@ -34,13 +33,13 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 		removeMxCuBeEventListenerTry(this);
 	}
 
-	public void addMxCuBeEventListenerTry(IMxCuBeEventListener listener) {
+	public void addMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
 		if (listener == null)
 			throw new IllegalArgumentException("The listener argument can not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).addMxCuBeEventListener(listener);
 	}
 
-	public void removeMxCuBeEventListenerTry(IMxCuBeEventListener listener) {
+	public void removeMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
 		if (listener == null)
 			throw new IllegalArgumentException("The listener argument can not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).removeMxCuBeEventListener(listener);
@@ -48,7 +47,7 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 
 	@Override
 	public void fromMxCuBeConnectionStartedEvent(
-			ConnectionHandler connectionHandler) {
+			final ConnectionHandler connectionHandler) {
 		try {
 			connectionHandler.sendMessage(new String("Welcome to dViewer's service!\n").getBytes());
 		} catch (IOException e) {
@@ -59,7 +58,7 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 
 	@Override
 	public void fromMxCuBeConnectionTerminatingEvent(
-			ConnectionHandler connectionHandler) {
+			final ConnectionHandler connectionHandler) {
 		try {
 			connectionHandler.sendMessage(new String("Bye-bye from dViewer's service!\n").getBytes());
 		} catch (IOException e) {
@@ -69,11 +68,11 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 	}
 
 	@Override
-	public void fromMxCuBeLoadImageEvent(ConnectionHandler connectionHandler,
+	public void fromMxCuBeLoadImageEvent(final ConnectionHandler connectionHandler,
 			final String filePath) {
 		remotedImageDisplayTracker = ExecutableManager.setRequest(new TrackableRunnable(remotedImageDisplayTracker) {
 			public void runThis() {
-				FilePathEditorInput fPEI = new FilePathEditorInput(filePath, ImageEditor.REMOTED_IMAGE, new File(filePath).getName());
+				final FilePathEditorInput fPEI = new FilePathEditorInput(filePath, DViewerImageArrayEditorPart.REMOTED_IMAGE, new File(filePath).getName());
 				try {
 					CommonExtension.openEditor(EclipseUtils.getPage(), fPEI, REMOTED_IMAGE_EDITOR, false, false);
 				} catch (Exception e) { //PartInitException, and Exception from uk.ac.diamond.scisoft.analysis.rcp.editors.ImageEditor.createFile
