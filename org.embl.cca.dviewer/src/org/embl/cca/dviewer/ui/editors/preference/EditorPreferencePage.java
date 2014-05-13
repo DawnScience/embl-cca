@@ -9,8 +9,6 @@
  */ 
 package org.embl.cca.dviewer.ui.editors.preference;
 
-import java.util.Arrays;
-
 import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
@@ -19,8 +17,9 @@ import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.embl.cca.dviewer.DViewerActivator;
-import org.embl.cca.dviewer.ui.editors.DViewerImageEditorPart;
+//import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper.IntegerData;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
+import org.embl.cca.utils.datahandling.RangeIntegerValidator;
 
 
 /**
@@ -54,12 +53,12 @@ public class EditorPreferencePage extends FieldEditorPreferencePage implements I
 				"&Downsampling type :", choices, getFieldEditorParent()));
 
 		addField(new BooleanFieldEditor(DViewerEditorConstants.PREFERENCE_APPLY_PHA, "Apply " + PHA.featureShortName, getFieldEditorParent()));
-		final IntegerFieldEditor phaRadiusEditor = new IntegerFieldEditor(DViewerEditorConstants.PREFERENCE_PHA_RADIUS,
-			PHA.featureShortName + " radius", getFieldEditorParent(), 1+Math.round((float)Math.log10(DViewerEditorConstants.PHA_RADIUS_MAX)));
-		phaRadiusEditor.setValidRange(DViewerEditorConstants.PHA_RADIUS_MIN, DViewerEditorConstants.PHA_RADIUS_MAX);
+
+		final RangeIntegerValidator validator = (RangeIntegerValidator)EditorPreferenceInitializer.PhaRadius.getValidator();
+		final IntegerFieldEditor phaRadiusEditor = new IntegerFieldEditor(EditorPreferenceInitializer.PhaRadius.getName(),
+			PHA.featureShortName + " radius", getFieldEditorParent(), 1+Math.round((float)Math.log10(validator.getMax())));
+		phaRadiusEditor.setValidRange(validator.getMin(), validator.getMax());
 		addField(phaRadiusEditor);
-//		phaRadiusEditor.isValid();
-//		phaRadiusEditor.checkState()
 	}
 
 	/*

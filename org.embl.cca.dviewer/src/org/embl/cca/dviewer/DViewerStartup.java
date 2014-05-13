@@ -4,30 +4,47 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Hashtable;
 
 import org.dawnsci.plotting.api.preferences.PlottingConstants;
 import org.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
-import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.dawnsci.plotting.system.PlottingSystemActivator;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.registry.PerspectiveDescriptor;
+import org.eclipse.ui.menus.AbstractContributionFactory;
+import org.eclipse.ui.menus.IContributionRoot;
+import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+import org.eclipse.ui.services.IServiceLocator;
+import org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
-import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
-import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
-import org.embl.cca.dviewer.ui.editors.utils.PHA;
+import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.text.StringUtils;
@@ -41,13 +58,63 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 
-public class DviewerStartup implements IStartup {
+public class DViewerStartup implements IStartup {
 
-	protected final static Logger logger = LoggerFactory.getLogger(DviewerStartup.class);
+	protected final static Logger logger = LoggerFactory.getLogger(DViewerStartup.class);
 
 	public final static String dViewerEnabledJavaProperty = "dViewer";
 	public final static String dViewerImagePortProperty = "dViewerImagePort";
 	public final static String dViewerLogSettingsProperty = "dViewerLogSettings";
+
+	protected final static HashSet<String> requiredMenus = new HashSet<String>(Arrays.asList(new String[] {"file", "edit", "window", "help"}));
+	protected final IAction resetPreferencesAction = new Action("Reset preferences") {
+		public void run() {
+			resetPreferences();
+		}
+	};
+	protected final AbstractContributionFactory dViewerContribution = new AbstractContributionFactory(
+			"menu:window?after=" + StringUtils.getLastOfSplitString(
+				IWorkbenchCommandConstants.WINDOW_PREFERENCES, "\\."), DViewerActivator.PLUGIN_ID) {
+		@Override
+		public void createContributionItems(final IServiceLocator serviceLocator,
+				final IContributionRoot additions) {
+			additions.addContributionItem(new ActionContributionItem(resetPreferencesAction), null);
+		}
+	};
+
+	protected final IPerspectiveListener perspectiveListener = new IPerspectiveListener() {
+		@Override
+		public void perspectiveChanged(final IWorkbenchPage page,
+				final IPerspectiveDescriptor perspective, final String changeId) {
+		}
+		@Override
+		public void perspectiveActivated(final IWorkbenchPage page,
+				final IPerspectiveDescriptor perspective) {
+			final boolean hide = perspective != null && DViewerPerspective.PERSPECTIVE_ID.equals(perspective.getId());
+			final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+			if (window instanceof ApplicationWindow) {
+				final MenuManager menuManager = ((ApplicationWindow) window).getMenuBarManager();
+				for( final IContributionItem menuItem : menuManager.getItems() ) {
+					final String menu = menuItem.getId();
+					if( requiredMenus.contains(menu) )
+						continue; //Do not touch menus which we use
+					menuItem.setVisible(!hide);
+				}
+				menuManager.updateAll(true);
+			}
+			final IMenuService menuService = (IMenuService)PlatformUI.getWorkbench().getService(IMenuService.class);
+			if( hide )
+				menuService.addContributionFactory(dViewerContribution);
+			else
+				menuService.removeContributionFactory(dViewerContribution);
+		}
+	};
+
+	public void resetPreferences() {
+		EditorPreferenceInitializer.DownsamplingType.resetValue();
+		EditorPreferenceInitializer.ApplyPha.resetValue();
+		EditorPreferenceInitializer.PhaRadius.resetValue();
+	}
 
 	protected String getPackageName() {
 		return getClass().getName().split("\\." + getClass().getSimpleName())[0];
@@ -95,7 +162,7 @@ public class DviewerStartup implements IStartup {
 		final String defaultColourScheme = "Film Negative";
 		final String defaultPollServerDirectory = StringUtils.EMPTY_STRING;
 		//getLocalPreferenceStore for Toolbar*
-		final IPreferenceStore dviewerPS = DViewerActivator.getLocalPreferenceStore();
+//		final IPreferenceStore dviewerPS = DViewerActivator.getLocalPreferenceStore();
 		final IPreferenceStore plottingPS = PlottingSystemActivator.getPlottingPreferenceStore();
 		//getLocalPreferenceStore for Toolbar*
 		final IPreferenceStore localPS = PlottingSystemActivator.getLocalPreferenceStore();
@@ -112,9 +179,9 @@ public class DviewerStartup implements IStartup {
 			new StringAndObject(plottingPS, PlottingConstants.COLOUR_SCHEME, defaultColourScheme),
 			//No need poll server, the best we can do is setting directory to empty
 			new StringAndObject(new ScopedPreferenceStore(InstanceScope.INSTANCE, "uk.ac.diamond.sda.polling"), "pathPreference", defaultPollServerDirectory), //TODO
-			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE)),
-			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_APPLY_PHA, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_APPLY_PHA)),
-			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_PHA_RADIUS)),
+//			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE)),
+//			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_APPLY_PHA, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_APPLY_PHA)),
+//			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_PHA_RADIUS)),
 			};
 		for( final StringAndObject propertyDefault : propertyDefaults ) {
 			setToDefault(propertyDefault);
@@ -209,6 +276,31 @@ public class DviewerStartup implements IStartup {
 		}
 	}
 
+	public void addPerspectiveSupport() {
+		CommonThreading.execUISynced(new Runnable() {
+			@Override
+			public void run() {
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().addPerspectiveListener(perspectiveListener);
+				/* The initial perspective activation is missed, because can not
+				   find a time and place for adding perspective listener after
+				   workbench is created and before this event happens.
+				   True, the init of editor would be the place, but why an
+				   editor would contain a perspective support related code?
+				   Other place: Application when creating workbench, the
+				   workbench advisor can be specified. We do not create
+				   workbench, only using it.
+				   The consequence: we call the event handler manually.
+				 */
+				perspectiveListener.perspectiveActivated(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getPerspective());
+			}
+		});
+	}
+
+	public void removePerspectiveSupport() {
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().removePerspectiveListener(perspectiveListener);
+	}
+
 	@Override
 	public void earlyStartup() {
 		if( JavaSystem.getPropertyAsBoolean(dViewerEnabledJavaProperty) ) {
@@ -220,6 +312,7 @@ public class DviewerStartup implements IStartup {
 			PlatformUI.getWorkbench().addWorkbenchListener( new IWorkbenchListener() {
 				public boolean preShutdown( final IWorkbench workbench, final boolean forced ) {
 					stopConnectionManager();
+					removePerspectiveSupport();
 					return true;
 				}
 				public void postShutdown( final IWorkbench workbench ) {
@@ -239,6 +332,7 @@ public class DviewerStartup implements IStartup {
 					}
 				}
 			}
+			addPerspectiveSupport();
 			setDefaultPreferences();
 			startConnectionManager();
 			new EclipseBug362561Workaround();

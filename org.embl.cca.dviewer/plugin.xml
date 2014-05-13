@@ -4,7 +4,7 @@
    <extension point="org.eclipse.ui.startup"
          id="org.eclipse.ui.startup"
          name="dViewer startup">
-         <startup class="org.embl.cca.dviewer.DviewerStartup"/>
+         <startup class="org.embl.cca.dviewer.DViewerStartup"/>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -61,6 +61,24 @@
       </perspective>
    </extension>
    <extension
+         point="org.dawnsci.introRegister">
+      <introPageRegister
+            description="Opens the dViewer perspective"
+            icon="icons/dViewer-3Col-Splash.png"
+            id="org.embl.cca.dviewer.intro.DViewerPerspective"
+            class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspectiveLaunch"
+            name="dViewer">
+      </introPageRegister>
+   </extension>
+   <extension
+         point="org.eclipse.ui.intro.configExtension">
+      <configExtension
+            configId="org.dawnsci.intro.universalConfig"
+            content="intro/introContribution.xml">
+      </configExtension>
+   </extension>
+<!--
+   <extension
          point="org.eclipse.ui.views">
       <view
             category="uk.ac.diamond.scisoft.analysis.rcp"
@@ -71,6 +89,8 @@
             restorable="true">
       </view>
    </extension>
+-->
+<!--
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension
@@ -89,4 +109,5 @@
          </hiddenMenuItem>
       </perspectiveExtension>
    </extension>
+-->
 </plugin>

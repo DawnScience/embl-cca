@@ -84,7 +84,6 @@ import org.embl.cca.dviewer.DViewerActivator;
 import org.embl.cca.dviewer.plotting.tools.InfoPixelTool;
 import org.embl.cca.dviewer.plotting.tools.PSFTool;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
-import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
 import org.embl.cca.dviewer.ui.editors.utils.PSF;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
@@ -1186,7 +1185,9 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		psfRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
 //		psfRadiusUI.setToolTipText(PSF.featureName + " radius selector");
 //		psfRadiusUI.setThumb(1);
-		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(DViewerActivator.getDefault().getPreferenceStore(), DViewerEditorConstants.PREFERENCE_PHA_RADIUS),
+//		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(DViewerActivator.getDefault().getPreferenceStore(), DViewerEditorConstants.PREFERENCE_PHA_RADIUS),
+//				1, 100, 0, 1, 10, 1, 10);
+		psfRadiusUI.setValues(PSF.featureName + " Radius", 8,
 				1, 100, 0, 1, 10, 1, 10);
 //		psfRadiusUI.setBounds(115, 50, 25, 15);
 		psfRadiusUI.addSelectionListener(new SelectionAdapter() {

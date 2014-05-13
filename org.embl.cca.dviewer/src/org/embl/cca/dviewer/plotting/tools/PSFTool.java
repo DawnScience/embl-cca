@@ -24,8 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.embl.cca.dviewer.DViewerActivator;
-import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
-import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceHelper;
+import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PSF;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.threading.ExecutableManager;
@@ -141,7 +140,7 @@ public class PSFTool extends AbstractToolPage {
 		applyPSFUI.setText("Apply " + PSF.featureName);
 		applyPSFUI.setToolTipText("Apply " + PSF.featureFullName + " (" + PSF.featureName + ") on the image");
 		applyPSFUI.setImage(DViewerActivator.getImage("/icons/psf.png"));
-		applyPSFUI.setSelection((Boolean)EditorPreferenceHelper.getStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_APPLY_PHA));
+		applyPSFUI.setSelection((boolean)EditorPreferenceInitializer.ApplyPha.getValue());
 		applyPSFUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				psfStateSelected();
@@ -155,7 +154,7 @@ public class PSFTool extends AbstractToolPage {
 		psfRadiusUI = new SpinnerSlider( buttons, SWT.None );
 		psfRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1));
 		psfRadiusUI.setToolTipText(PSF.featureName + " Radius");
-		psfRadiusUI.setValues(PSF.featureName + " Radius", (Integer)EditorPreferenceHelper.getStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_PHA_RADIUS),
+		psfRadiusUI.setValues(PSF.featureName + " Radius", (int)EditorPreferenceInitializer.PhaRadius.getValue(),
 				1, 100, 0, 1, 10, 1, 10);
 		psfRadiusUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -195,20 +194,22 @@ public class PSFTool extends AbstractToolPage {
 
 	protected void savePSFSettings() {
 		IPreferenceStore preferenceStore = DViewerActivator.getLocalPreferenceStore();
-		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_APPLY_PHA, applyPSFUI.getSelection());
-		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, psfRadiusUI.getSelection());
+//		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_APPLY_PHA, applyPSFUI.getSelection());
+		EditorPreferenceInitializer.ApplyPha.setValue(applyPSFUI.getSelection());
+//		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, psfRadiusUI.getSelection());
+		EditorPreferenceInitializer.PhaRadius.setValue(psfRadiusUI.getSelection());
 	}
 
 	protected void resetPSFSettings() {
 //		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		int oldPSFRadius = psfRadiusUI.getSelectionAsInteger();
 //		EditorPreferenceHelper.setStoreValueByDefault( preferenceStore, EditorConstants.PREFERENCE_PSF_RADIUS );
-		psfRadiusUI.setSelection((Integer)EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_PHA_RADIUS));
+		psfRadiusUI.setSelection((Integer)EditorPreferenceInitializer.PhaRadius.getDefault());
 		if( oldPSFRadius != psfRadiusUI.getSelectionAsInteger() )
 			psfRadiusSelected();
 		boolean oldApplyPSF = applyPSFUI.getSelection();
 //		EditorPreferenceHelper.setStoreValueByDefault( preferenceStore, EditorConstants.PREFERENCE_APPLY_PSF );
-		applyPSFUI.setSelection((Boolean)EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_APPLY_PHA));
+		applyPSFUI.setSelection((boolean)EditorPreferenceInitializer.ApplyPha.getDefault());
 		if( oldApplyPSF != applyPSFUI.getSelection() )
 			psfStateSelected();
 	}
