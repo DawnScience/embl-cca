@@ -50,5 +50,4 @@ Export-Package: org.embl.cca.dviewer,
  org.embl.cca.dviewer.server,
  org.embl.cca.dviewer.ui.editors,
  org.embl.cca.dviewer.ui.editors.preference,
- org.embl.cca.dviewer.ui.editors.utils,
- org.embl.cca.dviewer.ui.views
+ org.embl.cca.dviewer.ui.editors.utils
