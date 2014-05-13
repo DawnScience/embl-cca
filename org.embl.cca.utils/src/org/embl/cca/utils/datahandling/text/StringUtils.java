@@ -1,5 +1,7 @@
 package org.embl.cca.utils.datahandling.text;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class StringUtils {
@@ -92,9 +94,9 @@ public class StringUtils {
 	}
 
 	/**
-	 * Matches the pattern in text, optionally case insensitive.
+	 * Matches the regex pattern in text, optionally case insensitive.
 	 * @param text the String to match in
-	 * @param pattern the String to match
+	 * @param pattern the regex String to match
 	 * @param caseInsensitive if true, then case insensitive matching is performed
 	 * @return true if the matching is successful
 	 */
@@ -103,13 +105,55 @@ public class StringUtils {
 	}
 
 	/**
-	 * Matches the pattern in text, case sensitive.
+	 * Matches the regex pattern in text, case sensitive.
 	 * @param text the String to match in
-	 * @param pattern the String to match
+	 * @param pattern the regex String to match
 	 * @return true if the matching is successful
 	 */
 	public static boolean matchStringWithPattern(final String text, final String pattern) {
 		return matchStringWithPattern(text, pattern, false);
 	}
 
+	/**
+	 * Splits the text string around matches of the given regular expression.
+	 * @param text the String to split
+	 * @param regex the delimiting regular expression
+	 * @return the list of strings computed by splitting text string around
+	 * matches of the given regular expression
+	 */
+	public static List<String> splitString(final String text, final String regex) {
+		return Arrays.asList(text.split(regex));
+	}
+
+	/**
+	 * Splits the text string around matches of the given regular expression,
+	 * and returns the first piece.<br/>
+	 * This method would be unnecessary if the List would provide getFirst, getLast,
+	 * etc. methods.
+	 * @param text the String to split
+	 * @param regex the delimiting regular expression
+	 * @return the first string of list of strings computed by splitting text
+	 * string around matches of the given regular expression
+	 */
+	public static String getFirstOfSplitString(final String text, final String regex) {
+		
+		final List<String> list = Arrays.asList(text.split(regex));
+		return list.get(0);
+	}
+
+	/**
+	 * Splits the text string around matches of the given regular expression,
+	 * and returns the last piece.<br/>
+	 * This method would be unnecessary if the List would provide getFirst, getLast,
+	 * etc. methods.
+	 * @param text the String to split
+	 * @param regex the delimiting regular expression
+	 * @return the last string of list of strings computed by splitting text
+	 * string around matches of the given regular expression
+	 */
+	public static String getLastOfSplitString(final String text, final String regex) {
+		
+		final List<String> list = Arrays.asList(text.split(regex));
+		return list.get(list.size() - 1);
+	}
 }
