@@ -216,6 +216,11 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 		// TODO Auto-generated method stub
 	}
 */
+
+	@Override
+	public void regionNameChanged(RegionEvent evt, String oldName) {
+	}
+
 	@Override
 	public void regionAdded(RegionEvent evt) {
 		if (!isActive()) return;
