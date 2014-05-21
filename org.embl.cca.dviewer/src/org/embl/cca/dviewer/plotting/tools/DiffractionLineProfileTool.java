@@ -201,9 +201,9 @@ public class DiffractionLineProfileTool extends ProfileTool {
 						RectangularROI rb = fp.getRoi();
 						final IRegion area = RegionUtils.replaceCreateRegion(profilePlottingSystem, "Peak Area "+ipeak, RegionType.XAXIS);
 						area.setRegionColor(ColorConstants.orange);
-						area.setROI(rb);
 						area.setMobile(false);
 						profilePlottingSystem.addRegion(area);
+						area.setROI(rb);
 						fp.setFwhm(area);
 						if (!requireFWHMSelections) area.setVisible(false);
 												
