@@ -464,6 +464,17 @@ public class EFile extends File implements Cloneable {
 			protocolID = FileProtocolID;
 	}
 
+	/**
+	 * Returns a File object representing the same absolute path as this
+	 * file. It is compatible conversion if the protocol of this file
+	 * is "file". In other cases, the processing of path of returned file
+	 * requires attention.
+	 * @return the file object representing the same absolute path as this file.
+	 */
+	public File toFile() {
+		return new File(getAbsolutePathWithoutProtocol());
+	}
+
 	public String getProtocol() {
 		return protocolID;
 	}
@@ -555,7 +566,11 @@ public class EFile extends File implements Cloneable {
 ////	return new EFile(p, this.prefixLength);
 	EFile result = create(p);
 	return result;
-    }
+	}
+
+	public String getPathWithoutProtocol() {
+		return super.getPath();
+	}
 
     /**
      * Returns the absolute pathname string of this abstract pathname.
@@ -582,7 +597,7 @@ public class EFile extends File implements Cloneable {
      */
 	@Override
     public String getAbsolutePath() {
-    	return protocolID + FileProtocolSeparator + super.getAbsolutePath();
+    	return protocolID + FileProtocolSeparator + getAbsolutePathWithoutProtocol();
     }
 
     public String getAbsolutePathWithoutProtocol() {
@@ -642,7 +657,7 @@ public class EFile extends File implements Cloneable {
 	}
 
 	/**
-	 * Get Filename minus it's extension if present
+	 * Get Filename minus its extension if present
 	 * 
 	 * @return String filename minus its extension
 	 */
@@ -1170,4 +1185,11 @@ public class EFile extends File implements Cloneable {
 //    	resolvePrivateStringMethod.setAccessible(true);
 //    	prefixLengthPrivateIntMethod.setAccessible(true);
 //    }
+	public boolean isReadable() {
+		return canRead();
+	}
+
+	public boolean isWritable() {
+		return canWrite();
+	}
 }
