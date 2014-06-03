@@ -67,7 +67,7 @@ public class DViewerStartup implements IStartup {
 	public final static String dViewerLogSettingsProperty = "dViewerLogSettings";
 
 	protected final static HashSet<String> requiredMenus = new HashSet<String>(Arrays.asList(new String[] {"file", "edit", "window", "help"}));
-	protected final IAction resetPreferencesAction = new Action("Reset preferences") {
+	protected final IAction resetPreferencesAction = new Action("Reset Preferences") {
 		public void run() {
 			resetPreferences();
 		}
@@ -183,9 +183,14 @@ public class DViewerStartup implements IStartup {
 //			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_APPLY_PHA, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_APPLY_PHA)),
 //			new StringAndObject(dviewerPS, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, EditorPreferenceHelper.getDefaultValue(DViewerEditorConstants.PREFERENCE_PHA_RADIUS)),
 			};
-		for( final StringAndObject propertyDefault : propertyDefaults ) {
-			setToDefault(propertyDefault);
-		}
+		CommonThreading.execUISynced(new Runnable() {
+			@Override
+			public void run() {
+				for( final StringAndObject propertyDefault : propertyDefaults ) {
+					setToDefault(propertyDefault);
+				}
+			}
+		});
 	}
 
 	/**
