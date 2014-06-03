@@ -293,7 +293,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 
 	protected void saveAs(AbstractDataset ds, boolean autoscale, double min, double max) {
 		final Shell shell = getSite().getWorkbenchWindow().getShell();
-		Assert.isNotNull(shell != null, "Environment error: can not find shell");
+		Assert.isNotNull(shell, "Environment error: can not find shell");
 		if( saveAsDialog == null ) {
 			saveAsDialog = new SaveFileDialog(shell, DViewerActivator.getLocalPreferenceStore(), ID);
 			saveAsDialog.setText("Save Image As");
@@ -571,7 +571,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
-		if (clazz == IToolPageSystem.class || clazz == IPlottingSystem.class) { //Mandatory for tools
+		if (IToolPageSystem.class.equals(clazz) || IPlottingSystem.class.equals(clazz)) { //Mandatory for tools
 			return getPlottingSystem();
 //		} else if (clazz == Page.class) {
 //			return PlotDataPage.getPageFor(this); //Mandatory for PlotDataPage, PlotDataView
@@ -776,7 +776,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	}
 
 	protected void createPlot(IDataset data, final boolean rehistogram, final IProgressMonitor monitor) {
-		Assert.isNotNull(data, "The data must not be null");
+		Assert.isNotNull(data, "The data is null, it must not be null.");
 		//We go for 2 dims, does not matter if one of them is 1 long
 		if( data.getRank() > 2 )
 			data = data.squeeze(true); //drops beginning 1 long dims

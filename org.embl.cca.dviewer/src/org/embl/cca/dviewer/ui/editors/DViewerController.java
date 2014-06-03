@@ -73,7 +73,7 @@ public class DViewerController implements ISomethingChangeListener {
 	}
 
 	protected void internalUpdateTotalSliderImageLabel() {
-		totalSliderImageLabel.setText(new StringBuilder(String.valueOf(controllable.getImageArrayBatchIndex()+1)).append('/').append(controllable.getImageArraySup()).toString());
+		totalSliderImageLabel.setText(new StringBuilder().append(controllable.getImageArrayBatchIndex()+1).append('/').append(controllable.getImageArraySup()).toString());
 		totalSliderImageLabel.getParent().pack();
 	}
 
@@ -117,7 +117,7 @@ public class DViewerController implements ISomethingChangeListener {
 		imageFilesWindowWidthLabel.setText("Batch Amount");
 		imageFilesWindowWidthText = new Text(sliderMain, SWT.BORDER | SWT.RIGHT);
 		imageFilesWindowWidthText.setToolTipText(imageFilesWindowWidthLabel.getToolTipText());
-		imageFilesWindowWidthText.setText(new StringBuilder(String.valueOf(controllable.getImageArrayBatchSize())).toString());
+		imageFilesWindowWidthText.setText(new StringBuilder().append(controllable.getImageArrayBatchSize()).toString());
 //		imageFilesWindowWidthText.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 		imageFilesWindowWidthText.addVerifyListener(new VerifyListener() {
 			@Override
