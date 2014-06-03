@@ -22,10 +22,9 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
-import org.embl.cca.utils.datahandling.file.FileLoader;
+import org.embl.cca.utils.general.Util;
 
 public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*/ {
 
@@ -117,23 +116,18 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 
 	@Override
 	public int hashCode() {
-		long result = filePath.hashCode();
-		if( equalityID != null )
-			result = result * 19 + equalityID.hashCode();
-		if( name != null )
-			result = result * 19 + name.hashCode();
-		return (int)result % Integer.MAX_VALUE;
+		return Util.hashCode(new Object[] {filePath, equalityID, name});
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object getAdapter(Class adapter) {
-		if (IWorkbenchAdapter.class.equals(adapter))
+	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+		if(IWorkbenchAdapter.class.equals(adapter))
 			return workbenchAdapter;
-		if( adapter.isAssignableFrom(File.class)) { //adapter <= File
+		if(adapter.isAssignableFrom(File.class)) { //adapter <= File
 			return new File(filePath);
 		}
-		if( String.class.isAssignableFrom(adapter))
+		if(String.class.isAssignableFrom(adapter))
 			return new String(filePath);
 		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}

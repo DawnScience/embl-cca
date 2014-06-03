@@ -2,6 +2,8 @@ package org.embl.cca.utils.imageviewer;
 
 import java.io.Serializable;
 
+import org.embl.cca.utils.general.Util;
+
 /**
  * Instances of this class represent places on the (x, y, z)
  * coordinate plane. The x and y coordinates are type of int,
@@ -91,7 +93,7 @@ public class PointWithValueIIF implements Serializable, Comparable<PointWithValu
 	 * @see #equals(Object)
 	 */
 	public int hashCode() {
-		return x ^ y ^ (int)z;
+		return Util.hashCode(new Object[] {x, y, z});
 	}
 
 	/**

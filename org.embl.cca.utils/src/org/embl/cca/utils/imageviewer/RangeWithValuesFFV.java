@@ -3,6 +3,8 @@ package org.embl.cca.utils.imageviewer;
 import java.io.Serializable;
 import java.util.Vector;
 
+import org.embl.cca.utils.general.Util;
+
 /**
  * Instances of this class represent values in a range on the (x)
  * coordinate plane. The x and y coordinates are type of int,
@@ -103,7 +105,7 @@ public class RangeWithValuesFFV<E> implements Serializable, Comparable<E> {
 	 * @see #equals(Object)
 	 */
 	public int hashCode() {
-		return (int)rangeStart ^ (int)rangeEnd ^ values.size();
+		return Util.hashCode(new Object[] {rangeStart, rangeEnd, values.size()});
 	}
 
 	/**

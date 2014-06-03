@@ -9,12 +9,11 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.general.Util;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 
 public class MemoryDatasetEditorInput implements IEditorInput {
-	public final int hashPrimeNumber = 19;
-
 	protected final String name;
 	protected final AbstractDataset dataset;
 	protected final String filePath;
@@ -58,10 +57,7 @@ public class MemoryDatasetEditorInput implements IEditorInput {
 
 	@Override
 	public int hashCode() {
-		int result = ((name.hashCode() * hashPrimeNumber + dataset.hashCode()) * hashPrimeNumber + (newInput ? 1 : 0)) * hashPrimeNumber;
-		if( filePath != null )
-			result += filePath.hashCode();
-		return result;
+		return Util.hashCode(new Object[] {name, dataset, newInput, filePath});
 	}
 
 	/**

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.general.Util;
 
 /**
  * An example for a FileDialogFilter:
@@ -141,10 +142,7 @@ public class FileDialogFileNameFilter {
 
 	@Override
 	public int hashCode() {
-		int result = shortFormatName.hashCode() * 19 + filenamePatternList.hashCode();
-		if( defaultSuffix != null )
-			result = result * 19 + defaultSuffix.hashCode();
-		return result;
+		return Util.hashCode(new Object[] {shortFormatName, filenamePatternList, defaultSuffix});
 	}
 
 }

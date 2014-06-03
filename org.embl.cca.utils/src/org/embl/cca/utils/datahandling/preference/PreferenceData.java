@@ -2,9 +2,9 @@ package org.embl.cca.utils.datahandling.preference;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.embl.cca.utils.datahandling.IDataValidator;
+import org.embl.cca.utils.general.Util;
 
 public class PreferenceData {
-	protected final int HashMultiplier = 19;
 
 	protected final String name;
 	protected final Class<?> clazz;
@@ -84,17 +84,12 @@ public class PreferenceData {
 		if( !this.getName().equals(o.getName()) || !this.getClazz().equals(o.getClazz())
 			|| !this.getPreferenceStore().equals(o.getPreferenceStore()))
 			return false;
-		if( this.getValidator() == null && o.getValidator() == null )
-			return true;
-		return this.getValidator().equals(o.getValidator());
+		return org.eclipse.jface.util.Util.equals(this.getValidator(), o.getValidator());
 	}
 
 	@Override
 	public int hashCode() {
-		int result = ((name.hashCode() * HashMultiplier + clazz.hashCode()) * HashMultiplier + storeExtension.hashCode()) * HashMultiplier;
-		if( validator != null )
-			result += validator.hashCode();
-		return result;
+		return Util.hashCode(new Object[] {name, clazz, storeExtension, validator});
 	}
 
 	@Override

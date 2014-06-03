@@ -10,7 +10,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
-import org.embl.cca.utils.datahandling.FileEditorInput;
+import org.embl.cca.utils.general.Util;
 
 public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEditorInput {
 	/**
@@ -95,6 +95,12 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 			return name.equals(((MemoryImageEditorInput)o).name);
 		return false;		
 	}
+
+	@Override
+	public int hashCode() {
+		return Util.hashCode(new Object[] {super.hashCode(), name});
+	}
+
 	/**
 	 * Returns an object which is an instance of the given class
 	 * associated with this object. Returns <code>null</code> if
@@ -107,7 +113,7 @@ public class MemoryImageEditorInput extends TwoDimFloatArrayData implements IEdi
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object getAdapter(Class adapter) {
+	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		if (IWorkbenchAdapter.class.equals(adapter))
 			return workbenchAdapter;
 		if( adapter.isAssignableFrom(File.class)) { //adapter <= File

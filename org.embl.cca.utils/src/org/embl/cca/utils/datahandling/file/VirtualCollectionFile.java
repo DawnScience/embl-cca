@@ -483,6 +483,8 @@ public class VirtualCollectionFile extends FileWithTag implements ICollectionFil
 		completeConstructing();
 	}
 
+	/* -- Properties -- */
+	
 	@Override
 	public VirtualCollectionFile[] listFiles() {
 		return null;
@@ -618,6 +620,11 @@ public class VirtualCollectionFile extends FileWithTag implements ICollectionFil
 	}
 
 //-------------------------------
+
+	@Override
+	public File toFile() {
+		return getLastFileOfAll().toFile();
+	}
 
 	/**
 	 * Returns human readable name of collection
