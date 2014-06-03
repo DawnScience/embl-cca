@@ -1,4 +1,4 @@
-package org.embl.cca.utils.ui.view.fileexplorer;
+package org.embl.cca.utils.ui.view.filenavigator;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -21,7 +21,7 @@ import org.embl.cca.utils.datahandling.file.FileLoader;
    </p>
    </code>
  */
-public class FileContentProposalProvider implements IContentProposalProvider, IFileContentProposalProvider {
+public class FileContentProposalProvider implements IContentProposalProvider {
 	protected class FileContentProposal implements IContentProposal {
 		private final File   file;
 		FileContentProposal(final File file) {
@@ -93,7 +93,6 @@ public class FileContentProposalProvider implements IContentProposalProvider, IF
 	 * @param file
 	 *            the file of which the String representation is returned
 	 */
-	@Override
 	public String fileToString(File file) {
 		return file instanceof EFile
 				? ((EFile)file).getAbsolutePathWithoutProtocol()
@@ -104,16 +103,15 @@ public class FileContentProposalProvider implements IContentProposalProvider, IF
 	 * Returns the File representation of String.
 	 * @param path the file path of which the File representation is returned
 	 */
-	@Override
-	public File stringToFile(String path) {
-		File result;
+	public EFile stringToFile(String path) {
+		EFile result;
 		FileLoader fl = new FileLoader();
 		fl.setFilePath(path);
 		if( fl.isCollection() ) {
 			if( fl.getFile().exists() )
-				result = new File(fl.getFile().getFilesFromAll().get(0).getAbsolutePathWithoutProtocol());
+				result = new EFile(fl.getFile().getFilesFromAll().get(0).getAbsolutePathWithoutProtocol());
 			else
-				result = new File(fl.getFile().getAbsolutePathWithoutProtocol()).getParentFile();
+				result = new EFile(fl.getFile().getAbsolutePathWithoutProtocol()).getParentFile();
 		} else
 			result = fl.getFile().getAbsoluteFile();//new File(path); -> wrong because contains "file:"
 		return result;
