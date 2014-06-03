@@ -1,7 +1,6 @@
 package org.embl.cca.utils.server;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.dawb.common.util.list.ListenerList;
 import org.embl.cca.utils.datahandling.socket.ConnectionHandler;
@@ -27,7 +26,7 @@ public class MxCuBeMessageAndEventTranslator implements IMessageHandler {
 		else
 			fireFromMxCuBeUnknownEvent(connectionHandler, messageString);
 //		System.out.println("SOCKET: read " + messageLength + " bytes: " + messageString);
-//		try { //This is the simpliest service: echo, for TESTING purpose
+//		try { //This is the simplest service: echo, for TESTING purpose
 //			connectionHandler.sendMessage(Arrays.copyOf(message, messageLength)); //For TESTING purpose
 //		} catch (IOException e) {
 //			connectionHandler.stopServingAsynced(); //For TESTING purpose
