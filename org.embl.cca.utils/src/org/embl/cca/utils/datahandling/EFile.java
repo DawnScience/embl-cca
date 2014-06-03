@@ -11,6 +11,8 @@ import java.net.URI;
 import java.util.ArrayList;
 
 import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.general.Util;
+import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode;
 
 public class EFile extends File implements Cloneable {
 	private static final long serialVersionUID = 3394163669035862731L;
@@ -1192,4 +1194,24 @@ public class EFile extends File implements Cloneable {
 	public boolean isWritable() {
 		return canWrite();
 	}
+
+	@Override
+	public boolean equals(final Object object) {
+		if( object == this ) return true;
+		if( object instanceof EFile ) {
+			final EFile efile = (EFile)object;
+			if( !this.protocolID.equals(efile.protocolID) )
+				return false;
+		} else if( object instanceof File ) {
+			if( !this.protocolID.equals(FileProtocolID) )
+				return false;
+		}
+		return super.equals(object);
+	}
+
+	@Override
+	public int hashCode() {
+		return Util.hashCode(new Object[] {super.hashCode(), protocolID});
+	}
+
 }
