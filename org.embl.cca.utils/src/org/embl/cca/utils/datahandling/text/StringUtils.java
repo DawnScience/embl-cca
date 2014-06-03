@@ -1,8 +1,11 @@
 package org.embl.cca.utils.datahandling.text;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import org.eclipse.jface.util.Util;
 
 public class StringUtils {
 	public final static char EMPTY_CHAR_ARRAY[] = new char[0];
@@ -88,9 +91,7 @@ public class StringUtils {
 	 * @return true if the two strings are null, or if they are equal
 	 */
 	public static boolean equalStringsEvenNulls(final String str1, final String str2) {
-		if( str1 == null )
-			return str2 == null;
-		return str1.equals(str2);
+		return Util.equals(str1, str2);
 	}
 
 	/**
@@ -155,5 +156,23 @@ public class StringUtils {
 		
 		final List<String> list = Arrays.asList(text.split(regex));
 		return list.get(list.size() - 1);
+	}
+
+	protected static final double BASE = 1024, KB = BASE, MB = KB * BASE, GB = MB * BASE;
+	protected static final DecimalFormat defaultFileSizeFormat = new DecimalFormat("#.###");
+
+	public static String formatAsFileSize(final double size, DecimalFormat df) {
+		if( df == null )
+			df = defaultFileSizeFormat;
+		if (size >= GB) {
+			return df.format(size / GB) + " GB";
+		}
+		if (size >= MB) {
+			return df.format(size / MB) + " MB";
+		}
+		if (size >= KB) {
+			return df.format(size / KB) + " KB";
+		}
+		return new StringBuilder().append((int) size).append(" bytes").toString();
 	}
 }
