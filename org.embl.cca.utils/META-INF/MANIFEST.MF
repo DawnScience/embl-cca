@@ -6,12 +6,12 @@ Bundle-Version: 1.1.0.qualifier
 Bundle-Activator: org.embl.cca.utils.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- uk.ac.diamond.scisoft.analysis;bundle-version="1.3.0",
  org.dawb.common.services;bundle-version="1.2.0",
  org.dawb.common.ui;bundle-version="1.3.0",
  org.dawb.common.util;bundle-version="1.2.0",
- uk.ac.diamond.sda.navigator;bundle-version="1.3.0",
- org.dawnsci.common.widgets;bundle-version="1.2.0"
+ org.dawnsci.common.widgets;bundle-version="1.2.0",
+ uk.ac.diamond.scisoft.analysis;bundle-version="1.3.0",
+ uk.ac.diamond.sda.navigator;bundle-version="1.3.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.embl.cca.utils,
@@ -29,12 +29,14 @@ Export-Package: org.embl.cca.utils,
  org.embl.cca.utils.sorting,
  org.embl.cca.utils.threading,
  org.embl.cca.utils.threading.MUSC,
- org.embl.cca.utils.ui.view.fileexplorer,
- org.embl.cca.utils.ui.view.fileexplorer.preference,
+ org.embl.cca.utils.ui.view.filenavigator,
+ org.embl.cca.utils.ui.view.filenavigator.preference,
  org.embl.cca.utils.ui.view.nexusfileviewer,
  org.embl.cca.utils.ui.widget,
- org.embl.cca.utils.ui.widget.support
+ org.embl.cca.utils.ui.widget.support,
+ org.embl.cca.utils.ui.widget.support.treeviewer
 Import-Package: javax.measure.unit;version="4.3.1",
  org.apache.commons.lang.math;version="2.6.0",
+ org.eclipse.core.resources,
  org.jscience.physics.amount;version="4.3.1",
  org.slf4j;version="[1.7.6,1.7.7)"
