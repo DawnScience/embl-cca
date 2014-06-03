@@ -49,12 +49,23 @@ public class ExceptionUtils {
 	public static StringBuilder makeErrorMessage(final StringBuilder message, final Exception e, final Object where) {
 		final StringBuilder thisSB = message == null ? new StringBuilder() : message;
 		final StackTraceElement[] stes = e.getStackTrace();
-		int found = stes.length - 1;
-		for( int i = found; i >= 0; i-- ) {
-			if( stes[i].getClassName().startsWith(where.getClass().getName())) {
-				found = i; //Looking for deepest occurrence of where class
+		final int iSup = stes.length;
+		int found = iSup;
+		for( int i = 0; i < iSup; i++ ) {
+			final String s = stes[i].getClassName();
+			Class<?> cs = where.getClass().getSuperclass();
+			while( cs != null ) {
+				if( cs.getName().equals(s)) {
+					found = i; //Looking for deepest occurrence of where class
+					break;
+				}
+				cs = cs.getSuperclass();
 			}
+			if( found < iSup )
+				break;
 		}
+		if( found == iSup )
+			found--;
 		thisSB.append(" [").append(e.toString()).append(" at ").append(stes[found]).append(']');
 		if( e.getCause() != null )
 			thisSB.append('\n').append(e.toString());
