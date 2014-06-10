@@ -279,8 +279,8 @@ public class FileView extends ViewPart implements IFileView {
 //			final Image icon = service //TODO Check how this works on windows (probably shows the root icon wrongly, because we need folder icon
 //					.getIconForFile(isWindowsOS() ? new File(
 //							"C:/Windows/") : new File("/"));
-			final Image icon = service.getIconForFile(FileWithTag.listRoots()[0]);
-			fileLabel.setImage(icon);
+//			final Image icon = service.getIconForFile(findFileWithTag.listRoots()[0]);
+//			fileLabel.setImage(icon);
 		} catch (Exception e) {
 			logger.error("Cannot get icon for system root!", e);
 		}
@@ -352,7 +352,7 @@ public class FileView extends ViewPart implements IFileView {
 //				tree.setExpandedState(path, true); // to make more parents of
 //													// selected savedSelection
 //													// visible
-				tree.setExpandedState(tree.getInput(), true); //TODO
+//				tree.expandToLevel(5);//setExpandedState(tree.getInput(), true); //TODO
 			}
 		});
 
