@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.general.Util;
-import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode;
 
 public class EFile extends File implements Cloneable {
 	private static final long serialVersionUID = 3394163669035862731L;
