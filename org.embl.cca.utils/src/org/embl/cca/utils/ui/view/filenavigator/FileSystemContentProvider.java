@@ -1,5 +1,6 @@
 package org.embl.cca.utils.ui.view.filenavigator;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.widgets.TreeItem;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.text.StringUtils;
@@ -29,10 +30,10 @@ public class FileSystemContentProvider extends TreeContentProvider {
 
 	/**
 	 * Creates a node, this is the node factory.
-	 * @param fscp the file system content provider
-	 * @param parent the parent node
-	 * @param file the file what the node contains
-	 * @return the created node
+	 * @param fscp the file system content provider.
+	 * @param parent the parent node.
+	 * @param file the file what the node contains.
+	 * @return the created node.
 	 */
 	protected static FileSystemEntryNode createNode(final FileSystemContentProvider fscp, final FileSystemEntryNode parent, final EFile file) {
 		if (file.isDirectory())
@@ -52,6 +53,7 @@ public class FileSystemContentProvider extends TreeContentProvider {
 	}
 
 	protected EFile getParentFile(final EFile file) {
+		Assert.isNotNull(file, "The file is null, it must not be null.");
 		if( file.getParentFile() != null )
 			return file.getParentFile();
 		final EFile superRootFile = ((FileSystemEntryNode)treeViewer.getInput()).getFile();
@@ -60,7 +62,21 @@ public class FileSystemContentProvider extends TreeContentProvider {
 		return superRootFile;
 	}
 
+	public boolean hasTreeItemTheFile(final TreeItem treeItem, final EFile file) {
+		return org.eclipse.jface.util.Util.equals(((FileSystemEntryNode)treeItem.getData()).getFile(), file);
+	}
+
+	/**
+	 * Returns the TreeItem having the longest path part of file. In best case,
+	 * it is the TreeItem having the full path of file. To distinguish between
+	 * the two cases, call hasTreeItemTheFile(result, file), which returns true
+	 * in the latter (best) case. This method never returns null, except for
+	 * the super root file, which should not be passed to this method.
+	 * @param file The file for which the TreeItem is required.
+	 * @return The TreeItem having the longest path part of file.
+	 */
 	protected TreeItem findTreeItem(final EFile file) {
+		Assert.isNotNull(file, "The file is null, it must not be null.");
 		final EFile parentFile = getParentFile(file); 
 		if( parentFile == null )
 			return null;
@@ -68,19 +84,40 @@ public class FileSystemContentProvider extends TreeContentProvider {
 		final TreeItem[] children = parent == null ? treeViewer.getTree().getItems() : parent.getItems();
 		final int iSup = children.length;
 		for( int i = 0; i < iSup; i++ ) {
-			if( org.eclipse.jface.util.Util.equals(((FileSystemEntryNode)children[i].getData()).getFile(), file) )
+			if( hasTreeItemTheFile(children[i], file))
+//			if( org.eclipse.jface.util.Util.equals(((FileSystemEntryNode)children[i].getData()).getFile(), file) )
 				return children[i];
 		}
-		throw new RuntimeException("Item not found.");
+		return parent;
 	}
 
+	/**
+	 * Returns the TreeNode having the full path of file, or null if not found,
+	 * or null if null nodes are allowed (not recommended).
+	 * @param file The file for which the TreeItem is required.
+	 * @return The TreeItem having the longest path part of file.
+	 */
 	protected FileSystemEntryNode findNode(final EFile file) {
-		try {
+		Assert.isNotNull(file, "The file is null, it must not be null.");
+			final TreeItem result = findTreeItem(file);
+			if( !hasTreeItemTheFile(result, file) )
+				return null;
+			return result == null ? getSuperRootNode() : (FileSystemEntryNode)result.getData();
+	}
+
+	/**
+	 * Returns the TreeNode having the longest path part of file. In best case,
+	 * it is the TreeNode having the full path of file. To distinguish between
+	 * the two cases, call hasTreeItemTheFile(result, file), which returns true
+	 * in the latter (best) case. This method never returns null, except if
+	 * null nodes are allowed (not recommended).
+	 * @param file The file for which the TreeItem is required.
+	 * @return The TreeItem having the longest path part of file.
+	 */
+	protected FileSystemEntryNode findNodeOrAncestor(final EFile file) {
+		Assert.isNotNull(file, "The file is null, it must not be null.");
 			final TreeItem result = findTreeItem(file);
 			return result == null ? getSuperRootNode() : (FileSystemEntryNode)result.getData();
-		} catch( final RuntimeException e ) {
-			return null;
-		}
 	}
 
 	/**
