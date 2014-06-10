@@ -574,37 +574,28 @@ public class EFile extends File implements Cloneable {
 		return super.getPath();
 	}
 
-    /**
-     * Returns the absolute pathname string of this abstract pathname.
-     *
-     * <p> If this abstract pathname is already absolute, then the pathname
-     * string is simply returned as if by the <code>{@link #getPath}</code>
-     * method.  If this abstract pathname is the empty abstract pathname then
-     * the pathname string of the current user directory, which is named by the
-     * system property <code>user.dir</code>, is returned.  Otherwise this
-     * pathname is resolved in a system-dependent way.  On UNIX systems, a
-     * relative pathname is made absolute by resolving it against the current
-     * user directory.  On Microsoft Windows systems, a relative pathname is made absolute
-     * by resolving it against the current directory of the drive named by the
-     * pathname, if any; if not, it is resolved against the current user
-     * directory.
-     *
-     * @return  The absolute pathname string denoting the same file or
-     *          directory as this abstract pathname
-     *
-     * @throws  SecurityException
-     *          If a required system property value cannot be accessed.
-     *
-     * @see     java.io.File#isAbsolute()
-     */
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * If the file protocol equals to FileProtocolID, then it is omitted from
+	 * the returned path. This is done for compatilibility reasons.
+	 */
 	@Override
     public String getAbsolutePath() {
-    	return protocolID + FileProtocolSeparator + getAbsolutePathWithoutProtocol();
-    }
+		String result = getAbsolutePathWithoutProtocol();
+		if( !protocolID.equals(FileProtocolID) )
+			result = protocolID + FileProtocolSeparator + result;
+		return result;
+	}
 
-    public String getAbsolutePathWithoutProtocol() {
-    	return super.getAbsolutePath();
-    }
+	/**
+	 * Returns the absolute pathname string of this abstract pathname.
+	 * @return The absolute pathname string of this abstract pathname.
+	 * @see File#getAbsolutePath()
+	 */
+	public String getAbsolutePathWithoutProtocol() {
+		return super.getAbsolutePath();
+	}
 
     /**
      * Returns the absolute form of this abstract pathname.  Equivalent to
