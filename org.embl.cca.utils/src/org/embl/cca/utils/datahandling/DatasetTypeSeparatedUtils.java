@@ -132,9 +132,9 @@ public class DatasetTypeSeparatedUtils {
 				final int[] setData = ((IntegerDataset)summedSet).getData();
 				final int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
 				final int[] badMaskData = ((IntegerDataset)summedBadMask).getData();
-				final int maxValidValue = maxValidNumber.intValue();
-				final int notMeasuredValue = notMeasuredNumber.intValue();
-				final int badValue = badNumber.intValue();
+				final int maxValidValue = maxValidValueValid ? maxValidNumber.intValue() : 0;
+				final int notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.intValue() : 0;
+				final int badValue = badValueValid ? badNumber.intValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -151,9 +151,9 @@ public class DatasetTypeSeparatedUtils {
 				final byte[] setData = ((ByteDataset)summedSet).getData();
 				final byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
 				final byte[] badMaskData = ((ByteDataset)summedBadMask).getData();
-				final byte maxValidValue = maxValidNumber.byteValue();
-				final byte notMeasuredValue = notMeasuredNumber.byteValue();
-				final byte badValue = badNumber.byteValue();
+				final byte maxValidValue = maxValidValueValid ? maxValidNumber.byteValue() : 0;
+				final byte notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.byteValue() : 0;
+				final byte badValue = badValueValid ? badNumber.byteValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -170,9 +170,9 @@ public class DatasetTypeSeparatedUtils {
 				final short[] setData = ((ShortDataset)summedSet).getData();
 				final short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
 				final short[] badMaskData = ((ShortDataset)summedBadMask).getData();
-				final short maxValidValue = maxValidNumber.shortValue();
-				final short notMeasuredValue = notMeasuredNumber.shortValue();
-				final short badValue = badNumber.shortValue();
+				final short maxValidValue = maxValidValueValid ? maxValidNumber.shortValue() : 0;
+				final short notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.shortValue() : 0;
+				final short badValue = badValueValid ? badNumber.shortValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -189,9 +189,9 @@ public class DatasetTypeSeparatedUtils {
 				final long[] setData = ((LongDataset)summedSet).getData();
 				final long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
 				final long[] badMaskData = ((LongDataset)summedBadMask).getData();
-				final long maxValidValue = maxValidNumber.longValue();
-				final long notMeasuredValue = notMeasuredNumber.longValue();
-				final long badValue = badNumber.longValue();
+				final long maxValidValue = maxValidValueValid ? maxValidNumber.longValue() : 0;
+				final long notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.longValue() : 0;
+				final long badValue = badValueValid ? badNumber.longValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -208,9 +208,9 @@ public class DatasetTypeSeparatedUtils {
 				final float[] setData = ((FloatDataset)summedSet).getData();
 				final float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
 				final float[] badMaskData = ((FloatDataset)summedBadMask).getData();
-				final float maxValidValue = maxValidNumber.floatValue();
-				final float notMeasuredValue = notMeasuredNumber.floatValue();
-				final float badValue = badNumber.floatValue();
+				final float maxValidValue = maxValidValueValid ? maxValidNumber.floatValue() : 0;
+				final float notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.floatValue() : 0;
+				final float badValue = badValueValid ? badNumber.floatValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -227,9 +227,9 @@ public class DatasetTypeSeparatedUtils {
 				final double[] setData = ((DoubleDataset)summedSet).getData();
 				final double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
 				final double[] badMaskData = ((DoubleDataset)summedBadMask).getData();
-				final double maxValidValue = maxValidNumber.doubleValue();
-				final double notMeasuredValue = notMeasuredNumber.doubleValue();
-				final double badValue = badNumber.doubleValue();
+				final double maxValidValue = maxValidValueValid ? maxValidNumber.doubleValue() : 0;
+				final double notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.doubleValue() : 0;
+				final double badValue = badValueValid ? badNumber.doubleValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -274,9 +274,9 @@ public class DatasetTypeSeparatedUtils {
 				final int[] setData = ((IntegerDataset)summedSet).getData();
 				final int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
 				final int[] badMaskData = ((IntegerDataset)summedBadMask).getData();
-				final int maxValidValue = maxValidNumber.intValue();
-				final int notMeasuredValue = notMeasuredNumber.intValue();
-				final int badValue = badNumber.intValue();
+				final int maxValidValue = maxValidValueValid ? maxValidNumber.intValue() : 0;
+				final int notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.intValue() : 0;
+				final int badValue = badValueValid ? badNumber.intValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -293,9 +293,9 @@ public class DatasetTypeSeparatedUtils {
 				final byte[] setData = ((ByteDataset)summedSet).getData();
 				final byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
 				final byte[] badMaskData = ((ByteDataset)summedBadMask).getData();
-				final byte maxValidValue = maxValidNumber.byteValue();
-				final byte notMeasuredValue = notMeasuredNumber.byteValue();
-				final byte badValue = badNumber.byteValue();
+				final byte maxValidValue = maxValidValueValid ? maxValidNumber.byteValue() : 0;
+				final byte notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.byteValue() : 0;
+				final byte badValue = badValueValid ? badNumber.byteValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -312,9 +312,9 @@ public class DatasetTypeSeparatedUtils {
 				final short[] setData = ((ShortDataset)summedSet).getData();
 				final short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
 				final short[] badMaskData = ((ShortDataset)summedBadMask).getData();
-				final short maxValidValue = maxValidNumber.shortValue();
-				final short notMeasuredValue = notMeasuredNumber.shortValue();
-				final short badValue = badNumber.shortValue();
+				final short maxValidValue = maxValidValueValid ? maxValidNumber.shortValue() : 0;
+				final short notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.shortValue() : 0;
+				final short badValue = badValueValid ? badNumber.shortValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -331,9 +331,9 @@ public class DatasetTypeSeparatedUtils {
 				final long[] setData = ((LongDataset)summedSet).getData();
 				final long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
 				final long[] badMaskData = ((LongDataset)summedBadMask).getData();
-				final long maxValidValue = maxValidNumber.longValue();
-				final long notMeasuredValue = notMeasuredNumber.longValue();
-				final long badValue = badNumber.longValue();
+				final long maxValidValue = maxValidValueValid ? maxValidNumber.longValue() : 0;
+				final long notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.longValue() : 0;
+				final long badValue = badValueValid ? badNumber.longValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -350,9 +350,9 @@ public class DatasetTypeSeparatedUtils {
 				final float[] setData = ((FloatDataset)summedSet).getData();
 				final float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
 				final float[] badMaskData = ((FloatDataset)summedBadMask).getData();
-				final float maxValidValue = maxValidNumber.floatValue();
-				final float notMeasuredValue = notMeasuredNumber.floatValue();
-				final float badValue = badNumber.floatValue();
+				final float maxValidValue = maxValidValueValid ? maxValidNumber.floatValue() : 0;
+				final float notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.floatValue() : 0;
+				final float badValue = badValueValid ? badNumber.floatValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
@@ -369,9 +369,9 @@ public class DatasetTypeSeparatedUtils {
 				final double[] setData = ((DoubleDataset)summedSet).getData();
 				final double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
 				final double[] badMaskData = ((DoubleDataset)summedBadMask).getData();
-				final double maxValidValue = maxValidNumber.doubleValue();
-				final double notMeasuredValue = notMeasuredNumber.doubleValue();
-				final double badValue = badNumber.doubleValue();
+				final double maxValidValue = maxValidValueValid ? maxValidNumber.doubleValue() : 0;
+				final double notMeasuredValue = notMeasuredValueValid ? notMeasuredNumber.doubleValue() : 0;
+				final double badValue = badValueValid ? badNumber.doubleValue() : 0;
 				final int iSup = currentData.length;
 				for( int i = 0; i < iSup; i++ ) {
 					if( (maxValidValueValid && currentData[ i ] > maxValidValue) || (badValueValid && currentData[ i ] == badValue) )
