@@ -2,7 +2,10 @@ package org.embl.cca.utils.ui.widget.support.treeviewer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -68,6 +71,8 @@ public abstract class TreeNode {
 	protected final Boolean fChildrenLock = new Boolean(true); //This is a lock, has no value
 	protected final ChildrenListerJob childrenListerJob;
 
+	protected final Map<List<TreeNode>, TreeContentProvider.TreeNodeRequest> nodePathRequests;
+
 	protected class ChildrenListerJob extends Job {
 		public ChildrenListerJob() {
 			super("Get children");
@@ -111,6 +116,7 @@ public abstract class TreeNode {
 	 * is impossible.
 	 */
 	public TreeNode(final TreeContentProvider tcp, final TreeNode parent, final Object identifier) {
+		nodePathRequests = Collections.synchronizedMap(new HashMap<List<TreeNode>, TreeContentProvider.TreeNodeRequest>());
 		listenerManager = new TreeNodeListenerManager();
 		this.tcp = tcp;
 		this.parent = parent;
@@ -148,6 +154,10 @@ public abstract class TreeNode {
 		return identifier;
 	}
 
+	public boolean isChildrenValid() {
+		return listChildren != null && childrenValid;
+	}
+
 	/**
 	 * Returns whether the tree has any children.
 	 * 
@@ -158,7 +168,7 @@ public abstract class TreeNode {
 	public boolean hasChildren() {
 //		System.out.println(this.getClass().getName() + ": hasChildren called, this: " + toString());
 		synchronized (fChildrenLock) {
-			return listChildren == null ? canHaveChildren() : listChildren.length > 0;
+			return isChildrenValid() ? listChildren.length > 0 : canHaveChildren();
 		}
 	}
 
