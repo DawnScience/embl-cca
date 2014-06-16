@@ -210,7 +210,6 @@ public class FileView extends ViewPart implements IFileView {
 		tree.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				fscp.debug();
 				if (!updatingTextFromTreeSelections)
 					return;
 				final File file = getSelectedFile();
@@ -224,7 +223,6 @@ public class FileView extends ViewPart implements IFileView {
 						ad.setEnabled(true);
 					}
 				}
-				fscp.debug();
 			}
 		});
 
@@ -270,8 +268,6 @@ public class FileView extends ViewPart implements IFileView {
 
 		fslp.createColumns(logger);
 		getSite().setSelectionProvider(tree);
-
-		createContent();
 
 		try {
 			final IFileIconService service = (IFileIconService) ServiceManager
@@ -319,6 +315,9 @@ public class FileView extends ViewPart implements IFileView {
 			}
 		});
 
+		tree.setInput(fscp.createSuperRootNode());
+//		tree.expandToLevel(1);
+
 		createRightClickMenu();
 		addToolbar();
 
@@ -348,11 +347,14 @@ public class FileView extends ViewPart implements IFileView {
 		CommonThreading.execUIAsynced(new Runnable() {
 			@Override
 			public void run() {
+//				System.out.println("MMM " + tree.getTree().getItems().length);
+//				if( tree.getTree().getItems().length > 1 )
+//					tree.expandToLevel(1);
 //				TreePath path = fscp.getTreePath(tree.getInput());
 //				tree.setExpandedState(path, true); // to make more parents of
 //													// selected savedSelection
 //													// visible
-//				tree.expandToLevel(5);//setExpandedState(tree.getInput(), true); //TODO
+//				tree.expandToLevel(5);//setExpandedState(tree.getInput(), true); //TODO This can be done only with listener, because tree is slow, we are faster here
 			}
 		});
 
@@ -383,48 +385,21 @@ public class FileView extends ViewPart implements IFileView {
 	protected void refresh(EFile file) {
 		//Refreshing is done async, so restoring anything here is hopeless.
 		//If need to restore something, that should be implemented in fscp.refresh.
-		fscp.debug();
 		fscp.refresh(file);
-		fscp.debug();
 	}
 
-	protected void createContent() {
-		tree.setContentProvider(fscp);
-//		fsc.setSort(defaultFileSortType);
-//		setSort(defaultFileSortType);
-		System.out.println("! calling tree.setInput");
-		tree.setInput(fscp.createSuperRootNode());
-		System.out.println("! called tree.setInput");
-//		tree.expandToLevel(1);
-	}
-
-	public void setSelectedFile(String path, boolean updateFilePath) {
+	public void setSelectedFile(final String path, final boolean updateFilePath) {
 		setSelectedFile(new EFile(path), updateFilePath);
 	}
 
 	public void setSelectedFile(final EFile file, boolean updateFilePath) {
-		if (file.exists()) { // TODO not necessarily required to check if
-								// exists, tree can jump to last existing folder
-								// part of file?
-//				FileSystemEntryNode fn = fscp.createTempNode(file);
-//				tree.setExpandedState(fn, true);
-//				TreePath tp = fscp.getTreePath(file);
-//				int iSup = tp.getSegmentCount();
-//				for (int i = 0; i < iSup; i++) {
-//					File f = (File) tp.getSegment(i);
-//					if (!tree.getExpandedState(f)) {
-//						tree.setExpandedState(f, true);
-//					}
-//				}
-			try {
-				if (!updateFilePath)
-					updatingTextFromTreeSelections = false;
-//				tree.setSelection(new TreeSelection(tp));
-//				tree.setSelection(new StructuredSelection(fn));
-			} finally {
-				if (!updateFilePath)
-					updatingTextFromTreeSelections = true;
-			}
+		try {
+			if (!updateFilePath)
+				updatingTextFromTreeSelections = false;
+			fscp.setSelection(file);
+		} finally {
+			if (!updateFilePath)
+				updatingTextFromTreeSelections = true;
 		}
 	}
 
