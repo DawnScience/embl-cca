@@ -26,9 +26,21 @@ public class FileSystemEntryNode extends TreeNode implements IAdaptable {
 	}
 
 	public FileSystemEntryNode(final FileSystemContentProvider tcp, final FileSystemEntryNode parent, final EFile file) {
+		this(tcp, parent, file, false);
+	}
+
+	protected FileSystemEntryNode(final FileSystemContentProvider tcp, final FileSystemEntryNode parent, final EFile file, final boolean fake) {
 		super(tcp, parent, file);
-		if( !isSuperRoot() )
+		if( !fake && !isSuperRoot() )
 			queryFolderProperties();
+	}
+
+	protected static FileSystemEntryNode createFakeNode(final FileSystemContentProvider tcp, final EFile file) {
+		return new FileSystemEntryNode(tcp, null, file, true);
+	}
+
+	protected static FileSystemEntryNode createFakeNode(final FileSystemContentProvider tcp, final FileSystemEntryNode parent, final EFile file) {
+		return new FileSystemEntryNode(tcp, parent, file, true);
 	}
 
 	protected void queryFolderProperties() {
