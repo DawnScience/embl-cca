@@ -388,6 +388,10 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 
 	@Override
 	public void createPartControl(final Composite parent) { //By PlotDataEditor
+	    createPartControl(parent, getEditorInput().getName());	
+	}
+    public void createPartControl(final Composite parent, final String plotName) {
+    	
 		container = new Composite(parent, SWT.NONE);
 		getContainer().setLayout(new GridLayout(1, false));
 //		getContainer().setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
@@ -403,7 +407,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 //		plot.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
 		plot.setLayout(new FillLayout()); //layout must be FillLayout for showing plotting
 		plot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true)); //grabExcessVerticalSpace must be true for showing plotting
-		plottingSystem.createPlotPart(plot, getEditorInput().getName(), wrapper, defaultPlotType, this);
+		plottingSystem.createPlotPart(plot, plotName, wrapper, defaultPlotType, this);
 
 //		final IPlotActionSystem plotActionSystem = plottingSystem.getPlotActionSystem();
 //		if(!(this instanceof ISlicablePlottingPart)) //Hyper2d requires slicing, more exactly axes
