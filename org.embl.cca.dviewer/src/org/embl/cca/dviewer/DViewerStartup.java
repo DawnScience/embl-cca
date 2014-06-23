@@ -258,8 +258,8 @@ public class DViewerStartup implements IStartup {
 	@Override
 	public void earlyStartup() {
 		if( JavaSystem.getPropertyAsBoolean(dViewerEnabledJavaProperty) ) {
-			//sfinal String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
-			logger.error("Cannot implement 'dViewerLogSettings' at the moment because the logging has an internal error, using standard logging instead.");
+			//TODO Add optional config somehow. Creating own logger is not accepted. How I could specify my own logger config?
+			//final String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
 			logger.debug("Starting " + getPackageName());
 	
 			PlatformUI.getWorkbench().addWorkbenchListener( new IWorkbenchListener() {
