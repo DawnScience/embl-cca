@@ -1,19 +1,11 @@
 package org.embl.cca.dviewer;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Hashtable;
 
 import org.dawnsci.plotting.api.preferences.PlottingConstants;
 import org.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.dawnsci.plotting.system.PlottingSystemActivator;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -35,7 +27,6 @@ import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.registry.PerspectiveDescriptor;
 import org.eclipse.ui.menus.AbstractContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
 import org.eclipse.ui.menus.IMenuService;
@@ -45,18 +36,14 @@ import org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
-import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.extension.EclipseBug362561Workaround;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
 import org.embl.cca.utils.threading.CommonThreading;
-import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
 
 public class DViewerStartup implements IStartup {
 
@@ -193,44 +180,6 @@ public class DViewerStartup implements IStartup {
 		});
 	}
 
-	/**
-	 * Configures the logger as specified in the string.
-	 * @param logSettingsRelPath the path relative to bundle containing this class
-	 */
-	protected void configureLogger(final String logSettingsRelPath) { //Here we touch logger config if we have any
-		InputStream in = null;
-		System.out.println("Starting to Configure Logger by " + getPackageName());
-		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-		final Bundle bundle = Platform.getBundle(DViewerActivator.PLUGIN_ID);
-		final Path path = new Path(logSettingsRelPath);
-		final URL fileURL = FileLocator.find(bundle, path, null); // now find the configuration file
-		final String logSettingsPath = EFile.getPathWithTrailingSeparator(DViewerActivator.PLUGIN_ID) + path.toString();
-		try {
-			if( fileURL == null ) {
-				System.out.println("Logging Configuration File not found at '" + logSettingsPath + "'");
-				throw new FileNotFoundException(logSettingsPath);
-			}
-			in = fileURL.openStream();
-			System.out.println("Logging Configuration File found at '" + logSettingsPath + "'");
-			loggerContext.reset();
-			System.out.println("Logger Context Reset");
-			final JoranConfigurator configurator = new JoranConfigurator();
-			configurator.setContext(loggerContext);
-			configurator.doConfigure(in);
-			System.out.println("Logging Configuration complete");
-		} catch (final Throwable e) { //IOException, JoranException
-			System.out.println("Could not set up logging properly, loggin to stdout for now, error follows:");
-			e.printStackTrace();
-		} finally {
-			if( in != null ) {
-				try {
-					in.close();
-				} catch (final IOException e1) {
-				}
-				in = null;
-			}
-		}
-	}
 
 	/**
 	 * Starts the connection manager.
@@ -309,9 +258,8 @@ public class DViewerStartup implements IStartup {
 	@Override
 	public void earlyStartup() {
 		if( JavaSystem.getPropertyAsBoolean(dViewerEnabledJavaProperty) ) {
-			final String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
-			if( logSettingsRelPath != null )
-				configureLogger(logSettingsRelPath);
+			//sfinal String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
+			logger.error("Cannot implement 'dViewerLogSettings' at the moment because the logging has an internal error, using standard logging instead.");
 			logger.debug("Starting " + getPackageName());
 	
 			PlatformUI.getWorkbench().addWorkbenchListener( new IWorkbenchListener() {
