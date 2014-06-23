@@ -438,7 +438,8 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			ExceptionUtils.logError(logger, new StringBuilder("Cannot initiate ").append(getClass().getName()).toString(), e, this);
 			return;
 		}
-		((DViewerImageEditorPart)getActiveEditor()).createPartControl(containerParent, getEditorInput().getName());
+//		((DViewerImageEditorPart)getActiveEditor()).createPartControl(containerParent, EMPTY_DATASET_INPUT.getName()); //TODO TADA
+		((DViewerImageEditorPart)getActiveEditor()).createPartControl(containerParent, "Fapapucs"); //TODO TADA
 		getActiveEditor().addPropertyListener(new IPropertyListener() {
 			public void propertyChanged(Object source, int propertyId) {
 				handlePropertyChange(propertyId);
@@ -453,14 +454,14 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 
 
 		//TODO Developing HKL loader here, but obviously it will be initiated from somewhere else
-		try {
-			InputStream is = ZipUtils.getStreamForFile("/home/naray/bigspace/STAC.test/xds_t1w1_run1_1/INTEGRATE.HKL.gz");
-			byte b[] = new byte[128];
-			is.read(b);
-			is.close();
-		} catch (final Exception e1) { //From constructing, or IOException
-			e1.printStackTrace();
-		}
+//		try {
+//			InputStream is = ZipUtils.getStreamForFile("/home/naray/bigspace/STAC.test/xds_t1w1_run1_1/INTEGRATE.HKL.gz");
+//			byte b[] = new byte[128];
+//			is.read(b);
+//			is.close();
+//		} catch (final Exception e1) { //From constructing, or IOException
+//			e1.printStackTrace();
+//		}
 	}
 
 	@Override
