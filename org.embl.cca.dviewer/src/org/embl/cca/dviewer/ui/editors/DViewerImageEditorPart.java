@@ -388,10 +388,10 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 
 	@Override
 	public void createPartControl(final Composite parent) { //By PlotDataEditor
-	    createPartControl(parent, getEditorInput().getName());	
+		createPartControl(parent, getEditorInput().getName());	
 	}
-    public void createPartControl(final Composite parent, final String plotName) {
-    	
+
+	public void createPartControl(final Composite parent, final String plotName) {
 		container = new Composite(parent, SWT.NONE);
 		getContainer().setLayout(new GridLayout(1, false));
 //		getContainer().setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));

@@ -359,6 +359,19 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 	}
 
 	/**
+	 * Returns the active nested editor if there is one.
+	 * <p>
+	 * Subclasses should not override this method
+	 * </p>
+	 * 
+	 * @nooverride
+	 * @return the active nested editor, or <code>null</code> if none
+	 */
+	protected DViewerImageEditorPart getActiveDViewerSubEditor() {
+		return (DViewerImageEditorPart)plotDataEditorPart;
+	}
+
+	/**
 	 * Fires a property changed event.
 	 * 
 	 * @param propertyId
@@ -438,8 +451,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			ExceptionUtils.logError(logger, new StringBuilder("Cannot initiate ").append(getClass().getName()).toString(), e, this);
 			return;
 		}
-//		((DViewerImageEditorPart)getActiveEditor()).createPartControl(containerParent, EMPTY_DATASET_INPUT.getName()); //TODO TADA
-		((DViewerImageEditorPart)getActiveEditor()).createPartControl(containerParent, "Fapapucs"); //TODO TADA
+		getActiveDViewerSubEditor().createPartControl(containerParent, getEditorInput().getName());
 		getActiveEditor().addPropertyListener(new IPropertyListener() {
 			public void propertyChanged(Object source, int propertyId) {
 				handlePropertyChange(propertyId);
