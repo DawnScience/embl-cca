@@ -451,7 +451,8 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			ExceptionUtils.logError(logger, new StringBuilder("Cannot initiate ").append(getClass().getName()).toString(), e, this);
 			return;
 		}
-		getActiveDViewerSubEditor().createPartControl(containerParent, getEditorInput().getName());
+		getActiveDViewerSubEditor().setInput(getEditorInput(), false);
+		getActiveEditor().createPartControl(containerParent);
 		getActiveEditor().addPropertyListener(new IPropertyListener() {
 			public void propertyChanged(Object source, int propertyId) {
 				handlePropertyChange(propertyId);
