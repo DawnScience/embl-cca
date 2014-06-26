@@ -306,7 +306,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 		final AbstractDataset intensity = profileData[0];
 		intensity.setName(region.getName());
-		final AbstractDataset indices = IntegerDataset.arange(0, intensity.getSize(), 1d);
+		final AbstractDataset indices = IntegerDataset.createRange(0, intensity.getSize(), 1d);
 		indices.setName("Pixel");
 		
 		final ILineTrace trace = (ILineTrace)profilePlottingSystem.getTrace(region.getName());
