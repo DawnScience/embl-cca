@@ -1,7 +1,6 @@
 package org.embl.cca.utils.ui.view.filenavigator;
 
 import java.io.File;
-import java.nio.file.Path;
 
 import org.dawb.common.services.IFileIconService;
 import org.dawb.common.services.ServiceManager;
