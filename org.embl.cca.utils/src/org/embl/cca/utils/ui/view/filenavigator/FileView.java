@@ -1,6 +1,7 @@
 package org.embl.cca.utils.ui.view.filenavigator;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.dawb.common.services.IFileIconService;
 import org.dawb.common.services.ServiceManager;
@@ -54,11 +55,7 @@ import org.embl.cca.utils.ui.view.filenavigator.FileSystemComparator.FileSortTyp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.sda.navigator.views.IFileView;
-
-//import uk.ac.diamond.sda.navigator.views.FileView;
-
-public class FileView extends ViewPart {
+public class FileView extends ViewPart implements IFileView {
 
 	public static final String ID = "org.embl.cca.utils.ui.view.filenavigator.FileView";
 	public static final String FILE_NAVIGATOR_PREFENCE_PAGE_ID = "org.embl.cca.utils.ui.view.filenavigator.preference.fileNavigatorPreferencePage";
@@ -117,10 +114,11 @@ public class FileView extends ViewPart {
 	}
 
 	/**
-	 * Get the file path selected
+	 * Get the file path selected.
 	 * 
 	 * @return String
 	 */
+	@Override
 	public EFile getSelectedFile() { //TODO rename as getSelectedNode
 		final FileSystemEntryNode sel = (FileSystemEntryNode) ((TreeSelection) tree.getSelection())
 				.getFirstElement();
@@ -130,7 +128,21 @@ public class FileView extends ViewPart {
 	}
 
 	/**
-	 * Get the file paths selected
+	 * Get the file path selected. This method is used by Java 1.7 compatible
+	 * methods, which probably still does not know EFile, and EFile does not
+	 * know about Java 1.7, thus using this method requires attention.
+	 * Where possible, use <code>getSelectedFile()</code> instead.
+	 * 
+	 * @return Path of the selected file.
+	 */
+	@Override
+	public Path getSelectedPath() {
+		final EFile selectedFile = getSelectedFile();
+		return selectedFile == null ? null : selectedFile.toFile().toPath();
+	}
+
+	/**
+	 * Get the file paths selected.
 	 * 
 	 * @return String[]
 	 */
@@ -349,10 +361,12 @@ public class FileView extends ViewPart {
 
 	}
 
+	@Override
 	public void collapseAll() {
 		tree.collapseAll();
 	}
 
+	@Override
 	public void showPreferences() {
 		PreferenceDialog pref = PreferencesUtil
 				.createPreferenceDialogOn(
@@ -489,4 +503,5 @@ public class FileView extends ViewPart {
 	public void dispose() {
 		super.dispose();
 	}
+
 }

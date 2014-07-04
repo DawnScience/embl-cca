@@ -37,16 +37,16 @@
             allPopups="false"
             locationURI="popup:org.embl.cca.utils.ui.view.filenavigator.FileView">
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.openCommand"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.openCommand"
                label="Open"
                style="push">
          </command>
          <separator
-               name="org.embl.cca.utils.ui.view.fileexplorer.separator1"
+               name="org.embl.cca.utils.ui.view.filenavigator.separator1"
                visible="true">
          </separator>
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.exploreros"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.exploreros"
                icon="icons/folder.gif"
                label="Open in File Explorer"
                style="push">
@@ -62,18 +62,18 @@
             </visibleWhen>
          </command>
          <separator
-               name="org.embl.cca.utils.ui.view.fileexplorer.separator2"
+               name="org.embl.cca.utils.ui.view.filenavigator.separator2"
                visible="true">
          </separator>
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.refresh"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.refresh"
                icon="icons/refresh.gif"
                label="Refresh"
                style="push"
                tooltip="Refresh file tree">
          </command>
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.collapseAll"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.collapseAll"
                icon="icons/CollapseAll.png"
                label="Collapse All"
                style="push">
@@ -83,41 +83,28 @@
             allPopups="false"
             locationURI="toolbar:org.embl.cca.utils.ui.view.filenavigator.FileView">
          <separator
-               name="org.embl.cca.utils.ui.view.fileexplorer.separator3"
+               name="org.embl.cca.utils.ui.view.filenavigator.separator3"
                visible="true">
          </separator>
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.collapseAll"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.collapseAll"
                icon="icons/CollapseAll.png"
                label="Collapse All"
                style="push">
          </command>
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.refresh"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.refresh"
                icon="icons/refresh.gif"
                label="Refresh"
                style="push"
                tooltip="Refresh file tree">
          </command>
       </menuContribution>
-<!-- We do not need this while File Navigator contributes it, else it is duplicated in project explorer!
-      <menuContribution
-            allPopups="false"
-            locationURI="toolbar:org.embl.cca.utils.ui.view.fileexplorer.FileView">
-         <command
-               commandId="org.embl.cca.utils.ui.view.fileexplorer.ReUseEditor"
-               icon="icons/clone_el.gif"
-               label="Re-use editor"
-               style="toggle"
-               tooltip="Enable/disable re-use editor">
-         </command>
-      </menuContribution>
--->
       <menuContribution
             allPopups="false"
             locationURI="menu:org.embl.cca.utils.ui.view.filenavigator.FileView?after=additions">
          <command
-               commandId="org.embl.cca.utils.ui.view.filenavigator.showFileNavigatorPreferences"
+               commandId="org.embl.cca.utils.ui.view.filenavigator.handler.showFileNavigatorPreferences"
                label="Show preferences"
                style="push">
          </command>
@@ -126,38 +113,28 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="uk.ac.diamond.sda.navigator.views.OpenHandler"
-            id="org.embl.cca.utils.ui.view.filenavigator.openCommand"
+            defaultHandler="org.embl.cca.utils.ui.view.filenavigator.handler.OpenHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.openCommand"
             name="Open">
       </command>
       <command
-            defaultHandler="uk.ac.diamond.sda.navigator.views.CollapseAllHandler"
-            id="org.embl.cca.utils.ui.view.filenavigator.collapseAll"
+            defaultHandler="org.embl.cca.utils.ui.view.filenavigator.handler.CollapseAllHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.collapseAll"
             name="Collapse All">
       </command>
       <command
-            defaultHandler="uk.ac.diamond.sda.navigator.views.RefreshHandler"
-            id="org.embl.cca.utils.ui.view.filenavigator.refresh"
+            defaultHandler="org.embl.cca.utils.ui.view.filenavigator.handler.RefreshHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.refresh"
             name="Refresh">
       </command>
-<!--
       <command
-            defaultHandler="uk.ac.diamond.sda.navigator.actions.ReUseEditorHandler"
-            description="Enable/disable multi-editor use"
-            id="org.embl.cca.utils.ui.view.fileexplorer.ReUseEditor"
-            name="Re-use Editor">
-            <state class="org.eclipse.ui.handlers.RegistryToggleState:false"
-               id="org.eclipse.ui.commands.toggleState"/>
-      </command>
--->
-      <command
-            defaultHandler="uk.ac.diamond.sda.navigator.views.ExplorerOSHandler"
-            id="org.embl.cca.utils.ui.view.filenavigator.exploreros"
+            defaultHandler="org.embl.cca.utils.ui.view.filenavigator.handler.ExplorerOSHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.exploreros"
             name="Open in File Explorer">
       </command>
       <command
-            defaultHandler="uk.ac.diamond.sda.navigator.views.ShowPreferencesHandler"
-            id="org.embl.cca.utils.ui.view.filenavigator.showFileNavigatorPreferences"
+            defaultHandler="org.embl.cca.utils.ui.view.filenavigator.handler.ShowPreferencesHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.showFileNavigatorPreferences"
             name="Show preferences">
       </command>
    </extension>
