@@ -33,13 +33,14 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -163,30 +164,36 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		}
 
 		public IStatus run(final IProgressMonitor monitor) {
-			monitor.beginTask("Updating plot using PHA", 100);
-			final PHA pha = new PHA(phaRadius);
-			final IDataset dataSetPHAThis = pha.applyPHA(dataSet, PHA.getDataSetRectangle(dataSet), monitor);
-			IDataset dataSetOriginalThis = null;
-			if( dataSetPHAThis != null ) { //!monitor.isCanceled
-//				final IDataset dataSetAppliedPHA = pha.calculateGaussKernel(pha.getRadius()); //TODO only for testing
-				synchronized (dataSetLock) {
-					if( dataSetOriginal == dataSet ) {
-						dataSetPHA = dataSetPHAThis;
-						dataSetPHARadius = phaRadius;
-						dataSetOriginalThis = dataSetOriginal;
-					} else
-						monitor.setCanceled(true);
+			final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
+			thisMonitor.beginTask("Updating plot using PHA", 100);
+			try {
+				final PHA pha = new PHA(phaRadius);
+				final IDataset dataSetPHAThis = pha.applyPHA(dataSet,
+						PHA.getDataSetRectangle(dataSet), new SubProgressMonitor(thisMonitor, 100));
+				IDataset dataSetOriginalThis = null;
+				if( dataSetPHAThis != null ) { //!monitor.isCanceled
+//					final IDataset dataSetAppliedPHA = pha.calculateGaussKernel(pha.getRadius()); //TODO only for testing
+					synchronized (dataSetLock) {
+						if( dataSetOriginal == dataSet ) {
+							dataSetPHA = dataSetPHAThis;
+							dataSetPHARadius = phaRadius;
+							dataSetOriginalThis = dataSetOriginal;
+						} else
+							thisMonitor.setCanceled(true);
+					}
 				}
-			}
-			if( !monitor.isCanceled() ) {
-				if( phaAction.isChecked() )
-					createPlot(dataSetPHAThis, rehistogram, monitor);
-				else if( !isPlotReady() ) //phaAction changed while plot not ready
-					createPlot(dataSetOriginalThis, rehistogram, monitor);
-				return Status.OK_STATUS;
-			} else {
-				onPhaPlotIsCancelled();
-				return Status.CANCEL_STATUS;
+				if( !thisMonitor.isCanceled() ) {
+					if( phaAction.isChecked() )
+						createPlot(dataSetPHAThis, rehistogram, thisMonitor);
+					else if( !isPlotReady() ) //phaAction changed while plot not ready
+						createPlot(dataSetOriginalThis, rehistogram, thisMonitor);
+					return Status.OK_STATUS;
+				} else {
+					onPhaPlotIsCancelled(pha.getRadius());
+					return Status.CANCEL_STATUS;
+				}
+			} finally {
+				thisMonitor.done();
 			}
 		}
 	}
@@ -784,18 +791,25 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 			data = data.squeeze(false); //drops all 1 long dims
 		if (data.getRank()!=2) return; //Accepting only plot with 2 dims!
 		Assert.isLegal(data.getSize() > 0, "The size of data must be greater than 0");
-		final ITrace trace;
-		if( rehistogram ) {
-			plottingSystem.clear();
-			trace = plottingSystem.createPlot2D(data, getAxesForPlot(data), data.getName(), monitor);
-		} else {
-			trace = plottingSystem.updatePlot2D(data, getAxesForPlot(data), data.getName(), monitor);
-			if (plottingSystem.isRescale())
-				plottingSystem.repaint(); //Better than autoscaleAxes(), because it also repaints, and thread safe
+		final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
+		thisMonitor.beginTask("Creating the plot", 1);
+		try {
+			final IProgressMonitor plottingMonitor = new SubProgressMonitor(thisMonitor, 1);
+			final ITrace trace;
+			if( rehistogram ) {
+				plottingSystem.clear();
+				trace = plottingSystem.createPlot2D(data, getAxesForPlot(data), data.getName(), plottingMonitor);
+			} else {
+				trace = plottingSystem.updatePlot2D(data, getAxesForPlot(data), data.getName(), plottingMonitor);
+				if (plottingSystem.isRescale())
+					plottingSystem.repaint(); //Better than autoscaleAxes(), because it also repaints, and thread safe
+			}
+			imageTrace = (IImageTrace) trace;
+			imageTrace.setRescaleHistogram(false); //dViewer's default, Histogram tool overrides
+			onPlotIsReady();
+		} finally {
+			thisMonitor.done();
 		}
-		imageTrace = (IImageTrace) trace;
-		imageTrace.setRescaleHistogram(false); //dViewer's default, Histogram tool overrides
-		onPlotIsReady();
 	}
 
 	protected void onPlotIsReady() {
@@ -805,13 +819,16 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		}
 	}
 
-	protected void onPhaPlotIsCancelled() {
+	protected void onPhaPlotIsCancelled(final int cancelledRadius) {
 		System.out.println("onPhaPlotIsCancelled (" + phaAction.isChecked() + ")!");
 		synchronized (dataSetLock) {
 			if( imageTrace == null )
 				createPlotWithPhaCheck(false, null);
-			else
-				setPha(null, imageTrace.getData() != dataSetOriginal);
+			else {
+				setPha(null, imageTrace.getData() != dataSetOriginal); //sets the state only
+				if( cancelledRadius == phaRadius ) //Means cancellation only (not dragging slider)
+					setPhaRadius(null, dataSetPHARadius); //Ensuring in case of cancelling
+			}
 		}
 	}
 
