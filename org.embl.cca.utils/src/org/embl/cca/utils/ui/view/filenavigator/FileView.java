@@ -1,6 +1,7 @@
 package org.embl.cca.utils.ui.view.filenavigator;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.dawb.common.services.IFileIconService;
 import org.dawb.common.services.ServiceManager;
@@ -15,14 +16,9 @@ import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.IContentProposal;
 import org.eclipse.jface.fieldassist.IContentProposalListener;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceDialog;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -35,7 +31,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -43,8 +38,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewPart;
@@ -57,11 +50,8 @@ import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ImageConstants;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileEditorInput;
-import org.embl.cca.utils.datahandling.FileWithTag;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.ui.view.filenavigator.FileSystemComparator.FileSortType;
-import org.embl.cca.utils.ui.view.filenavigator.preference.FileNavigatorPreferenceConstants;
-import org.embl.cca.utils.ui.widget.support.treeviewer.TreeComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +59,7 @@ import uk.ac.diamond.sda.navigator.views.IFileView;
 
 //import uk.ac.diamond.sda.navigator.views.FileView;
 
-public class FileView extends ViewPart implements IFileView {
+public class FileView extends ViewPart {
 
 	public static final String ID = "org.embl.cca.utils.ui.view.filenavigator.FileView";
 	public static final String FILE_NAVIGATOR_PREFENCE_PAGE_ID = "org.embl.cca.utils.ui.view.filenavigator.preference.fileNavigatorPreferencePage";
@@ -360,12 +350,10 @@ public class FileView extends ViewPart implements IFileView {
 
 	}
 
-	@Override
 	public void collapseAll() {
 		tree.collapseAll();
 	}
 
-	@Override
 	public void showPreferences() {
 		PreferenceDialog pref = PreferencesUtil
 				.createPreferenceDialogOn(

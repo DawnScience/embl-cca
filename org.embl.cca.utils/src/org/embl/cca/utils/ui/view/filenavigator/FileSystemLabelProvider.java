@@ -113,7 +113,7 @@ public class FileSystemLabelProvider extends TreeLabelProvider
 			final boolean showComment = store.getBoolean(FileNavigatorPreferenceConstants.SHOW_COMMENT_COLUMN);
 			if(!fn.getFile().isDirectory() && showComment){
 				try { //Converting to File, so the service is not confused by protocol
-					return NavigatorUtils.getComment(fn.getFile().toFile());
+					return NavigatorUtils.getHDF5Title(fn.getFile().getAbsolutePath());
 				} catch (final Exception e) {
 					e.printStackTrace();
 					break;

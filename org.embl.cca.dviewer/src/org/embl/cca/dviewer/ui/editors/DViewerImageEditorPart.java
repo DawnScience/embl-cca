@@ -768,10 +768,10 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		for (int i = 0; i < dimsDataList.size(); i++) {
 			final DimsData dimsData = dimsDataList.getDimsData(i);
 			if (dimsData.getPlotAxis() == AxisType.X) {
-				x = service.arange(data.getShape()[i], IDatasetMathsService.INT);
+				x = service.createRange(data.getShape()[i], IDatasetMathsService.INT);
 			}
 			if (dimsData.getPlotAxis() == AxisType.Y) {
-				y = service.arange(data.getShape()[i], IDatasetMathsService.INT);
+				y = service.createRange(data.getShape()[i], IDatasetMathsService.INT);
 			}
 		}
 		//According to SliceUtils.plotSlice, swapping x,y for {create|update}Plot2D
