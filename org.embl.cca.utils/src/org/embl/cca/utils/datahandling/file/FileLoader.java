@@ -11,17 +11,16 @@ import org.dawb.common.services.ServiceManager;
 import org.dawb.common.util.list.ListenerList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
-import org.eclipse.ui.IEditorInput;
 import org.embl.cca.utils.datahandling.AbstractDatasetAndFileDescriptor;
 import org.embl.cca.utils.datahandling.DatasetNumber;
 import org.embl.cca.utils.datahandling.DatasetTypeSeparatedUtils;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileWithTag;
-import org.embl.cca.utils.threading.ExecutableManager;
-import org.embl.cca.utils.threading.TrackableJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,64 +174,69 @@ public class FileLoader {
 			 */
 			IStatus result = Status.CANCEL_STATUS;
 			//We have to load files into fileLoader with imageLoaderManager from from the amount of amount
-			do {
-				Vector<FileWithTag> adding = new Vector<FileWithTag>(0);
-				Vector<FileWithTag> removing = new Vector<FileWithTag>(0);
-//				synchronized (fileLoadingLock) {
-					if( monitor.isCanceled() )
-						break;
-					getFilesToAddAndRemove(batchIndex, batchSize, adding, removing);
-					System.out.println("batchIndex=" + batchIndex + ", batchSize=" + batchSize + ", adding=" + adding + ", removing=" + removing);
-					if( monitor.isCanceled() ) //Better check ASAP if must abort here, because if yes, the adding and removing are not valid
-						break;
-					if( removing.isEmpty() && adding.isEmpty() ) //This means nothing to add or remove, then return without doing anything
-						return Status.OK_STATUS;
-//				}
-				result = Status.OK_STATUS;
-				monitor.beginTask("Loading file(s)", adding.size() + removing.size());
-				for( FileWithTag i : adding ) {
-					if( monitor.isCanceled() )
-						break;
-//					logger.debug("EHM, adding " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
-//					result = processImage(i, true);
-					try {
-						loadAndAddFile(i);
-						monitor.internalWorked(1);
-					} catch (Exception e) { //IOException, RuntimeException
-						result = Status.CANCEL_STATUS;
-						logger.error("Can not load the file: " + i.toString(), e);
-						break;
+			final Vector<FileWithTag> adding = new Vector<FileWithTag>(0);
+			final Vector<FileWithTag> removing = new Vector<FileWithTag>(0);
+			final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
+			thisMonitor.beginTask("Loading file(s)", adding.size() + removing.size() + 1); //+1 for fireLoading*
+			try {
+				do {
+//					synchronized (fileLoadingLock) {
+						if( thisMonitor.isCanceled() )
+							break;
+						getFilesToAddAndRemove(batchIndex, batchSize, adding, removing);
+						System.out.println("batchIndex=" + batchIndex + ", batchSize=" + batchSize + ", adding=" + adding + ", removing=" + removing);
+						if( thisMonitor.isCanceled() ) //Better check ASAP if must abort here, because if yes, the adding and removing are not valid
+							break;
+						if( removing.isEmpty() && adding.isEmpty() ) //This means nothing to add or remove, then return without doing anything
+							return Status.OK_STATUS;
+//					}
+					result = Status.OK_STATUS;
+					for( FileWithTag i : adding ) {
+						if( thisMonitor.isCanceled() )
+							break;
+//						logger.debug("EHM, adding " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
+//						result = processImage(i, true);
+						try {
+							loadAndAddFile(i);
+							thisMonitor.worked(1);
+						} catch (Exception e) { //IOException, RuntimeException
+							result = Status.CANCEL_STATUS;
+							logger.error("Can not load the file: " + i.toString(), e);
+							break;
+						}
 					}
-				}
-				if( result != Status.OK_STATUS || monitor.isCanceled() )
-					break;
-				for( FileWithTag i : removing ) {
-					if( monitor.isCanceled() )
+					if( result != Status.OK_STATUS || thisMonitor.isCanceled() )
 						break;
-//					logger.debug("EHM, removing " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
-//					result = processImage(i, false);
-					try {
-						loadAndRemoveFile(i);
-						monitor.internalWorked(1);
-					} catch (Exception e) { //IOException, RuntimeException
-						logger.error("Can not load the file: " + i.toString(), e);
-						result = Status.CANCEL_STATUS;
-						break;
+					for( FileWithTag i : removing ) {
+						if( thisMonitor.isCanceled() )
+							break;
+//						logger.debug("EHM, removing " + ((AbstractDatasetAndFileDescriptor)i.getTag()).getIndexInCollection() + ". file");
+//						result = processImage(i, false);
+						try {
+							loadAndRemoveFile(i);
+							thisMonitor.worked(1);
+						} catch (Exception e) { //IOException, RuntimeException
+							logger.error("Can not load the file: " + i.toString(), e);
+							result = Status.CANCEL_STATUS;
+							break;
+						}
 					}
-				}
-				if( result != Status.OK_STATUS || monitor.isCanceled() )
-					break;
-				result = Status.OK_STATUS;
-			} while( false );
-			if( monitor.isCanceled() ) {
-				result = Status.CANCEL_STATUS;
-				fireLoadingCancelled(newFile, monitor);
-			} else if( result == Status.CANCEL_STATUS ) {
-				fireLoadingFailed(newFile, monitor);
-			} else if( result == Status.OK_STATUS )
-				fireLoadingDone(newFile, monitor);
-			//TODO else fire error
-			return result;
+					if( result != Status.OK_STATUS || thisMonitor.isCanceled() )
+						break;
+					result = Status.OK_STATUS;
+				} while( false );
+				if( thisMonitor.isCanceled() ) {
+					result = Status.CANCEL_STATUS;
+					fireLoadingCancelled(newFile);
+				} else if( result == Status.CANCEL_STATUS ) {
+					fireLoadingFailed(newFile);
+				} else if( result == Status.OK_STATUS )
+					fireLoadingDone(newFile, new SubProgressMonitor(thisMonitor, 1));
+				//TODO else fire error
+				return result;
+			} finally {
+				thisMonitor.done();
+			}
 		}
 	};
 
@@ -589,14 +593,14 @@ public class FileLoader {
 			listener.fileLoadingDone(this, newFile, monitor);
 	}
 
-	public void fireLoadingCancelled(final boolean newFile, final IProgressMonitor monitor) {
+	public void fireLoadingCancelled(final boolean newFile) {
 		for( final IFileLoaderListener listener : fileLoaderListeners )
-			listener.fileLoadingCancelled(this, newFile, monitor);
+			listener.fileLoadingCancelled(this, newFile);
 	}
 
-	public void fireLoadingFailed(final boolean newFile, final IProgressMonitor monitor) {
+	public void fireLoadingFailed(final boolean newFile) {
 		for( final IFileLoaderListener listener : fileLoaderListeners )
-			listener.fileLoadingFailed(this, newFile, monitor);
+			listener.fileLoadingFailed(this, newFile);
 	}
 
 }

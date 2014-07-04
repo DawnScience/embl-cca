@@ -1851,14 +1851,12 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 
 	@Override
-	public void fileLoadingCancelled(Object source, boolean newFile,
-			IProgressMonitor monitor) {
+	public void fileLoadingCancelled(Object source, boolean newFile) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void fileLoadingFailed(Object source, boolean newFile,
-			IProgressMonitor monitor) {
+	public void fileLoadingFailed(Object source, boolean newFile) {
 		// TODO Auto-generated method stub
 	}
 

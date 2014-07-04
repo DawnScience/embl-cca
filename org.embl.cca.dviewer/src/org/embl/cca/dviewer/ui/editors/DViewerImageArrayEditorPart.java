@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
@@ -172,9 +173,16 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			}
 			
 			public IStatus run(final IProgressMonitor monitor) {
-				onImageArraySizeUpdated();
-				selectLastBatch();
-				return Status.OK_STATUS;
+				final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
+				thisMonitor.beginTask("Selecting latest image batch", 1);
+				try {
+					onImageArraySizeUpdated();
+					selectLastBatch();
+					thisMonitor.worked(1);
+					return Status.OK_STATUS;
+				} finally {
+					thisMonitor.done();
+				}
 			}
 		}
 
@@ -193,14 +201,20 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 		}
 
 		public IStatus run(final IProgressMonitor monitor) {
+			final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
 			final long time = System.currentTimeMillis();
 //			System.out.println("AutoSelectLatestNewJob started at " + System.currentTimeMillis());
-			monitor.beginTask("Auto selecting latest new image", IProgressMonitor.UNKNOWN);
-			final int sleepTime = checkDirectory() ? 10 : 100;
-			if( monitor.isCanceled() )
-				return Status.CANCEL_STATUS;
-			schedule(Math.max(sleepTime - (System.currentTimeMillis() - time), 0));
-			return Status.OK_STATUS;
+			thisMonitor.beginTask("Auto selecting latest new image", 1);
+			try {
+				final int sleepTime = checkDirectory() ? 10 : 100;
+				if( thisMonitor.isCanceled() )
+					return Status.CANCEL_STATUS;
+				thisMonitor.worked(1);
+				schedule(Math.max(sleepTime - (System.currentTimeMillis() - time), 0));
+				return Status.OK_STATUS;
+			} finally {
+				thisMonitor.done();
+			}
 		}
 
 		protected boolean checkDirectory() {
@@ -576,6 +590,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 	@Override
 	public void fileLoadingDone(final Object source, final boolean newFile,
 			final IProgressMonitor monitor) {
+		final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
 		if( source instanceof FileLoader && fileLoader == source) {
 			final FileLoader fileLoader = (FileLoader)source; //Equal to fileLoader
 			final AbstractDataset resultSet = fileLoader.getMergedDataset();
@@ -594,7 +609,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			CommonThreading.execUISynced(new Runnable() {
 				@Override
 				public void run() {
-					getActiveReusableEditor().setInput(new MemoryDatasetEditorInput(resultSet, fileLoader.getFirstLoadedLegacyPath(), newFile, monitor));
+					getActiveReusableEditor().setInput(new MemoryDatasetEditorInput(resultSet, fileLoader.getFirstLoadedLegacyPath(), newFile, thisMonitor));
 				}
 			});
 		}
@@ -602,15 +617,13 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 	}
 
 	@Override
-	public void fileLoadingCancelled(final Object source, final boolean newFile,
-			final IProgressMonitor monitor) {
+	public void fileLoadingCancelled(final Object source, final boolean newFile) {
 		//Do not show dialog, because dragging slider also cancels
 		closeActiveEditorIfFirstLoadingUnsuccessful();
 	}
 
 	@Override
-	public void fileLoadingFailed(Object source, boolean newFile,
-			IProgressMonitor monitor) { //TODO pass detailed error message and display it
+	public void fileLoadingFailed(Object source, boolean newFile) { //TODO pass detailed error message and display it
 		final String ERROR_MESSAGE = "An error occured while loading the requested file(s)";
 		ExceptionUtils.logError(logger, ERROR_MESSAGE);
 		if( isRemoted() )
