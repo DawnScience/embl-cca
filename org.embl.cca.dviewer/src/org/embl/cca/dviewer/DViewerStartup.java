@@ -3,10 +3,10 @@ package org.embl.cca.dviewer;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.dawnsci.plotting.api.preferences.PlottingConstants;
-import org.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.dawnsci.plotting.system.PlottingSystemActivator;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.dawnsci.plotting.api.preferences.PlottingConstants;
+import org.eclipse.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;

@@ -11,9 +11,8 @@ package org.embl.cca.dviewer.ui.editors.preference;
 
 import java.util.Hashtable;
 
-import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
-
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.embl.cca.dviewer.DViewerActivator;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
 import org.embl.cca.utils.datahandling.ADataValidator;

@@ -11,7 +11,7 @@ package org.embl.cca.dviewer.ui.editors.preference;
 
 import java.util.Arrays;
 
-import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 
 /**
  * Constant definitions for plug-in preferences

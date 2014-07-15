@@ -22,7 +22,7 @@
        </initializer>
    </extension>
    <extension
-         point="org.dawnsci.plotting.api.toolPage">
+         point="org.eclipse.dawnsci.plotting.api.toolPage">
       <!-- Fix to http://jira.diamond.ac.uk/browse/DAWNSCI-604
       <plotting_tool_page
             class="org.embl.cca.dviewer.plotting.tools.PSFTool"

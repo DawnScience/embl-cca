@@ -1,6 +1,6 @@
 package org.embl.cca.dviewer.ui.editors;
 
-import org.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 
 public interface IDViewerImageControllable {
