@@ -11,6 +11,7 @@ public interface Disposable {
 			return;
 		//dispose this object
 		disposed = true;
+	}
 */
 	public boolean isDisposed();
 /*
