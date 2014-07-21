@@ -7,10 +7,11 @@ import org.dawnsci.plotting.views.ToolPageView;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+import org.embl.cca.utils.ui.view.filenavigator.FileView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.sda.navigator.views.FileView;
+//import uk.ac.diamond.sda.navigator.views.FileView;
 //import uk.ac.diamond.sda.polling.preferences.PreferenceConstants;
 
 /**
