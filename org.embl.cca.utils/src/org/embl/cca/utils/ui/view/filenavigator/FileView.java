@@ -35,6 +35,7 @@ import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -68,10 +69,12 @@ import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileEditorInput;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.ui.view.filenavigator.FileSystemComparator.FileSortType;
+import org.embl.cca.utils.ui.widget.support.treeviewer.ITreeSomethingListener;
+import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode.TreeNodeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileView extends ViewPart implements IFileView {
+public class FileView extends ViewPart implements IFileView, IFileSystemContentProviderListener {
 
 	public static final String ID = "org.embl.cca.utils.ui.view.filenavigator.FileView";
 	public static final String FILE_NAVIGATOR_PREFENCE_PAGE_ID = "org.embl.cca.utils.ui.view.filenavigator.preference.fileNavigatorPreferencePage";
@@ -90,6 +93,8 @@ public class FileView extends ViewPart implements IFileView {
 								// time until it is set in savedSelection
 	protected EFile savedSelection;
 	protected Text filePath;
+
+	protected boolean initialized = false;
 
 	public FileView() {
 		super();
@@ -200,6 +205,7 @@ public class FileView extends ViewPart implements IFileView {
 		tree.setUseHashlookup(true);
 
 		fscp = new FileSystemContentProvider(); //It gets tree on setting input
+		fscp.addTreeContentProviderListener(this);
 		tree.setContentProvider(fscp);
 		fslp = new FileSystemLabelProvider(tree, false);
 		tree.setLabelProvider(fslp);
@@ -333,48 +339,38 @@ public class FileView extends ViewPart implements IFileView {
 		});
 
 		tree.setInput(fscp.createSuperRootNode());
-//		tree.expandToLevel(1);
 
 		createRightClickMenu();
 		addToolbar();
+	}
 
-		if (savedSelection != null) {
-			if (savedSelection.exists()) {
-//				tree.setSelection(new TreeSelection(fscp
-//						.getTreePath(savedSelection)));
-//				tree.setSelection(new StructuredSelection(fscp.createTempNode(savedSelection))); //TODO Now the elements are empty, thus not finding this selection
-			} else {
-				// File is deleted, select its existing parent from parents.
-//				File prevParent = savedSelection;
-//				File nextParent;
-//				while ((nextParent = prevParent.getParentFile()) != null) {
-//					if (nextParent.exists()) {
-//						tree.setSelection(new TreeSelection(fscp
-//								.getTreePath(nextParent)));
-//						break;
-//					}
-//					prevParent = nextParent;
-//				}
-//				if (nextParent == null)
-//					tree.setSelection(new TreeSelection(tcp
-//							.getTreePath("Root")));
-			}
+	@Override
+	public void nodeReady(final EFile identifier, final TreeNodeState result) {
+		try {
+			if( !initialized && savedSelection != null) {
+				if (savedSelection.exists()) {
+					System.out.println("@-_-@ " + savedSelection.getAbsolutePath());
+					fscp.setSelection(savedSelection);
+				} else {
+					// File is deleted, select its existing parent from parents.
+					EFile prevParent = savedSelection;
+					EFile nextParent;
+					while ((nextParent = prevParent.getParentFile()) != null) {
+						if (nextParent.exists()) {
+							fscp.setSelection(nextParent);
+							break;
+						}
+						prevParent = nextParent;
+					}
+					if (nextParent == null) //Nothing exists from path, clear selection
+						fscp.setSelection(null);
+				}
+			} else if( fscp.isSuperRootValue(identifier) && tree.getTree().getItems().length == 1 )
+				tree.expandToLevel(2);
+		} finally {
+			if( !initialized )
+				initialized = true;
 		}
-
-		CommonThreading.execUIAsynced(new Runnable() {
-			@Override
-			public void run() {
-//				System.out.println("MMM " + tree.getTree().getItems().length);
-//				if( tree.getTree().getItems().length > 1 )
-//					tree.expandToLevel(1);
-//				TreePath path = fscp.getTreePath(tree.getInput());
-//				tree.setExpandedState(path, true); // to make more parents of
-//													// selected savedSelection
-//													// visible
-//				tree.expandToLevel(5);//setExpandedState(tree.getInput(), true); //TODO This can be done only with listener, because tree is slow, we are faster here
-			}
-		});
-
 	}
 
 	@Override

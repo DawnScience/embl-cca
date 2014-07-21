@@ -22,12 +22,13 @@ import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.ui.widget.support.treeviewer.TreeContentProvider;
 import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode;
+import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode.TreeNodeState;
 
 public class FileSystemContentProvider extends TreeContentProvider {
 	public static final String MSG_NULL_FILE = "The file is null, it must not be null.";
 
 	public FileSystemContentProvider() {
-		super();
+		super(new FileSystemContentProviderListenerManager());
 	}
 
 	@Override
@@ -204,6 +205,11 @@ public class FileSystemContentProvider extends TreeContentProvider {
 
 	@Override
 	public void dispose() {
+		super.dispose();
 	}
 
+	@Override
+	protected void fireNodeReady(final Object identifier, final TreeNodeState result) {
+		((FileSystemContentProviderListenerManager)listenerManager).fireNodeReady((EFile)identifier, result);
+	}
 }

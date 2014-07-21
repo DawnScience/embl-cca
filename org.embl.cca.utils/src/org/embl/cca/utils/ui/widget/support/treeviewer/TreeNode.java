@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.graphics.Image;
+import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.general.Util;
 
 /**
@@ -44,11 +45,13 @@ import org.embl.cca.utils.general.Util;
  * @author Gábor Náray
  *
  */
-public abstract class TreeNode {
+public abstract class TreeNode implements Disposable {
 	public static enum TreeNodeState {TREENODE_FILLED,
 		TREENODE_NOT_EXISTING, TREENODE_NOT_FILLABLE;
 	};
 	public final String NULL_STR = "null";
+
+	protected boolean disposed = false;
 
 	/**
 	 * The array of child tree nodes for this tree node. If there are no
@@ -211,7 +214,7 @@ public abstract class TreeNode {
 			if( initChildren || !childrenValid ) {
 				if( canHaveChildren() ) {
 					System.out.println("! " + this.getClass().getName() + ": FolderListerJob.rescheduling, this: " + TreeNode.this.toString());
-					new Exception("rescheduling stack:").printStackTrace();
+//					new Exception("rescheduling stack:").printStackTrace();
 //					System.out.println(ExceptionUtils.makeErrorMessage(new StringBuilder("HALLO"), new Exception("info"), this));
 					childrenListerJob.reschedule();
 				} else if( !childrenValid )
@@ -221,9 +224,17 @@ public abstract class TreeNode {
 		}
 	}
 
+	@Override
+	public boolean isDisposed() {
+		return disposed;
+	}
+
 	public void dispose() { //TODO When should this be called?
+		if( isDisposed() )
+			return;
+		//dispose this object
 		listenerManager.dispose();
-		removeTreeNodeListeners();
+		disposed = true;
 	}
 
 	@Override
@@ -248,15 +259,15 @@ public abstract class TreeNode {
 	}
 
 	public void addTreeNodeListener(final ITreeNodeListener listener) {
-		listenerManager.addTreeNodeListener(listener);
+		listenerManager.addListener(listener);
 	}
 
 	public void removeTreeNodeListener(final ITreeNodeListener listener) {
-		listenerManager.removeTreeNodeListener(listener);
+		listenerManager.removeListener(listener);
 	}
 
 	public void removeTreeNodeListeners() {
-		listenerManager.removeTreeNodeListeners();
+		listenerManager.removeListeners();
 	}
 
 	/* subclasses should override this method */

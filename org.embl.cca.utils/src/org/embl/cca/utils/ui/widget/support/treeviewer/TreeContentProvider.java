@@ -27,18 +27,25 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.collection.ListUtils;
+import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode.TreeNodeState;
 
-public abstract class TreeContentProvider implements ITreeContentProvider, ITreeNodeListener {
+public abstract class TreeContentProvider implements ITreeContentProvider, ITreeNodeListener, Disposable {
 	public static final String MSG_NULL_VALUE = "The value is null, it must not be null.";
 	public static enum TreeNodeRequest {TREENODE_EXPAND, TREENODE_SELECT};
 
+	protected boolean disposed = false;
+
+	protected final TreeSomethingListenerManager<ITreeSomethingListener> listenerManager;
+
 	protected TreeViewer treeViewer; //AbstractTreeViewer
 
-	public TreeContentProvider() {
+	public TreeContentProvider(final TreeSomethingListenerManager<ITreeSomethingListener> listenerManager) {
+		this.listenerManager = listenerManager != null ? listenerManager : new TreeContentProviderListenerManager();
 	}
 
 	public TreeViewer getTreeViewer() {
@@ -89,6 +96,8 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 
 	public List<TreeNode> getTempNodePath(final Object value) {
 		Assert.isNotNull(value, MSG_NULL_VALUE);
+		if( isSuperRootValue(value) )
+			return new ArrayList<TreeNode>();
 		final Object parentValue = getParentValue(value);
 		if( isSuperRootValue(parentValue) ) {
 			final ArrayList<TreeNode> result = new ArrayList<TreeNode>();
@@ -186,6 +195,7 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 			//TODO Despite of revealing, at first expanding the parent is out of window
 			treeViewer.reveal(new TreePath(nodePath.subList(0, nodePath.size() - 1).toArray()));
 			treeViewer.setSelection(new StructuredSelection(new TreePath(nodePath.toArray())));
+			System.out.println("*** -<= TADA =>- ***");
 		}
 	}
 
@@ -225,6 +235,7 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 						treeViewer.refresh(node.getParent(), false); //Tell TV: parent does not have this child
 						break;
 				}
+				fireNodeReady(node.identifier, result);
 			} finally {
 				node.nodePathRequests.clear();
 				debug();
@@ -232,12 +243,47 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 		}
 	}
 
+	public void addTreeContentProviderListener(final ITreeSomethingListener listener) {
+		listenerManager.addListener(listener);
+	}
+
+	public void removeTreeContentProviderListener(final ITreeSomethingListener listener) {
+		listenerManager.removeListener(listener);
+	}
+
+	public void removeTreeContentProviderListeners() {
+		listenerManager.removeListeners();
+	}
+
+	@Override
+	public boolean isDisposed() {
+		return disposed;
+	}
+
+	public void dispose() { //TODO When should this be called?
+		if( isDisposed() )
+			return;
+		//dispose this object
+		listenerManager.dispose();
+		disposed = true;
+	}
+
 	public void expandByValue(final EFile file) {
 		requestForValue(TreeNodeRequest.TREENODE_EXPAND, file);
 	}
 
+	/**
+	 * Sets a new selection for the tree viewer and makes it visible.
+	 * Note: if file is the super root, nothing happens, because
+	 * selecting super root has no sense.
+	 * 
+	 * @param file The new selection of file. If null, selection is cleared.
+	 */
 	public void setSelection(final EFile file) {
-		requestForValue(TreeNodeRequest.TREENODE_SELECT, file);
+		if( file == null )
+			treeViewer.setSelection(null);
+		else
+			requestForValue(TreeNodeRequest.TREENODE_SELECT, file);
 	}
 
 	public TreeNode getSuperRootNode() {
@@ -253,4 +299,12 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 	protected abstract Object getParentValue(final Object value);
 
 	protected abstract TreeNode createFakeNode(final Object parentValue, final Object value);
+
+	/* This method is to override if listenerManager is specified
+	 * in constructor, otherwise exception will be thrown (because can not
+	 * cast the listenerManager).
+	 */
+	protected void fireNodeReady(final Object identifier, final TreeNodeState result) {
+		((TreeContentProviderListenerManager)listenerManager).fireNodeReady(identifier, result);
+	}
 }

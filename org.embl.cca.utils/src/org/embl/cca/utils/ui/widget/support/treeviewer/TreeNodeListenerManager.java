@@ -17,7 +17,6 @@
 package org.embl.cca.utils.ui.widget.support.treeviewer;
 
 
-import org.dawb.common.util.list.ListenerList;
 import org.eclipse.core.runtime.Assert;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.threading.CommonThreading;
@@ -25,26 +24,12 @@ import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode.TreeNodeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TreeNodeListenerManager {
+public class TreeNodeListenerManager extends TreeSomethingListenerManager<ITreeNodeListener> {
 
 	private static final Logger logger = LoggerFactory.getLogger(TreeNodeListenerManager.class);
 
-	protected final ListenerList<ITreeNodeListener> treeNodeListeners;
-
 	public TreeNodeListenerManager() {
-		treeNodeListeners = new ListenerList<ITreeNodeListener>();
-	}
-
-	public void addTreeNodeListener(final ITreeNodeListener listener) {
-		treeNodeListeners.add(listener);
-	}
-
-	public void removeTreeNodeListener(final ITreeNodeListener listener) {
-		treeNodeListeners.remove(listener);
-	}
-
-	public void removeTreeNodeListeners() {
-		treeNodeListeners.clear();
+		super();
 	}
 
 	/**
@@ -59,7 +44,7 @@ public class TreeNodeListenerManager {
 		CommonThreading.execUISynced(new Runnable() {
 			@Override
 			public void run() {
-				for( final ITreeNodeListener listener : treeNodeListeners) {
+				for( final ITreeNodeListener listener : treeSomethingListeners) {
 					try {
 						listener.childrenReady(node, result, previousChildren);
 					} catch (final RuntimeException e) {
@@ -68,9 +53,5 @@ public class TreeNodeListenerManager {
 				}
 			}
 		});
-	}
-
-	public void dispose() {
-		treeNodeListeners.clear();
 	}
 }
