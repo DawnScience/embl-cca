@@ -23,10 +23,6 @@ import org.slf4j.LoggerFactory;
  **/
 public class DViewerPerspective implements IPerspectiveFactory {
 
-	/**
-	 * Old id maintained to keep old workspaces happy.
-	 */
-//	public static final String ID = "org.edna.workbench.application.perspective.DataPerspective";
 	public static final String PERSPECTIVE_ID = "org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective";
 
 	private static Logger logger = LoggerFactory.getLogger(DViewerPerspective.class);
