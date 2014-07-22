@@ -195,7 +195,6 @@ public abstract class TreeContentProvider implements ITreeContentProvider, ITree
 			//TODO Despite of revealing, at first expanding the parent is out of window
 			treeViewer.reveal(new TreePath(nodePath.subList(0, nodePath.size() - 1).toArray()));
 			treeViewer.setSelection(new StructuredSelection(new TreePath(nodePath.toArray())));
-			System.out.println("*** -<= TADA =>- ***");
 		}
 	}
 
