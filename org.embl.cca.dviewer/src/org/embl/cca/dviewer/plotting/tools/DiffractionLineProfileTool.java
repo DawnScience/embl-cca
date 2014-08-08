@@ -24,8 +24,8 @@ import org.eclipse.dawnsci.plotting.api.annotation.IAnnotation;
 import org.eclipse.dawnsci.plotting.api.preferences.BasePlottingConstants;
 import org.eclipse.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
-import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
+import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ILineTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
@@ -40,7 +40,7 @@ import org.embl.cca.dviewer.DViewerActivator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.roi.IROI;
@@ -132,8 +132,8 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			for (ILineTrace selectedTrace : selectedTraces) {
 				
 				// We peak fit only the first of the data sets plotted for now.
-				AbstractDataset x  = (AbstractDataset)selectedTrace.getXData();
-				AbstractDataset y  = (AbstractDataset)selectedTrace.getYData();
+				Dataset x  = (Dataset)selectedTrace.getXData();
+				Dataset y  = (Dataset)selectedTrace.getYData();
 	
 				try {
 					final FittedFunctions bean = FittingUtils.getFittedPeaks(new FittedPeaksInfo(x, y, new ProgressMonitorWrapper(monitor), getPlottingSystem(), selectedTrace,10));
@@ -207,7 +207,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 						fp.setFwhm(area);
 						if (!requireFWHMSelections) area.setVisible(false);
 												
-						final AbstractDataset[] pair = fp.getPeakFunctions();
+						final Dataset[] pair = fp.getPeakFunctions();
 						final ILineTrace trace = TraceUtils.replaceCreateLineTrace(profilePlottingSystem, "Peak "+ipeak);
 						trace.setData(pair[0], pair[1]);
 						trace.setLineWidth(1);
@@ -299,14 +299,14 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		if (!region.isVisible()) return;
 
 		if (monitor.isCanceled()) return;
-		AbstractDataset[] profileData = ROIProfile.line((AbstractDataset)image.getData(), (AbstractDataset)image.getMask(), bounds, 1d, true);
+		Dataset[] profileData = ROIProfile.line((Dataset)image.getData(), (Dataset)image.getMask(), bounds, 1d, true);
         if (profileData==null) return;
 
 		if (monitor.isCanceled()) return;
 		
-		final AbstractDataset intensity = profileData[0];
+		final Dataset intensity = profileData[0];
 		intensity.setName(region.getName());
-		final AbstractDataset indices = IntegerDataset.createRange(0, intensity.getSize(), 1d);
+		final Dataset indices = IntegerDataset.createRange(0, intensity.getSize(), 1d);
 		indices.setName("Pixel");
 		
 		final ILineTrace trace = (ILineTrace)profilePlottingSystem.getTrace(region.getName());
@@ -348,8 +348,8 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			if (!region.isVisible())    continue;
 			if (!region.isUserRegion()) continue;
 			
-			AbstractDataset[] profileData = ROIProfile.line((AbstractDataset)slice.getData(), (AbstractDataset)image.getMask(), (LinearROI)region.getROI(), 1d, false);
-			final AbstractDataset intensity = profileData[0];
+			Dataset[] profileData = ROIProfile.line((Dataset)slice.getData(), (Dataset)image.getMask(), (LinearROI)region.getROI(), 1d, false);
+			final Dataset intensity = profileData[0];
 			intensity.setName(region.getName().replace(' ', '_'));
 			slice.appendData(intensity);
 		}
