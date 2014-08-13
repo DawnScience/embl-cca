@@ -35,7 +35,7 @@ import org.eclipse.draw2d.ColorConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.diffraction.DetectorProperties;
 import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.diffraction.QSpace;
@@ -307,9 +307,9 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 			if (Double.isNaN(yLabel)) yLabel = yIndex;
 	
 			IDiffractionMetadata dmeta = null;
-			AbstractDataset set = null;
+			Dataset set = null;
 			if (imageTrace!=null) {
-				set = (AbstractDataset)imageTrace.getData();
+				set = (Dataset)imageTrace.getData();
 				final IMetaData      meta = set.getMetadata();
 				if (meta instanceof IDiffractionMetadata) {
 	

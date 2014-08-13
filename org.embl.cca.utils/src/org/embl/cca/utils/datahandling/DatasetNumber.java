@@ -4,17 +4,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
-	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of AbstractDataset
+	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of Dataset
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -2245073853201104044L;
 
-	protected AbstractDataset set;
+	protected Dataset set;
 
     /**
      * The value of the <code>DatasetNumber</code>.
@@ -31,42 +32,42 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      * @param   value   the value to be represented by the 
      *			<code>DatasetNumber</code> object.
      */
-	public DatasetNumber(AbstractDataset set, Number value) {
+	public DatasetNumber(Dataset set, Number value) {
 		this.set = set;
 		this.value = value;
 	}
 
 //If needed, this constructor can be implemented
-//    public DatasetNumber(AbstractDataset set, String s) throws NumberFormatException {
+//    public DatasetNumber(Dataset set, String s) throws NumberFormatException {
 //    	this.value = parseInt(s, 10);
 //    }
 
 	/**
-	 * This method should be in AbstractDataset, but it is not, so implemented here.
+	 * This method should be in Dataset, but it is not, so implemented here.
 	 * @return the maximum number according to dataset type
 	 */
 	protected Number getMaximumNumber() {
 		switch (set.getDtype()) {
-		case AbstractDataset.BOOL:
-			return Integer.valueOf(1); //Hacking, since Boolean is not Number, and using Integer similarly to AbstractDataset.fromDoubleToNumber
-		case AbstractDataset.INT32:
+		case Dataset.BOOL:
+			return Integer.valueOf(1); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
+		case Dataset.INT32:
 			return Integer.MAX_VALUE;
-		case AbstractDataset.INT8:
+		case Dataset.INT8:
 			return Byte.MAX_VALUE;
-		case AbstractDataset.INT16:
+		case Dataset.INT16:
 			return Short.MAX_VALUE;
-		case AbstractDataset.INT64:
+		case Dataset.INT64:
 			return Long.MAX_VALUE;
-		case AbstractDataset.FLOAT32:
+		case Dataset.FLOAT32:
 			return Float.MAX_VALUE;
-		case AbstractDataset.FLOAT64:
+		case Dataset.FLOAT64:
 			return Double.MAX_VALUE;
 		}
 		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
 	}
 
 	/**
-	 * This method should be in AbstractDataset, but it is not, so implemented here.
+	 * This method should be in Dataset, but it is not, so implemented here.
 	 * @param x the number to check if it is maximum
 	 * @return true if x is maximum number according to dataset type
 	 */
@@ -75,7 +76,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	}
 
 	/**
-	 * This method should be public in AbstractDataset, but it is not.
+	 * This method should be public in Dataset, but it is not.
 	 * @param set the dataset which specifies the type of result
 	 * @param x the number of which type to convert
 	 * @return the type converted number
@@ -85,12 +86,12 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	}
 
 	/**
-	 * This method should be public in AbstractDataset, but it is not, so hacking to use it.
+	 * This method should be public in Dataset, but it is not, so hacking to use it.
 	 * @param set the dataset which specifies the type of result
 	 * @param x the number of which type to convert
 	 * @return the type converted number
 	 */
-	public static Number fromDoubleToNumber(AbstractDataset set, double x) {
+	public static Number fromDoubleToNumber(Dataset set, double x) {
 		final String error = "fromDoubleToNumber(set=" + set + ", x=" + x + ") error";
 		try {
 			return (Number)fromDoubleToNumberPrivateStringMethod.invoke(set, x);
@@ -118,7 +119,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 * user specified strings are interpreted. 
 	 * @return the maximum valid number in the dataset
 	 */
-	public static Number getMaxValidNumber(AbstractDataset set) {
+	public static Number getMaxValidNumber(Dataset set) {
 		try {
 			IMetaData metadata = (IMetaData)set.getMetadata();
 			if( metadata == null )
@@ -146,7 +147,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 * @param defaultNumber the returned number if the method fails
 	 * @return the maximum valid number in the dataset or defaultNumber if its value is not available
 	 */
-	public static Number getMaxValidNumber(AbstractDataset set, boolean returnNullOnFailure) {
+	public static Number getMaxValidNumber(Dataset set, boolean returnNullOnFailure) {
 		try {
 			return getMaxValidNumber(set);
 		} catch (Exception e) {
@@ -160,7 +161,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 		return getNumber(set, value, returnNullOnFailure);
 	}
 
-	public static Number getNumber(AbstractDataset set, Number value, boolean returnNullOnFailure) {
+	public static Number getNumber(Dataset set, Number value, boolean returnNullOnFailure) {
 		try {
 			return fromDoubleToNumber(set, value.doubleValue());
 		} catch (Exception e) {
@@ -230,19 +231,19 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      */
 	public boolean booleanValue() {
 		switch (set.getDtype()) {
-		case AbstractDataset.BOOL:
-			return value.intValue() != 0; //Hacking, since Boolean is not Number, and using Integer similarly to AbstractDataset.fromDoubleToNumber
-		case AbstractDataset.INT32:
+		case Dataset.BOOL:
+			return value.intValue() != 0; //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
+		case Dataset.INT32:
 			return value.intValue() != 0;
-		case AbstractDataset.INT8:
+		case Dataset.INT8:
 			return value.byteValue() != 0;
-		case AbstractDataset.INT16:
+		case Dataset.INT16:
 			return value.shortValue() != 0;
-		case AbstractDataset.INT64:
+		case Dataset.INT64:
 			return value.longValue() != 0;
-		case AbstractDataset.FLOAT32:
+		case Dataset.FLOAT32:
 			return value.floatValue() != 0;
-		case AbstractDataset.FLOAT64:
+		case Dataset.FLOAT64:
 			return value.doubleValue() != 0;
 		}
 		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
@@ -283,37 +284,37 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
     public int compareTo(DatasetNumber anotherNumber) {
 		int type = AbstractDataset.getBestDType(set.getDtype(), anotherNumber.set.getDtype());
 		switch (type) {
-			case AbstractDataset.BOOL: {
-				int thisVal = value.intValue(); //Hacking, since Boolean is not Number, and using Integer similarly to AbstractDataset.fromDoubleToNumber
+			case Dataset.BOOL: {
+				int thisVal = value.intValue(); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
 				int anotherVal = anotherNumber.intValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.INT32: {
+			case Dataset.INT32: {
 				int thisVal = value.intValue();
 				int anotherVal = anotherNumber.intValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.INT8: {
+			case Dataset.INT8: {
 				byte thisVal = value.byteValue();
 				byte anotherVal = anotherNumber.byteValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.INT16: {
+			case Dataset.INT16: {
 				short thisVal = value.shortValue();
 				short anotherVal = anotherNumber.shortValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.INT64: {
+			case Dataset.INT64: {
 				long thisVal = value.longValue();
 				long anotherVal = anotherNumber.longValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.FLOAT32: {
+			case Dataset.FLOAT32: {
 				float thisVal = value.floatValue();
 				float anotherVal = anotherNumber.floatValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
-			case AbstractDataset.FLOAT64: {
+			case Dataset.FLOAT64: {
 				double thisVal = value.doubleValue();
 				double anotherVal = anotherNumber.doubleValue();
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));

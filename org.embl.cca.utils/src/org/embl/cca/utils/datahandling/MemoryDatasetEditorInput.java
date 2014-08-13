@@ -11,27 +11,27 @@ import org.eclipse.ui.IPersistableElement;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.general.Util;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 
 public class MemoryDatasetEditorInput implements IEditorInput {
 	protected final String name;
-	protected final AbstractDataset dataset;
+	protected final Dataset dataset;
 	protected final String filePath;
 	protected final boolean newInput;
 	protected final IProgressMonitor monitor;
 
-	public MemoryDatasetEditorInput(final AbstractDataset dataset) {
+	public MemoryDatasetEditorInput(final Dataset dataset) {
 		this(dataset, true, null);
 	}
 
-	public MemoryDatasetEditorInput(final AbstractDataset dataset, final String filePath) {
+	public MemoryDatasetEditorInput(final Dataset dataset, final String filePath) {
 		this(dataset, filePath, true, null);
 	}
 
-	public MemoryDatasetEditorInput(final AbstractDataset dataset, final boolean newInput, final IProgressMonitor monitor) {
+	public MemoryDatasetEditorInput(final Dataset dataset, final boolean newInput, final IProgressMonitor monitor) {
 		this(dataset, null, newInput, monitor);
 	}
-	public MemoryDatasetEditorInput(final AbstractDataset dataset, final String filePath, final boolean newInput, final IProgressMonitor monitor) {
+	public MemoryDatasetEditorInput(final Dataset dataset, final String filePath, final boolean newInput, final IProgressMonitor monitor) {
 		Assert.isLegal(dataset != null, "The dataset parameter can not be null");
 		Assert.isLegal(dataset.getName() != null, "The name of dataset can not be null");
 		this.name = dataset.getName();
@@ -73,7 +73,7 @@ public class MemoryDatasetEditorInput implements IEditorInput {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if( adapter.isAssignableFrom(AbstractDataset.class)) { //adapter <= AbstractDataset
+		if( adapter.isAssignableFrom(Dataset.class)) { //adapter <= Dataset
 			return dataset;
 		} else if( adapter.isAssignableFrom(String.class)) { //adapter <= String
 			return name;
@@ -173,7 +173,7 @@ public class MemoryDatasetEditorInput implements IEditorInput {
 	 * 
 	 * @return the dataset; never <code>null</code>
 	 */
-	public AbstractDataset getDataset() {
+	public Dataset getDataset() {
 		return dataset;
 	}
 

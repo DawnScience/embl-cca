@@ -24,7 +24,8 @@ import org.embl.cca.utils.datahandling.FileWithTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
+import uk.ac.diamond.scisoft.analysis.dataset.DatasetFactory;
 import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
 import uk.ac.diamond.scisoft.analysis.io.ILoaderService;
@@ -79,12 +80,12 @@ public class FileLoader {
 	protected ICollectionFile vcFile = null;
 	protected final Vector<FileAndMetadata> loadedFileAndMetadatas; //The loaded files (without content, the content is summed) and their metadata
 	protected boolean resultSetNeedsUpdate; //True if the result dataset must be updated (lazily)
-	protected AbstractDataset resultSet; //Dataset of single file, or merged datasets of multiple files, see layeredImageMode
+	protected Dataset resultSet; //Dataset of single file, or merged datasets of multiple files, see layeredImageMode
 	protected boolean layeredImageMode; //False until at least 2 images are loaded, else true (becomes false on clear()).
 	//If true, then the sum of images is stored as 3 things: set, not measured mask, bad mask
-	protected AbstractDataset summedSet; //Valid when layeredImageMode == true 
-	protected AbstractDataset summedNotMeasuredMask; //Valid when layeredImageMode == true
-	protected AbstractDataset summedBadMask; //Valid when layeredImageMode == true
+	protected Dataset summedSet; //Valid when layeredImageMode == true 
+	protected Dataset summedNotMeasuredMask; //Valid when layeredImageMode == true
+	protected Dataset summedBadMask; //Valid when layeredImageMode == true
 
 //	protected ExecutableManager imageLoaderManager;
 //	protected final Boolean fileLoadingLock = new Boolean(false);  //This is a lock, has no value. This data is used for locking by synchronising it: ... TODO what?
@@ -113,7 +114,7 @@ public class FileLoader {
 		}
 
 //		public IStatus processImage(FileWithTag imageFile, boolean add) {
-//			AbstractDataset set = null;
+//			Dataset set = null;
 //			IMetaData localMetaData = null;
 //			boolean loadedAtLeast2;
 ////			synchronized (resultDataset) {
@@ -414,22 +415,22 @@ public class FileLoader {
 		return loadedFileAndMetadatas.size();
 	}
 
-	protected void addSplitImage(AbstractDataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void addSplitImage(Dataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		if( loadedFileAndMetadatas.size() == 1 && !layeredImageMode) {
-			summedSet = AbstractDataset.zeros(resultSet);
-			summedNotMeasuredMask = AbstractDataset.zeros(resultSet);
-			summedBadMask = AbstractDataset.zeros(resultSet);
+			summedSet = DatasetFactory.zeros(resultSet);
+			summedNotMeasuredMask = DatasetFactory.zeros(resultSet);
+			summedBadMask = DatasetFactory.zeros(resultSet);
 			DatasetTypeSeparatedUtils.splitAddSet(resultSet, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue); //TODO save threshold into set, because here we use threshold of 2nd image on 1st image, not the best
 			layeredImageMode = true;
 		}
 		DatasetTypeSeparatedUtils.splitAddSet(set, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue);
 	}
 
-	protected void removeSplitImage(AbstractDataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void removeSplitImage(Dataset set, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		DatasetTypeSeparatedUtils.splitRemoveSet(set, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue);
 	}
 
-	protected void add(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void add(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetaData metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = 0;
@@ -451,7 +452,7 @@ public class FileLoader {
 		resultSetNeedsUpdate = true;
 	}
 
-	protected void remove(AbstractDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void remove(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetaData metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
@@ -466,11 +467,11 @@ public class FileLoader {
 		}
 	}
 
-	protected AbstractDataset loadFileInternal(final FileWithTag imageFile) throws IOException {
+	protected Dataset loadFileInternal(final FileWithTag imageFile) throws IOException {
 		final String filePath = imageFile.getAbsolutePathWithoutProtocol();
 		try {
 			ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
-			AbstractDataset set = (AbstractDataset)service.getDataset(filePath, null);
+			Dataset set = (Dataset)service.getDataset(filePath, null);
 			if( set == null )
 				throw new IOException("The loader returned null dataset for file: " + imageFile.getAbsolutePath()); //should the loader throw an exception?
 			return set;
@@ -480,13 +481,13 @@ public class FileLoader {
 	}
 
 	protected void loadAndAddFile(FileWithTag imageFile) throws IOException {
-		AbstractDataset set = loadFileInternal(imageFile).clone();
+		Dataset set = loadFileInternal(imageFile).clone();
 		Number maxValidNumber = DatasetNumber.getMaxValidNumber(set, true);
 		add( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
 	}
 
 	protected void loadAndRemoveFile(FileWithTag imageFile) throws IOException {
-		AbstractDataset set = loadFileInternal(imageFile).clone();
+		Dataset set = loadFileInternal(imageFile).clone();
 		Number maxValidNumber = DatasetNumber.getMaxValidNumber(set, true);
 		remove( set, imageFile, maxValidNumber, DatasetNumber.getNumber(set, BAD_PIXEL_VALUE, true), DatasetNumber.getNumber(set, NOT_MEASURED_VALUE, true) ); //TODO little bit hardcoded: CBF images typically have cutoff and notMeasuredValue (-1), but what about others?
 	}
@@ -562,14 +563,14 @@ public class FileLoader {
 	}
 
 	/**
-	 * Returns an AbstractDataset containing all the loaded files merged.
-	 * The resulting AbstractDataset is affected by subsequent adds or removes, i.e. loading other files.
+	 * Returns an Dataset containing all the loaded files merged.
+	 * The resulting Dataset is affected by subsequent adds or removes, i.e. loading other files.
 	 * <p>
 	 * Note: Callers of this method <b>must not</b> modify the returned array. 
 	 *
 	 * @return the merged dataset
 	 */
-	public synchronized AbstractDataset getMergedDataset() {
+	public synchronized Dataset getMergedDataset() {
 		updateMetadata();
 		return resultSet;
 	}

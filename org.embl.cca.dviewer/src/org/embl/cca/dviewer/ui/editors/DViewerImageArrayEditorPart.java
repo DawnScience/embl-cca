@@ -79,7 +79,7 @@ import org.embl.cca.utils.threading.CommonThreading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 
 public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
@@ -90,7 +90,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 	public final static int BATCH_SIZE_MAX = 999;
 	public final static int BATCH_SIZE_MIN = 1;
 
-	protected final static AbstractDataset EMPTY_DATASET = new IntegerDataset(new int [] {}, 0, 0);
+	protected final static Dataset EMPTY_DATASET = new IntegerDataset(new int [] {}, 0, 0);
 	protected final static MemoryDatasetEditorInput EMPTY_DATASET_INPUT = new MemoryDatasetEditorInput(EMPTY_DATASET);
 
 	public final static String REMOTED_IMAGE = "Remoted Image";
@@ -573,7 +573,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 		}
 	}
 
-	private long getHashCode(final AbstractDataset dataset) {
+	private long getHashCode(final Dataset dataset) {
 		return dataset.hashCode();
 	}
 
@@ -593,7 +593,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 		final IProgressMonitor thisMonitor = monitor == null ? new NullProgressMonitor() : monitor;
 		if( source instanceof FileLoader && fileLoader == source) {
 			final FileLoader fileLoader = (FileLoader)source; //Equal to fileLoader
-			final AbstractDataset resultSet = fileLoader.getMergedDataset();
+			final Dataset resultSet = fileLoader.getMergedDataset();
 //			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 //			System.out.println("Dataset HashCode=" + hashCode);
 //			IMetaData localMetaData = resultSet.getMetadata();

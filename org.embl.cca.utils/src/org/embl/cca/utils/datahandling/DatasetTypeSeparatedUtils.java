@@ -2,7 +2,7 @@ package org.embl.cca.utils.datahandling;
 
 import org.embl.cca.utils.datahandling.text.StringUtils;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.BooleanDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.ByteDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
@@ -21,19 +21,19 @@ public class DatasetTypeSeparatedUtils {
 	 * @param badNumber the value which means the value is bad. Typically -2 in CBF files.
 	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
 	 */
-	public static void splitJoinIntoSelf(final AbstractDataset set,
+	public static void splitJoinIntoSelf(final Dataset set,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
 		final int type = set.getDtype();
 		//In case of BOOL, maxValidNumber, badNumber and notMeasuredNumber have no sense
-		final boolean maxValidValueValid = type != AbstractDataset.BOOL && maxValidNumber != null;
-		final boolean badValueValid = type != AbstractDataset.BOOL && badNumber != null;
+		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
+		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
 		if( !badValueValid || !maxValidValueValid )
 			return;
 		switch (type) {
-			case AbstractDataset.BOOL: {
+			case Dataset.BOOL: {
 				break;
 			}
-			case AbstractDataset.INT32: {
+			case Dataset.INT32: {
 				final int[] currentData = ((IntegerDataset)set).getData();
 				final int maxValidValue = maxValidNumber.intValue();
 				final int badValue = badNumber.intValue();
@@ -44,7 +44,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT8: {
+			case Dataset.INT8: {
 				final byte[] currentData = ((ByteDataset)set).getData();
 				final byte maxValidValue = maxValidNumber.byteValue();
 				final byte badValue = badNumber.byteValue();
@@ -55,7 +55,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT16: {
+			case Dataset.INT16: {
 				final short[] currentData = ((ShortDataset)set).getData();
 				final short maxValidValue = maxValidNumber.shortValue();
 				final short badValue = badNumber.shortValue();
@@ -66,7 +66,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT64: {
+			case Dataset.INT64: {
 				final long[] currentData = ((LongDataset)set).getData();
 				final long maxValidValue = maxValidNumber.longValue();
 				final long badValue = badNumber.longValue();
@@ -77,7 +77,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT32: {
+			case Dataset.FLOAT32: {
 				final float[] currentData = ((FloatDataset)set).getData();
 				final float maxValidValue = maxValidNumber.floatValue();
 				final float badValue = badNumber.floatValue();
@@ -88,7 +88,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT64: {
+			case Dataset.FLOAT64: {
 				final double[] currentData = ((DoubleDataset)set).getData();
 				final double maxValidValue = maxValidNumber.doubleValue();
 				final double badValue = badNumber.doubleValue();
@@ -110,15 +110,15 @@ public class DatasetTypeSeparatedUtils {
 	 * @param maxValidNumber the maximum valid value. Above this value the values are considered bad. 
 	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
 	 */
-	public static void splitAddSet(final AbstractDataset set, final AbstractDataset summedSet, final AbstractDataset summedBadMask, final AbstractDataset summedNotMeasuredMask,
+	public static void splitAddSet(final Dataset set, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
 		final int type = set.getDtype();
 		//In case of BOOL, maxValidNumber, badNumber and notMeasuredNumber have no sense
-		final boolean maxValidValueValid = type != AbstractDataset.BOOL && maxValidNumber != null;
-		final boolean notMeasuredValueValid = type != AbstractDataset.BOOL && notMeasuredNumber != null;
-		final boolean badValueValid = type != AbstractDataset.BOOL && badNumber != null;
+		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
+		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
+		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
 		switch (type) {
-			case AbstractDataset.BOOL: {
+			case Dataset.BOOL: {
 				final boolean[] currentData = ((BooleanDataset)set).getData();
 				final boolean[] setData = ((BooleanDataset)summedSet).getData();
 				final int iSup = currentData.length;
@@ -127,7 +127,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT32: {
+			case Dataset.INT32: {
 				final int[] currentData = ((IntegerDataset)set).getData();
 				final int[] setData = ((IntegerDataset)summedSet).getData();
 				final int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
@@ -146,7 +146,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT8: {
+			case Dataset.INT8: {
 				final byte[] currentData = ((ByteDataset)set).getData();
 				final byte[] setData = ((ByteDataset)summedSet).getData();
 				final byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
@@ -165,7 +165,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT16: {
+			case Dataset.INT16: {
 				final short[] currentData = ((ShortDataset)set).getData();
 				final short[] setData = ((ShortDataset)summedSet).getData();
 				final short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
@@ -184,7 +184,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT64: {
+			case Dataset.INT64: {
 				final long[] currentData = ((LongDataset)set).getData();
 				final long[] setData = ((LongDataset)summedSet).getData();
 				final long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
@@ -203,7 +203,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT32: {
+			case Dataset.FLOAT32: {
 				final float[] currentData = ((FloatDataset)set).getData();
 				final float[] setData = ((FloatDataset)summedSet).getData();
 				final float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
@@ -222,7 +222,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT64: {
+			case Dataset.FLOAT64: {
 				final double[] currentData = ((DoubleDataset)set).getData();
 				final double[] setData = ((DoubleDataset)summedSet).getData();
 				final double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
@@ -252,15 +252,15 @@ public class DatasetTypeSeparatedUtils {
 	 * @param maxValidNumber the maximum valid value. Above this value the values are considered bad. 
 	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
 	 */
-	public static void splitRemoveSet(final AbstractDataset set, final AbstractDataset summedSet, final AbstractDataset summedBadMask, final AbstractDataset summedNotMeasuredMask,
+	public static void splitRemoveSet(final Dataset set, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
 		final int type = set.getDtype();
 		//In case of BOOL, maxValidNumber and notMeasuredNumber have no sense
-		final boolean maxValidValueValid = type != AbstractDataset.BOOL && maxValidNumber != null;
-		final boolean notMeasuredValueValid = type != AbstractDataset.BOOL && notMeasuredNumber != null;
-		final boolean badValueValid = type != AbstractDataset.BOOL && badNumber != null;
+		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
+		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
+		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
 		switch (type) {
-			case AbstractDataset.BOOL: {
+			case Dataset.BOOL: {
 				final boolean[] currentData = ((BooleanDataset)set).getData();
 				final boolean[] setData = ((BooleanDataset)summedSet).getData();
 				final int iSup = currentData.length;
@@ -269,7 +269,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT32: {
+			case Dataset.INT32: {
 				final int[] currentData = ((IntegerDataset)set).getData();
 				final int[] setData = ((IntegerDataset)summedSet).getData();
 				final int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
@@ -288,7 +288,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT8: {
+			case Dataset.INT8: {
 				final byte[] currentData = ((ByteDataset)set).getData();
 				final byte[] setData = ((ByteDataset)summedSet).getData();
 				final byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
@@ -307,7 +307,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT16: {
+			case Dataset.INT16: {
 				final short[] currentData = ((ShortDataset)set).getData();
 				final short[] setData = ((ShortDataset)summedSet).getData();
 				final short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
@@ -326,7 +326,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT64: {
+			case Dataset.INT64: {
 				final long[] currentData = ((LongDataset)set).getData();
 				final long[] setData = ((LongDataset)summedSet).getData();
 				final long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
@@ -345,7 +345,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT32: {
+			case Dataset.FLOAT32: {
 				final float[] currentData = ((FloatDataset)set).getData();
 				final float[] setData = ((FloatDataset)summedSet).getData();
 				final float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
@@ -364,7 +364,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT64: {
+			case Dataset.FLOAT64: {
 				final double[] currentData = ((DoubleDataset)set).getData();
 				final double[] setData = ((DoubleDataset)summedSet).getData();
 				final double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();
@@ -395,16 +395,16 @@ public class DatasetTypeSeparatedUtils {
 	 * @param badNumber the value representing bad value. 
 	 * @param notMeasuredValue the value which means the value is not measured. Typically -1 in CBF files.
 	 */
-	public static void joinSplittedSets(final AbstractDataset resultSet, final AbstractDataset summedSet, final AbstractDataset summedBadMask, final AbstractDataset summedNotMeasuredMask,
+	public static void joinSplittedSets(final Dataset resultSet, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number badNumber, final Number notMeasuredNumber) {
 		final int type = resultSet.getDtype();
 		//In case of BOOL, badNumber and notMeasuredNumber have no sense
-		final boolean notMeasuredValueValid = type != AbstractDataset.BOOL && notMeasuredNumber != null;
-		final boolean badValueValid = type != AbstractDataset.BOOL && badNumber != null;
+		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
+		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
 		if( !badValueValid || !notMeasuredValueValid )
 			throw new RuntimeException("badNumber (" + StringUtils.numberToString(badNumber) + ") or notMeasuredNumber (" + StringUtils.numberToString(notMeasuredNumber) + ") is invalid" );
 		switch (type) {
-			case AbstractDataset.BOOL: {
+			case Dataset.BOOL: {
 				final boolean[] currentData = ((BooleanDataset)resultSet).getData();
 				final boolean[] setData = ((BooleanDataset)summedSet).getData();
 				final int iSup = currentData.length;
@@ -413,7 +413,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT32: {
+			case Dataset.INT32: {
 				final int[] currentData = ((IntegerDataset)resultSet).getData();
 				final int[] setData = ((IntegerDataset)summedSet).getData();
 				final int[] notMeasuredMaskData = ((IntegerDataset)summedNotMeasuredMask).getData();
@@ -431,7 +431,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT8: {
+			case Dataset.INT8: {
 				final byte[] currentData = ((ByteDataset)resultSet).getData();
 				final byte[] setData = ((ByteDataset)summedSet).getData();
 				final byte[] notMeasuredMaskData = ((ByteDataset)summedNotMeasuredMask).getData();
@@ -449,7 +449,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT16: {
+			case Dataset.INT16: {
 				final short[] currentData = ((ShortDataset)resultSet).getData();
 				final short[] setData = ((ShortDataset)summedSet).getData();
 				final short[] notMeasuredMaskData = ((ShortDataset)summedNotMeasuredMask).getData();
@@ -467,7 +467,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.INT64: {
+			case Dataset.INT64: {
 				final long[] currentData = ((LongDataset)resultSet).getData();
 				final long[] setData = ((LongDataset)summedSet).getData();
 				final long[] notMeasuredMaskData = ((LongDataset)summedNotMeasuredMask).getData();
@@ -485,7 +485,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT32: {
+			case Dataset.FLOAT32: {
 				final float[] currentData = ((FloatDataset)resultSet).getData();
 				final float[] setData = ((FloatDataset)summedSet).getData();
 				final float[] notMeasuredMaskData = ((FloatDataset)summedNotMeasuredMask).getData();
@@ -503,7 +503,7 @@ public class DatasetTypeSeparatedUtils {
 				}
 				break;
 			}
-			case AbstractDataset.FLOAT64: {
+			case Dataset.FLOAT64: {
 				final double[] currentData = ((DoubleDataset)resultSet).getData();
 				final double[] setData = ((DoubleDataset)summedSet).getData();
 				final double[] notMeasuredMaskData = ((DoubleDataset)summedNotMeasuredMask).getData();

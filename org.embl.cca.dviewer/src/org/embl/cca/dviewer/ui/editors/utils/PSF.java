@@ -24,7 +24,7 @@ import org.embl.cca.utils.sorting.ArrayAndIndexSI;
 import org.embl.cca.utils.sorting.QuickSort;
 import org.slf4j.Logger;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.ByteDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
@@ -668,25 +668,25 @@ public class PSF {
 		return psfPoints;
 	}
 
-	public void applyPSF(AbstractDataset imageComponent, Rectangle imageRect) {
+	public void applyPSF(Dataset imageComponent, Rectangle imageRect) {
 		long t0 = System.nanoTime();
 		switch( imageComponent.getDtype() ) {
-		case AbstractDataset.INT8:
+		case Dataset.INT8:
 			applyPSF((ByteDataset)imageComponent, imageRect);
 			break;
-		case AbstractDataset.INT16:
+		case Dataset.INT16:
 			applyPSF((ShortDataset)imageComponent, imageRect);
 			break;
-		case AbstractDataset.INT32:
+		case Dataset.INT32:
 			applyPSF((IntegerDataset)imageComponent, imageRect);
 			break;
-		case AbstractDataset.INT64:
+		case Dataset.INT64:
 			applyPSF((LongDataset)imageComponent, imageRect);
 			break;
-		case AbstractDataset.FLOAT32:
+		case Dataset.FLOAT32:
 			applyPSF((FloatDataset)imageComponent, imageRect);
 			break;
-		case AbstractDataset.FLOAT64:
+		case Dataset.FLOAT64:
 			applyPSF((DoubleDataset)imageComponent, imageRect);
 			break;
 		default:

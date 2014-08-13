@@ -31,7 +31,7 @@ import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.embl.cca.utils.ui.widget.SpinnerSlider;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 
 /**
  * The PSFTool is a tool extension for DAWN, it can highlight spots thus humans can see them better.
@@ -61,7 +61,7 @@ public class PSFTool extends AbstractToolPage {
 	/**
 	 * The objects which contain the image.
 	 */
-	AbstractDataset originalSet, psfSet; 
+	Dataset originalSet, psfSet; 
 
 	public PSFTool() {
 		psf = new PSF();
@@ -334,8 +334,8 @@ public class PSFTool extends AbstractToolPage {
 
 		synchronized (psf) {
 			final TrackableJob job = new TrackableJob(psfRadiusManager, "Apply " + PSF.featureName) {
-				AbstractDataset originalSetJob = originalSet;
-				AbstractDataset psfSetJob = psfSet;
+				Dataset originalSetJob = originalSet;
+				Dataset psfSetJob = psfSet;
 				PSF psfJob = psf;
 				final IImageTrace imageJob = image;
 				final int psfRadiusJob = psfRadiusSelected;
@@ -347,7 +347,7 @@ public class PSFTool extends AbstractToolPage {
 						if (isAborting())
 							break;
 						if( originalSetJob == null ) {
-							originalSetJob = (AbstractDataset)imageJob.getData();
+							originalSetJob = (Dataset)imageJob.getData();
 							psfSetJob = null;
 						}
 						long t0 = System.nanoTime();

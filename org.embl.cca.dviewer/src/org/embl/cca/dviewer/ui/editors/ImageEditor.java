@@ -102,7 +102,7 @@ import org.embl.cca.utils.ui.widget.SpinnerSlider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
@@ -216,8 +216,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	/**
 	 * The objects which contain the image.
 	 */
-	AbstractDataset originalSet;
-//	AbstractDataset psfSet; 
+	Dataset originalSet;
+//	Dataset psfSet; 
 
 	private Label totalSliderImageLabel;
 	private Slider imageSlider;
@@ -229,7 +229,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	private SpinnerSlider psfRadiusUI;
 	ExecutableManager psfRadiusManager = null;
 
-//	AbstractDatasetAndFileSet resultDataset = null; //TODO will be removed soon
+//	DatasetAndFileSet resultDataset = null; //TODO will be removed soon
 	static private NumberFormat decimalFormat = NumberFormat.getNumberInstance();
 
 //	ExecutableManager imageLoaderManager = null; //TODO will be removed soon
@@ -264,7 +264,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 	public ImageEditor(IReusableEditor parent) {
 		super();
-//		resultDataset = new AbstractDatasetAndFileSet();
+//		resultDataset = new DatasetAndFileSet();
 		fileLoader = new FileLoader();
 		fileLoader.addFileLoaderListener(this);
 		traceListener = new ITraceListener.Stub() {
@@ -403,7 +403,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		int a = 0;
 	}
 
-	protected void saveAs(AbstractDataset ds, boolean autoscale, double min, double max) {
+	protected void saveAs(Dataset ds, boolean autoscale, double min, double max) {
 		do {
 			FileDialog saveAsDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
 //			Object a = Display.getDefault().getShells()[0];
@@ -430,14 +430,14 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	@Override
 	public void doSaveAs() {
 		do {
-			saveAs((AbstractDataset)imageTrace.getData(), false, 0, 0);
+			saveAs((Dataset)imageTrace.getData(), false, 0, 0);
 		} while( false );
 	}
 
 	public void doSaveAsScaled() {
 		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs((AbstractDataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs((Dataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
 		} while( false );
 	}
 
@@ -1003,7 +1003,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //						final IPath imageFilename = getPath( getEditorInput() );
 						if( fileLoader.isLoading() ) //Not updating slider while any file is loading (else addRequest could lag)
 							return false;
-//						final FileWithTag[] currentAllImageFiles = AbstractDatasetAndFileSet.listIndexedFilesOf( imageFilename );
+//						final FileWithTag[] currentAllImageFiles = DatasetAndFileSet.listIndexedFilesOf( imageFilename );
 //						if( !resultDataset.isDifferentImageFiles(currentAllImageFiles) )
 						try {
 							if( !fileLoader.refreshNewAllFiles() ) //There was not any change
@@ -1570,7 +1570,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		editorInputChanged = true;
 		if (getEditorInput() instanceof MemoryImageEditorInput) {
 			MemoryImageEditorInput miei = (MemoryImageEditorInput)getEditorInput();
-			AbstractDataset set = new FloatDataset(miei.getData(), new int[] {miei.getWidth(), miei.getHeight()});
+			Dataset set = new FloatDataset(miei.getData(), new int[] {miei.getWidth(), miei.getHeight()});
 //			ImageModel imageModel = new ImageModel("", miei.getWidth(), miei.getHeight(), miei.getData(), 0);
 			if (getEditorInput().getName().startsWith("ExpSimImgInput")) {
 			} else {
@@ -1593,13 +1593,13 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			final int shape[] = new int[] {width, height};
 			FileInputStream fi = null;
 			FileChannel fc = null;
-			AbstractDataset set = null;
+			Dataset set = null;
 			try {
 				fi = new FileInputStream(f);
 				fc = fi.getChannel();
 				MappedByteBuffer fBuffer = fc.map(MapMode.READ_ONLY, 0, fc.size());
 				fBuffer.order(ByteOrder.LITTLE_ENDIAN);
-				set = RawBinaryLoader.loadRawDataset(fBuffer, AbstractDataset.INT16, 2, width*height, shape);
+				set = RawBinaryLoader.loadRawDataset(fBuffer, Dataset.INT16, 2, width*height, shape);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -1653,14 +1653,14 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		psfTool.updatePSFState(psfAction.isChecked());
 	}
 
-	private void updatePlot(final AbstractDataset set) {
+	private void updatePlot(final Dataset set) {
 		createPlot( set, true, null );
 	}
 
 	/**
 	 * @param contentChanged  true if the content of set changed. Currently it is always true, because why createPlot when content did not change? 
 	 */
-	private void createPlot(final AbstractDataset set, final boolean contentChanged, IProgressMonitor monitor) {
+	private void createPlot(final Dataset set, final boolean contentChanged, IProgressMonitor monitor) {
 		originalSet = set;
 		try {
 			logger.debug("DEBUG: min=" + ((Number)set.min(true)).doubleValue() + ", max=" + ((Number)set.max(true)).doubleValue()
@@ -1795,7 +1795,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 
 	//TODO later this could be built into PHA or else where the array is fully iterated
-	protected void convertAboveCutoffToError(AbstractDataset dataset, double cutoff) {
+	protected void convertAboveCutoffToError(Dataset dataset, double cutoff) {
 		//TODO implement this for all kind of datasets
 		if( !(dataset instanceof IntegerDataset) )
 			throw new RuntimeException("This kind of dataset is not supported yet");
@@ -1814,7 +1814,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		fileLoader.loadFiles(from, amount, false); //TODO Passing false now, because must do, but passing concept changed
 	}
 
-	private long getHashCode(AbstractDataset dataset) {
+	private long getHashCode(Dataset dataset) {
 		return dataset.hashCode();
 	}
 
@@ -1823,7 +1823,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			IProgressMonitor monitor) {
 		if( source instanceof FileLoader ) {
 			FileLoader fileLoader = (FileLoader)source; //Since using only 1 file loader, this must be same as this.fileLoader
-			final AbstractDataset resultSet = fileLoader.getMergedDataset();
+			final Dataset resultSet = fileLoader.getMergedDataset();
 			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 			System.out.println("Dataset HashCode=" + hashCode);
 			IMetaData localMetaData = resultSet.getMetadata();
@@ -1863,7 +1863,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //	private void loadFilesForPlotting(final FileWithTag[] toLoadImageFiles) {
 //		final TrackableJob job = new TrackableJob(imageLoaderManager, "Read image data") {
 //			Vector<FileWithTag> toLoadImageFilesJob = new Vector<FileWithTag>( Arrays.asList(toLoadImageFiles) );
-//			AbstractDataset set = null;
+//			Dataset set = null;
 //
 //			public IStatus processImage(FileWithTag imageFile, boolean add) {
 //				IMetaData localMetaData = null;

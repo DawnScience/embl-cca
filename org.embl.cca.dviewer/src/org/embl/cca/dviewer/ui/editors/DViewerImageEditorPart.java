@@ -78,7 +78,7 @@ import org.embl.cca.utils.ui.widget.SaveFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDatasetMathsService;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
@@ -294,11 +294,11 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	@Override
 	public void doSaveAs() {
 		do {
-			saveAs((AbstractDataset)imageTrace.getData(), false, 0, 0);
+			saveAs((Dataset)imageTrace.getData(), false, 0, 0);
 		} while( false );
 	}
 
-	protected void saveAs(AbstractDataset ds, boolean autoscale, double min, double max) {
+	protected void saveAs(Dataset ds, boolean autoscale, double min, double max) {
 		final Shell shell = getSite().getWorkbenchWindow().getShell();
 		Assert.isNotNull(shell, "Environment error: can not find shell");
 		if( saveAsDialog == null ) {
@@ -355,7 +355,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	public void doSaveAsScaled() {
 		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs((AbstractDataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs((Dataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
 		} while( false );
 	}
 
