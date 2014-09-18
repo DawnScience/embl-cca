@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.plotting.api.tool.AbstractToolPage;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
@@ -30,8 +31,6 @@ import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.embl.cca.utils.ui.widget.SpinnerSlider;
-
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 
 /**
  * The PSFTool is a tool extension for DAWN, it can highlight spots thus humans can see them better.

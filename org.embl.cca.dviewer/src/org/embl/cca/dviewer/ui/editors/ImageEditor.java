@@ -25,6 +25,12 @@ import org.dawnsci.mx.ui.editors.MXPlotImageEditor;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.dawnsci.analysis.api.io.IFileSaver;
+import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
+import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.FloatDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.histogram.IImageService;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
@@ -98,17 +104,11 @@ import org.embl.cca.utils.ui.widget.SpinnerSlider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
-import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
 import uk.ac.diamond.scisoft.analysis.io.PNGSaver;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
 import uk.ac.diamond.scisoft.analysis.io.RawBinaryLoader;
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 //import org.dawb.workbench.plotting.tools.InfoPixelTool;
-import uk.ac.diamond.scisoft.analysis.metadata.IMetadata;
 
 /**
  * An image editor which combines a plot with a graph of data sets.

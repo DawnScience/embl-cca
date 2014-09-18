@@ -3,9 +3,9 @@ package org.embl.cca.utils.datahandling;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of Dataset

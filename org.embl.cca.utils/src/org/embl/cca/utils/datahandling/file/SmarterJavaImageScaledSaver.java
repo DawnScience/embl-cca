@@ -1,8 +1,9 @@
 package org.embl.cca.utils.datahandling.file;
 
-import uk.ac.diamond.scisoft.analysis.io.IDataHolder;
+import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
+import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
+
 import uk.ac.diamond.scisoft.analysis.io.JavaImageScaledSaver;
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 
 public class SmarterJavaImageScaledSaver extends JavaImageScaledSaver {
 
