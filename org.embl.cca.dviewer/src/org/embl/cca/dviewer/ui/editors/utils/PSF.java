@@ -24,8 +24,8 @@ import org.embl.cca.utils.sorting.ArrayAndIndexSI;
 import org.embl.cca.utils.sorting.QuickSort;
 import org.slf4j.Logger;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.ByteDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;

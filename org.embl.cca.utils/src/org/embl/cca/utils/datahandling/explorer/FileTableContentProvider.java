@@ -1,8 +1,9 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
+import java.io.File;
 
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 
 public class FileTableContentProvider implements IStructuredContentProvider
 {

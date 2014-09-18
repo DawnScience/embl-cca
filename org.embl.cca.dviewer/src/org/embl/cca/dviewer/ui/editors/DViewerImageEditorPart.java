@@ -1,8 +1,5 @@
 package org.embl.cca.dviewer.ui.editors;
 
-import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -34,8 +31,8 @@ import org.eclipse.dawnsci.plotting.api.PlottingFactory;
 import org.eclipse.dawnsci.plotting.api.axis.IAxis;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
-import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.slicing.api.system.AxisType;
 import org.eclipse.dawnsci.slicing.api.system.DimsData;
 import org.eclipse.dawnsci.slicing.api.system.DimsDataList;
@@ -82,6 +79,8 @@ import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDatasetMathsService;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
+import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
+import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 
 public class DViewerImageEditorPart extends EditorPart implements IReusableEditor, ITitledEditor/*, ISlicablePlottingPart, ISelectedPlotting*/,
 	IDViewerImageControllable, IPropertyChangeListener {

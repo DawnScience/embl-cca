@@ -11,16 +11,18 @@
 //	package org.eclipse.swt.graphics;
 package org.embl.cca.utils.imageviewer;
 
-import java.io.*;
-import org.eclipse.swt.*;
-import org.eclipse.swt.internal.CloneableCompatibility;
+import java.io.InputStream;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.internal.CloneableCompatibility;
 
 	/**
 	 * Instances of this class are device-independent descriptions

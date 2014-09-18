@@ -1,12 +1,13 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.Iterator;
 
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.resource.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ImageConstants;
 

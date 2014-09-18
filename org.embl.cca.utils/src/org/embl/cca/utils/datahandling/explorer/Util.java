@@ -2,12 +2,9 @@ package org.embl.cca.utils.datahandling.explorer;
 
 //import java.net.*;
 
-import org.eclipse.jface.resource.*;
-import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
-import org.embl.cca.utils.Activator;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.widgets.Display;
 
 public class Util
 {

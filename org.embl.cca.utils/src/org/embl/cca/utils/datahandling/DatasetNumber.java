@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.io.IMetaData;
+import uk.ac.diamond.scisoft.analysis.metadata.IMetadata;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of Dataset
@@ -121,7 +121,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 */
 	public static Number getMaxValidNumber(Dataset set) {
 		try {
-			IMetaData metadata = (IMetaData)set.getMetadata();
+			IMetadata metadata = (IMetadata)set.getMetadata();
 			if( metadata == null )
 				throw new RuntimeException("Metadata is not available for dataset: " + set.getName());
 			String value = metadata.getMetaValue("Count_cutoff").toString().split("counts")[0];

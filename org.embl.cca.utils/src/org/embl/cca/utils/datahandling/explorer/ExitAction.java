@@ -1,8 +1,7 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.resource.*;
-import org.eclipse.jface.window.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.window.ApplicationWindow;
 import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ImageConstants;
 

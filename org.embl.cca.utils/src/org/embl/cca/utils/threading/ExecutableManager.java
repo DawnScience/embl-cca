@@ -19,8 +19,6 @@ package org.embl.cca.utils.threading;
  */
 import java.util.Vector;
 
-import org.eclipse.ui.PlatformUI;
-
 public class ExecutableManager extends Thread {
 	protected Vector<TrackableRunnable> runnableQueue = new Vector<TrackableRunnable>();
 	protected Vector<TrackableJob> jobQueue = new Vector<TrackableJob>();

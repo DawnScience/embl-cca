@@ -1,76 +1,41 @@
 package org.embl.cca.dviewer.ui.editors;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
-import java.util.StringTokenizer;
 
-import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
-import org.dawb.common.ui.widgets.ActionBarWrapper;
-import org.dawb.common.util.list.ListenerList;
-import org.dawb.workbench.ui.editors.zip.ZipUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.ActionContributionItem;
-import org.eclipse.jface.action.GroupMarker;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionItem;
-import org.eclipse.jface.action.ICoolBarManager;
-import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPerspectiveDescriptor;
-import org.eclipse.ui.IPerspectiveRegistry;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
-import org.eclipse.ui.IWorkbenchCommandConstants;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.Workbench;
-import org.eclipse.ui.internal.WorkbenchWindow;
 import org.eclipse.ui.internal.misc.UIListenerLogging;
-import org.eclipse.ui.internal.registry.PerspectiveDescriptor;
-import org.eclipse.ui.menus.AbstractContributionFactory;
-import org.eclipse.ui.menus.IContributionRoot;
-import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
-import org.eclipse.ui.services.IServiceLocator;
-import org.embl.cca.dviewer.DViewerActivator;
-import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 import org.embl.cca.utils.datahandling.file.IFileLoaderListener;
-import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.ISomethingChangeListener;
@@ -596,7 +561,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			final Dataset resultSet = fileLoader.getMergedDataset();
 //			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 //			System.out.println("Dataset HashCode=" + hashCode);
-//			IMetaData localMetaData = resultSet.getMetadata();
+//			IMetadata localMetaData = resultSet.getMetadata();
 /* TODO Could implement something like this aborting when switching to NOT_PLAYING while loading in remote display mode,
    but have to be careful because for example at this point the file is loaded in fileloader, how to undo it?
    At the moment when opening image from remote display window, it loads the file found in fileloader, because
