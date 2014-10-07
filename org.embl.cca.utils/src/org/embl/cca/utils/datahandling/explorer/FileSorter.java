@@ -1,7 +1,8 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
-import org.eclipse.jface.viewers.*;
+import java.io.File;
+
+import org.eclipse.jface.viewers.ViewerSorter;
 
 public class FileSorter extends ViewerSorter
 {

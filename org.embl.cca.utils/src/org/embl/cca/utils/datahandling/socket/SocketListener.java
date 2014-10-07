@@ -1,7 +1,10 @@
 package org.embl.cca.utils.datahandling.socket;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.EnumSet;
 
 //Goal is: receive "load_image %s\n", where %s is full path of a file

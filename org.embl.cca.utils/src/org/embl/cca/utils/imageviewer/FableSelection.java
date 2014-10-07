@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.part.EditorPart;
 
 public class FableSelection implements IStructuredSelection {

@@ -678,7 +678,9 @@ public class SaveFileDialog {
 	 * @see #getFilterNames
 	 */
 	public String getSelectedFilterPattern() {
-		final int prevFilterIndex = getFilterIndex();
+		int prevFilterIndex = getFilterIndex();
+		if( prevFilterIndex == 0 && getFilterPatterns().length == 0 )
+			prevFilterIndex=-1; //Bugfix of fileDialog
 		return prevFilterIndex >= 0 ? getFilterPatterns()[prevFilterIndex] : null;
 	}
 

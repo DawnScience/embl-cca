@@ -15,6 +15,12 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.dawnsci.analysis.api.diffraction.DiffractionCrystalEnvironment;
+import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.dawnsci.analysis.api.metadata.IDiffractionMetadata;
+import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.swt.SWT;
 import org.embl.cca.utils.datahandling.AbstractDatasetAndFileDescriptor;
 import org.embl.cca.utils.datahandling.DatasetNumber;
@@ -24,23 +30,16 @@ import org.embl.cca.utils.datahandling.FileWithTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.DatasetFactory;
-import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
-import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
-import uk.ac.diamond.scisoft.analysis.io.ILoaderService;
-import uk.ac.diamond.scisoft.analysis.io.IMetaData;
-
 public class FileLoader {
 	class FileAndMetadata {
 		protected FileWithTag file;
-		protected IMetaData metadata;
+		protected IMetadata metadata;
 
 		public FileAndMetadata(FileWithTag file) {
 			this(file, null);
 		}
 
-		public FileAndMetadata(FileWithTag file, IMetaData metadata) {
+		public FileAndMetadata(FileWithTag file, IMetadata metadata) {
 			this.file = file;
 			this.metadata = metadata;
 		}
@@ -49,11 +48,11 @@ public class FileLoader {
 			return file;
 		}
 
-		public IMetaData getMetadata() {
+		public IMetadata getMetadata() {
 			return metadata;
 		}
 
-		public void setMetadata(IMetaData metadata) {
+		public void setMetadata(IMetadata metadata) {
 			this.metadata = metadata;
 		}
 
@@ -115,7 +114,7 @@ public class FileLoader {
 
 //		public IStatus processImage(FileWithTag imageFile, boolean add) {
 //			Dataset set = null;
-//			IMetaData localMetaData = null;
+//			IMetadata localMetaData = null;
 //			boolean loadedAtLeast2;
 ////			synchronized (resultDataset) {
 //				if( isAborting() )
@@ -431,7 +430,7 @@ public class FileLoader {
 	}
 
 	protected void add(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
-		IMetaData metadata = set.getMetadata();
+		IMetadata metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = 0;
 		if( loadedFileAndMetadatas.size() == 0 ) {
@@ -439,7 +438,7 @@ public class FileLoader {
 			fAM.setMetadata(metadata != null ? metadata.clone() : null);
 			DatasetTypeSeparatedUtils.splitJoinIntoSelf(set, maxValidNumber, badNumber, notMeasuredValue);
 		} else {
-			IMetaData resultMetadata = resultSet.getMetadata();
+			IMetadata resultMetadata = resultSet.getMetadata();
 			if( (resultMetadata == null && metadata != null) || (resultMetadata != null && metadata == null)
 					|| (resultMetadata != null && metadata != null && resultMetadata.getClass() != metadata.getClass() ) )
 				throw new RuntimeException("Metadata type of first loaded file differs from metadata type of this file: " + imageFile.getAbsolutePath() );
@@ -453,7 +452,7 @@ public class FileLoader {
 	}
 
 	protected void remove(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
-		IMetaData metadata = set.getMetadata();
+		IMetadata metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
 		if( localIndex < 0 )
@@ -518,7 +517,7 @@ public class FileLoader {
 
 	public synchronized void updateMetadata() {
 		if( resultSetNeedsUpdate ) {
-			IMetaData metadata = resultSet.getMetadata();
+			IMetadata metadata = resultSet.getMetadata();
 			if( metadata instanceof IDiffractionMetadata ) { //This (and loader's algorithm) guarantees that each file has this kind of metadata
 				IDiffractionMetadata mergedDiffractionMetaData = (IDiffractionMetadata)metadata;
 				//oscStart = first.oscStart, oscRange = last.oscStart + last.oscRange - first.oscStart, oscGap = summa(this.oscStart - prev.oscEnd) + summa this.oscGap, exposure time = summa exposure time

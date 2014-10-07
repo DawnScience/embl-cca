@@ -1,8 +1,11 @@
 package org.embl.cca.utils.datahandling;
 
-import java.io.*;
-import java.util.Properties;
+import java.io.Console;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.channels.Channel;
+import java.util.Properties;
 
 /**
  * The <code>System</code> class contains several useful class fields and

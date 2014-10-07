@@ -1,6 +1,5 @@
 package org.embl.cca.utils.datahandling.file;
 
-import java.io.FileNotFoundException;
 import java.util.Vector;
 
 import org.embl.cca.utils.datahandling.EFile;

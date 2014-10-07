@@ -5,14 +5,22 @@
 //http://www.vogella.com/blog/2009/06/23/eclipse-rcp-file-browser/
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
+import java.io.File;
 
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.jface.window.*;
-import org.eclipse.swt.*;
-import org.eclipse.swt.custom.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.window.ApplicationWindow;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.TableColumn;
 
 public class Explorer extends ApplicationWindow
 {

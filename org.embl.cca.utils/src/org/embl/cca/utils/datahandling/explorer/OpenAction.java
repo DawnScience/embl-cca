@@ -1,11 +1,14 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
+import java.io.File;
 
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.resource.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.program.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.program.Program;
 import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ImageConstants;
 

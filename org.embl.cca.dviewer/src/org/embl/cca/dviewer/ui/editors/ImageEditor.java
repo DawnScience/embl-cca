@@ -25,18 +25,20 @@ import org.dawnsci.mx.ui.editors.MXPlotImageEditor;
 import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.dawnsci.analysis.api.io.IFileSaver;
+import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
+import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.FloatDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.histogram.IImageService;
-import org.eclipse.dawnsci.plotting.api.region.IRegion;
-import org.eclipse.dawnsci.plotting.api.region.ROIEvent;
-import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
-import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITraceListener;
 import org.eclipse.dawnsci.plotting.api.trace.TraceEvent;
 import org.eclipse.dawnsci.plotting.api.trace.TraceWillPlotEvent;
-import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
@@ -102,17 +104,10 @@ import org.embl.cca.utils.ui.widget.SpinnerSlider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
-import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
-import uk.ac.diamond.scisoft.analysis.io.IMetaData;
 import uk.ac.diamond.scisoft.analysis.io.PNGSaver;
 import uk.ac.diamond.scisoft.analysis.io.PNGScaledSaver;
 import uk.ac.diamond.scisoft.analysis.io.RawBinaryLoader;
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
-import uk.ac.diamond.scisoft.analysis.roi.IROI;
 //import org.dawb.workbench.plotting.tools.InfoPixelTool;
 
 /**
@@ -835,7 +830,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 	}
 /*	//TODO
 	private void setThreshold() {
-		IMetaData md = data.getMetadata();
+		IMetadata md = data.getMetadata();
 		if (md != null) {
 			if (mainPlotter instanceof DataSetPlotter) {
 				try {
@@ -1826,7 +1821,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			final Dataset resultSet = fileLoader.getMergedDataset();
 			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 			System.out.println("Dataset HashCode=" + hashCode);
-			IMetaData localMetaData = resultSet.getMetadata();
+			IMetadata localMetaData = resultSet.getMetadata();
 /* TODO Could implement something like this aborting when switching to NOT_PLAYING while loading in remote display mode,
    but have to be careful because for example at this point the file is loaded in fileloader, how to undo it?
    At the moment when opening image from remote display window, it loads the file found in fileloader, because
@@ -1866,7 +1861,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //			Dataset set = null;
 //
 //			public IStatus processImage(FileWithTag imageFile, boolean add) {
-//				IMetaData localMetaData = null;
+//				IMetadata localMetaData = null;
 //				boolean loadedAtLeast2;
 //				synchronized (resultDataset) {
 //					if( isAborting() )
@@ -1963,7 +1958,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //					}
 //					if( result != Status.OK_STATUS || isAborting() )
 //						break;
-//					IMetaData localMetaData = resultDataset.getMergedDataset().getMetadata();
+//					IMetadata localMetaData = resultDataset.getMergedDataset().getMetadata();
 //					localDiffractionMetaData = (IDiffractionMetadata)localMetaData;
 //					detConfig = localDiffractionMetaData.getDetector2DProperties();
 //					diffEnv = localDiffractionMetaData.getDiffractionCrystalEnvironment();

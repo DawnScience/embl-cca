@@ -19,29 +19,29 @@ package org.embl.cca.dviewer.plotting.tools;
 import java.util.Collection;
 
 import org.dawnsci.plotting.tools.Vector3dutil;
+import org.eclipse.dawnsci.analysis.api.diffraction.DetectorProperties;
+import org.eclipse.dawnsci.analysis.api.diffraction.DiffractionCrystalEnvironment;
+import org.eclipse.dawnsci.analysis.api.metadata.IDiffractionMetadata;
+import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.region.IROIListener;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
+import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
 import org.eclipse.dawnsci.plotting.api.region.MouseEvent;
 import org.eclipse.dawnsci.plotting.api.region.MouseMotionListener;
 import org.eclipse.dawnsci.plotting.api.region.ROIEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
-import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.draw2d.ColorConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.diffraction.DetectorProperties;
-import uk.ac.diamond.scisoft.analysis.diffraction.DiffractionCrystalEnvironment;
 import uk.ac.diamond.scisoft.analysis.diffraction.QSpace;
-import uk.ac.diamond.scisoft.analysis.io.IDiffractionMetadata;
-import uk.ac.diamond.scisoft.analysis.io.IMetaData;
-import uk.ac.diamond.scisoft.analysis.roi.PointROI;
 
 public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener, IRegionListener/*, MouseListener*/ {
 	protected static final double qScaleDefault = 2*Math.PI; //2*PI is used at DLS
@@ -310,7 +310,7 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 			Dataset set = null;
 			if (imageTrace!=null) {
 				set = (Dataset)imageTrace.getData();
-				final IMetaData      meta = set.getMetadata();
+				final IMetadata      meta = set.getMetadata();
 				if (meta instanceof IDiffractionMetadata) {
 	
 					dmeta = (IDiffractionMetadata)meta;

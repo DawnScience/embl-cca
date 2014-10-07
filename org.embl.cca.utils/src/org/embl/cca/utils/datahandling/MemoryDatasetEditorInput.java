@@ -5,13 +5,12 @@ import java.io.File;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.general.Util;
-
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 
 public class MemoryDatasetEditorInput implements IEditorInput {
 	protected final String name;

@@ -1,8 +1,5 @@
 package org.embl.cca.dviewer.ui.editors;
 
-import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,14 +31,19 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.IDatasetMathsService;
+import org.eclipse.dawnsci.analysis.api.io.IFileSaver;
+import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.PlottingFactory;
 import org.eclipse.dawnsci.plotting.api.axis.IAxis;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
-import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.slicing.api.system.AxisType;
 import org.eclipse.dawnsci.slicing.api.system.DimsData;
 import org.eclipse.dawnsci.slicing.api.system.DimsDataList;
@@ -85,9 +87,6 @@ import org.embl.cca.utils.ui.widget.SaveFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IDatasetMathsService;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
 
 public class DViewerImageEditorPart extends EditorPart implements IReusableEditor, ITitledEditor/*, ISlicablePlottingPart, ISelectedPlotting*/,

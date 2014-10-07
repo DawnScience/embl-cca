@@ -1,13 +1,13 @@
 package org.embl.cca.utils.datahandling.file;
 
-import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
-
+import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
+import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
+import org.eclipse.dawnsci.analysis.dataset.impl.RGBDataset;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 
-import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.RGBDataset;
+
 //import uk.ac.diamond.scisoft.analysis.io.DataHolder;
-import uk.ac.diamond.scisoft.analysis.io.IDataHolder;
 import uk.ac.diamond.scisoft.analysis.io.JavaImageSaver;
 import uk.ac.diamond.scisoft.analysis.utils.FileUtils;
 

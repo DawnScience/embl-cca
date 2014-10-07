@@ -1,32 +1,19 @@
 package org.embl.cca.utils.extension;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
-import javax.imageio.spi.ImageWriterSpi;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.embl.cca.utils.datahandling.text.StringUtils;
-import org.embl.cca.utils.ui.widget.SaveFileDialog;
 
 public class CommonExtension {
 	/**

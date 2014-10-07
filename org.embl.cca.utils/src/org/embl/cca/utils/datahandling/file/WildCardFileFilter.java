@@ -1,7 +1,8 @@
 package org.embl.cca.utils.datahandling.file;
 
-import java.io.*;
-import java.util.regex.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.util.regex.Pattern;
 
 public class WildCardFileFilter implements FileFilter
 {

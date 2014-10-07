@@ -1,15 +1,14 @@
 package org.embl.cca.utils.datahandling;
 
+import org.eclipse.dawnsci.analysis.dataset.impl.BooleanDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.ByteDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.FloatDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.LongDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.ShortDataset;
 import org.embl.cca.utils.datahandling.text.StringUtils;
-
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.BooleanDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.ByteDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.LongDataset;
-import uk.ac.diamond.scisoft.analysis.dataset.ShortDataset;
 
 public class DatasetTypeSeparatedUtils {
 	/**

@@ -7,12 +7,14 @@ import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -43,9 +45,6 @@ import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
-import uk.ac.diamond.scisoft.analysis.dataset.IntegerDataset;
 
 public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
 	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart";
@@ -549,7 +548,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			final Dataset resultSet = fileLoader.getMergedDataset();
 //			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 //			System.out.println("Dataset HashCode=" + hashCode);
-//			IMetaData localMetaData = resultSet.getMetadata();
+//			IMetadata localMetaData = resultSet.getMetadata();
 /* TODO Could implement something like this aborting when switching to NOT_PLAYING while loading in remote display mode,
    but have to be careful because for example at this point the file is loaded in fileloader, how to undo it?
    At the moment when opening image from remote display window, it loads the file found in fileloader, because

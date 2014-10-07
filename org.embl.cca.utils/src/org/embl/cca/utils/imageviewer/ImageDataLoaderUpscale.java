@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.embl.cca.utils.imageviewer;
 
-import java.io.*;
+import java.io.InputStream;
 
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;

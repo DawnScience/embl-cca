@@ -3,7 +3,6 @@ package org.embl.cca.dviewer;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.osgi.framework.BundleContext;

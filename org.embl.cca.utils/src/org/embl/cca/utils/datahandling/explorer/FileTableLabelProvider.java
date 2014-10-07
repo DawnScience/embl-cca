@@ -1,9 +1,10 @@
 package org.embl.cca.utils.datahandling.explorer;
 
-import java.io.*;
+import java.io.File;
 
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.swt.graphics.Image;
 import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ImageConstants;
 
