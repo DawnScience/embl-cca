@@ -4,6 +4,10 @@ import uk.ac.diamond.scisoft.analysis.io.IFileSaver;
 import uk.ac.diamond.scisoft.analysis.io.ScanFileHolderException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,8 +18,10 @@ import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
+import org.dawb.common.util.io.FileUtils;
 import org.dawb.workbench.ui.editors.PlotDataEditor;
 import org.dawb.workbench.ui.editors.preference.EditorConstants;
+import org.dawb.workbench.ui.editors.zip.ZipUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
 import org.dawnsci.plotting.AbstractPlottingSystem;
 import org.eclipse.core.runtime.Assert;
@@ -66,10 +72,11 @@ import org.embl.cca.dviewer.DViewerActivator;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
-import org.embl.cca.dviewer.ui.editors.utils.PSF;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageSaver;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageScaledSaver;
+import org.embl.cca.utils.datahandling.file.XDSHKLRecord;
+import org.embl.cca.utils.datahandling.file.XDSIntegrationReader;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
@@ -125,6 +132,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	protected int dataSetPHARadius;
 	protected final Boolean dataSetLock = new Boolean(true); //This is a lock, has no value
 	protected Action phaAction;
+	protected Action hklAction; //TODO temporary action
 	/**
 	 * The current radius of PHA which is applied on dataSetOriginal when requested.
 	 */
@@ -393,6 +401,25 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		wrapper.setVisible(isVisible);
 	}
 
+	public InputStream getDeepestInputStreamForFile(String fileName, final String fileExtension) throws FileNotFoundException  {
+		InputStream fis = new FileInputStream(new File(fileName));
+		do {
+			final String ext = FileUtils.getFileExtension(fileName);
+			if( ext.equals(fileExtension) )
+				break;
+			if( ZipUtils.isExtensionSupported(ext)) {
+				try {
+					fis = ZipUtils.getStreamForStream(fis, ext);
+				} catch (final Exception e) {
+					throw new UnsupportedOperationException(e);
+				}
+			} else //else if() {} //Here could add other streamers
+				throw new UnsupportedOperationException("Can not handle the  extension: " + ext);
+			fileName = fileName.substring(0, fileName.length() - ext.length() - 1);
+		} while( true );
+		return fis;
+	}
+
 	@Override
 	public void createPartControl(final Composite parent) { //By PlotDataEditor
 		container = new Composite(parent, SWT.NONE);
@@ -421,19 +448,49 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 //		this.phaRadius = (Integer)EditorPreferenceHelper.getStoreValue(DViewerActivator.getLocalPreferenceStore(), DViewerEditorConstants.PREFERENCE_PHA_RADIUS);
 		this.phaRadius = (int)EditorPreferenceInitializer.PhaRadius.getValue();
 
-		phaAction = new Action(PSF.featureName, IAction.AS_CHECK_BOX ) {
+		phaAction = new Action(PHA.featureShortName, IAction.AS_CHECK_BOX ) {
 			@Override
 			public void run() {
 				onPhaStateSelected();
 			}
 		};
-		phaAction.setId(getClass().getName() + "." + PSF.featureIdentifierName);
-		phaAction.setText("Apply " + PSF.featureName);
-		phaAction.setToolTipText("Apply " + PSF.featureFullName + " (" + PSF.featureName + ") on the image");
-		phaAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/psf.png"));
+		phaAction.setId(getClass().getName() + "." + PHA.featureIdentifierName);
+		phaAction.setText("Apply " + PHA.featureShortName);
+		phaAction.setToolTipText("Apply " + PHA.featureFullName + " (" + PHA.featureShortName + ") on the image");
+		phaAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/pha.png"));
 //		phaAction.setChecked((Boolean)EditorPreferenceHelper.getStoreValue(DViewerActivator.getLocalPreferenceStore(), DViewerEditorConstants.PREFERENCE_APPLY_PHA));
 		phaAction.setChecked((boolean)EditorPreferenceInitializer.ApplyPha.getValue());
 		toolMan.insertAfter( "org.dawb.workbench.plotting.histo", phaAction );
+
+		//TODO temporary code here, to develop HKL loader
+		final String hklFeatureName = "HKL";
+		final String hklFeatureFullName = "Load and apply HKL";
+		final String hklFeatureIdentifierName = hklFeatureName.toLowerCase();
+		hklAction = new Action(hklFeatureName, IAction.AS_PUSH_BUTTON ) {
+			@Override
+			public void run() {
+				//TODO Developing HKL loader here, but obviously it will be initiated from somewhere else
+				try {
+					final XDSIntegrationReader xdsIR = new XDSIntegrationReader(getDeepestInputStreamForFile("/home/naray/bigstorage/naray/STAC.test/xds_t1w1_run1_1/INTEGRATE.HKL.gz.bz2", "HKL"));
+					try {
+						final List<XDSHKLRecord> records = xdsIR.readAllHKLRecords();
+						System.out.println(records);
+					} finally {
+						try {
+							xdsIR.close();
+						} catch (final IOException e) {
+						}
+					}
+				} catch (final Exception e1) { //From constructing, or IOException
+					e1.printStackTrace();
+				}
+			}
+		};
+		hklAction.setId(getClass().getName() + "." + hklFeatureIdentifierName);
+		hklAction.setText("Apply " + hklFeatureName);
+		hklAction.setToolTipText("Apply " + hklFeatureFullName + " (" + hklFeatureName + ") on the image");
+		hklAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/apply.gif"));
+		toolMan.insertAfter( phaAction.getId(), hklAction );
 
 		IPreferenceStore ip = new ScopedPreferenceStore(InstanceScope.INSTANCE, "duk.ac.diamond.sda.polling"); //TODO
 		ip.getString("xpathPreference");
@@ -972,17 +1029,10 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	public void propertyChange(final PropertyChangeEvent event) {
 		if (DViewerEditorConstants.PREFERENCE_DOWNSAMPLING_TYPE.equals(event.getProperty())) {
 			setDownsampleType(null, DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ]);
-//			final DownsampleType currentDType = getDownsampleType(); 
-//			if( currentDType != null && currentDType == DownsampleType.values()[ Integer.valueOf((String)event.getOldValue()) ])
-//				setDownsampleType(DownsampleType.values()[ Integer.valueOf((String)event.getNewValue()) ]);
 		} else if (DViewerEditorConstants.PREFERENCE_APPLY_PHA.equals(event.getProperty())) {
 			setPha(null, (Boolean)event.getNewValue());
 		} else if (DViewerEditorConstants.PREFERENCE_PHA_RADIUS.equals(event.getProperty())) {
 			setPhaRadius(null, (Integer)event.getNewValue());
-//			int currentPsfRadius = psf.getRadius();
-//			if( currentPsfRadius == (Integer)event.getOldValue() ) {
-//				updatePsfRadiusSlider((Integer)event.getNewValue());
-//			}
 		}
 	}
 
