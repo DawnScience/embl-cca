@@ -71,9 +71,12 @@ public class FolderNode extends FileSystemEntryNode {
 				if( file.isFile() ) {
 					fl.setFilePath(file.getAbsolutePath());
 					if( fl.isCollection() ) {
-						result.add(fl.getCollectionDelegate());
-						thisFilesDirs.removeAll(fl.getFile().getFilesFromAll());
-						continue;
+						final Vector<FileWithTag> filesOfCollection = fl.getFile().getFilesFromAll();
+						if( filesOfCollection.size() > 1 ) {
+							result.add(fl.getCollectionDelegate());
+							thisFilesDirs.removeAll(filesOfCollection);
+							continue;
+						}
 					}
 				}
 				result.add(file);
