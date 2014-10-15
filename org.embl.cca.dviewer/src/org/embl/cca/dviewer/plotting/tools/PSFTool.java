@@ -12,8 +12,6 @@ import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITraceListener;
 import org.eclipse.dawnsci.plotting.api.trace.TraceEvent;
-import org.eclipse.dawnsci.plotting.api.trace.TraceWillPlotEvent;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -66,47 +64,7 @@ public class PSFTool extends AbstractToolPage {
 		psf = new PSF();
 		traceListener = new ITraceListener.Stub() {
 			@Override
-			public void traceWillPlot(TraceWillPlotEvent evt) {
-				// Does not all update(...) intentionally.
-			}
-
-			@Override
-			public void tracesUpdated(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void tracesRemoved(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void tracesAdded(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void traceCreated(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
 			public void traceUpdated(TraceEvent evt) {
-				update(evt);
-			}
-
-			@Override
-			public void traceAdded(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void traceRemoved(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
 					System.out.println("PSFTool: ImageTrace updated!!!");
 					if( !imageUpdating ) //Checking to avoid circular PSF applying
@@ -123,7 +81,7 @@ public class PSFTool extends AbstractToolPage {
 
 	@Override
 	public void createControl(Composite parent) {
-		IPreferenceStore preferenceStore = DViewerActivator.getLocalPreferenceStore();
+//		IPreferenceStore preferenceStore = DViewerActivator.getLocalPreferenceStore();
 
 		composite = new Group(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(1, false));
@@ -192,7 +150,7 @@ public class PSFTool extends AbstractToolPage {
 	}
 
 	protected void savePSFSettings() {
-		IPreferenceStore preferenceStore = DViewerActivator.getLocalPreferenceStore();
+//		IPreferenceStore preferenceStore = DViewerActivator.getLocalPreferenceStore();
 //		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_APPLY_PHA, applyPSFUI.getSelection());
 		EditorPreferenceInitializer.ApplyPha.setValue(applyPSFUI.getSelection());
 //		EditorPreferenceHelper.setStoreValue(preferenceStore, DViewerEditorConstants.PREFERENCE_PHA_RADIUS, psfRadiusUI.getSelection());

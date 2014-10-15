@@ -38,7 +38,6 @@ import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITraceListener;
 import org.eclipse.dawnsci.plotting.api.trace.TraceEvent;
-import org.eclipse.dawnsci.plotting.api.trace.TraceWillPlotEvent;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
@@ -264,47 +263,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 		fileLoader.addFileLoaderListener(this);
 		traceListener = new ITraceListener.Stub() {
 			@Override
-			public void traceWillPlot(TraceWillPlotEvent evt) {
-				// Does not all update(...) intentionally.
-			}
-
-			@Override
-			public void tracesUpdated(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void tracesRemoved(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void tracesAdded(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void traceCreated(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
 			public void traceUpdated(TraceEvent evt) {
-				update(evt);
-			}
-
-			@Override
-			public void traceAdded(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			public void traceRemoved(TraceEvent evt) {
-//				update(evt);
-			}
-
-			@Override
-			protected void update(TraceEvent evt) {
 				if (evt.getSource() instanceof IImageTrace) {
 					System.out.println("ImageEditor: ImageTrace updated!!!");
 					imageUpdated( (IImageTrace)evt.getSource() );
@@ -395,7 +354,6 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		int a = 0;
 	}
 
 	protected void saveAs(Dataset ds, boolean autoscale, double min, double max) {
@@ -1678,7 +1636,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			
 			try {
 				IImageService service = (IImageService)ServiceManager.getService(IImageService.class);
-				float stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
+				double stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
 				realMin = stats[0];
 				realMax = stats[3];
 				realMean = stats[2];
@@ -1861,7 +1819,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //			Dataset set = null;
 //
 //			public IStatus processImage(FileWithTag imageFile, boolean add) {
-//				IMetadata localMetaData = null;
+//				IMetadata localMetadata = null;
 //				boolean loadedAtLeast2;
 //				synchronized (resultDataset) {
 //					if( isAborting() )
@@ -1874,8 +1832,8 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 ////						imageModel = ImageModelFactory.getImageModel(filePath);
 //						final ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
 //						set = service.getDataset(filePath).clone(); //TODO check if set is null
-//						localMetaData = set.getMetadata();
-//						if (!(localMetaData instanceof IDiffractionMetadata))
+//						localMetadata = set.getMetadata();
+//						if (!(localMetadata instanceof IDiffractionMetadata))
 //							throw new RuntimeException("File has no diffraction metadata");
 //					} catch (Throwable e) {
 //						logger.error("Cannot load file "+filePath, e);
@@ -1892,9 +1850,9 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 ////					logger.debug("HRMM, before [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
 //				Double cutoff = Double.NaN;
 //				try {
-//					IDiffractionMetadata localDiffractionMetaData2 = (IDiffractionMetadata)localMetaData;
-////					Serializable s = localDiffractionMetaData2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
-//					cutoff = Double.parseDouble(localDiffractionMetaData2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
+//					IDiffractionMetadata localDiffractionMetadata2 = (IDiffractionMetadata)localMetadata;
+////					Serializable s = localDiffractionMetadata2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
+//					cutoff = Double.parseDouble(localDiffractionMetadata2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
 //					logger.debug("Converting values above cutoff=" + cutoff);
 ////					convertAboveCutoffToError(set, threshold);
 //				} catch (Exception e) {
@@ -1958,10 +1916,10 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 //					}
 //					if( result != Status.OK_STATUS || isAborting() )
 //						break;
-//					IMetadata localMetaData = resultDataset.getMergedDataset().getMetadata();
-//					localDiffractionMetaData = (IDiffractionMetadata)localMetaData;
-//					detConfig = localDiffractionMetaData.getDetector2DProperties();
-//					diffEnv = localDiffractionMetaData.getDiffractionCrystalEnvironment();
+//					IMetadata localMetadata = resultDataset.getMergedDataset().getMetadata();
+//					localDiffractionMetadata = (IDiffractionMetadata)localMetadata;
+//					detConfig = localDiffractionMetadata.getDetector2DProperties();
+//					diffEnv = localDiffractionMetadata.getDiffractionCrystalEnvironment();
 //					detConfig.addDetectorPropertyListener(ImageEditor.this);
 //					diffEnv.addDiffractionCrystalEnvironmentListener(ImageEditor.this);
 //					createPlot(resultDataset.getMergedDataset(), true, monitor);
