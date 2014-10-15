@@ -24,6 +24,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
+import org.embl.cca.utils.datahandling.file.VirtualCollectionFile;
 
 public class FileEditorInput implements IEditorInput/*, IPersistableElement*/ {
 
@@ -82,10 +83,18 @@ public class FileEditorInput implements IEditorInput/*, IPersistableElement*/ {
 	public Object getAdapter(Class adapter) {
 		if (IWorkbenchAdapter.class.equals(adapter))
 			return workbenchAdapter;
-		if( adapter.isAssignableFrom(File.class)) //adapter <= File
+		//For compatibility, trying to match simpler classes first
+		if( adapter.isAssignableFrom(File.class) || String.class.isAssignableFrom(adapter) ) { //adapter <= File || String
+			File resultFile = file;
+			//For File or String, a file with common filename must be returned
+			if( file instanceof VirtualCollectionFile )
+				resultFile = ((VirtualCollectionFile)file).getFirstFileOfAll();
+			if( String.class.isAssignableFrom(adapter) )
+				return new String(resultFile.getAbsolutePath());
+			return resultFile.getAbsoluteFile();
+		}
+		if( adapter.isAssignableFrom(VirtualCollectionFile.class) && file instanceof VirtualCollectionFile ) //adapter <= VirtualCollectionFile
 			return file.getAbsoluteFile();
-		if( String.class.isAssignableFrom(adapter))
-			return new String(file.getAbsolutePath());
 		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}
 

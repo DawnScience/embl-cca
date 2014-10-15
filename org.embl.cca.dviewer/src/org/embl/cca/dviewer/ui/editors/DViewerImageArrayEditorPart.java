@@ -38,6 +38,7 @@ import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 import org.embl.cca.utils.datahandling.file.IFileLoaderListener;
+import org.embl.cca.utils.datahandling.file.VirtualCollectionFile;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.ISomethingChangeListener;
@@ -625,16 +626,22 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 
 	protected static String getPath( final IEditorInput editorInput ) {
 		final String result;
-		final IFile iF = (IFile)editorInput.getAdapter(IFile.class);
-		if( iF != null )
-			result = iF.getLocation().toOSString();
-		else {
-			result = EclipseUtils.getFilePath(editorInput);
-			if( result == null ) {
-				ExceptionUtils.logError(logger, new StringBuilder("Cannot determine the input of this editor: ").append(editorInput.getName()).toString());
-				return null;
+		do {
+			final VirtualCollectionFile vCF = (VirtualCollectionFile)editorInput.getAdapter(VirtualCollectionFile.class);
+			if( vCF != null ) {
+				result = vCF.getAbsolutePath();
+				break;
 			}
-		}
+			final IFile iF = (IFile)editorInput.getAdapter(IFile.class);
+			if( iF != null ) {
+				result = iF.getLocation().toOSString();
+				break;
+			}
+			result = EclipseUtils.getFilePath(editorInput);
+			if( result != null )
+				break;
+			ExceptionUtils.logError(logger, new StringBuilder("Cannot determine the input of this editor: ").append(editorInput.getName()).toString());
+		} while( false );
 		return result;
 	}
 
