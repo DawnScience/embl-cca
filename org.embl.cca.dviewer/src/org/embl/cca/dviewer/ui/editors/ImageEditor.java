@@ -1678,7 +1678,7 @@ public class ImageEditor extends MXPlotImageEditor implements IReusableEditor, I
 			
 			try {
 				IImageService service = (IImageService)ServiceManager.getService(IImageService.class);
-				float stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
+				double stats[] = service.getFastStatistics(imageTrace.getImageServiceBean());
 				realMin = stats[0];
 				realMax = stats[3];
 				realMean = stats[2];
