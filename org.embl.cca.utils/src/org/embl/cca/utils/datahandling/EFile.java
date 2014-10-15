@@ -338,7 +338,7 @@ public class EFile extends File implements Cloneable {
 	 * {@inheritDoc}
 	 * <p>
 	 * If the file protocol equals to FileProtocolID, then it is omitted from
-	 * the returned path. This is done for compatilibility reasons.
+	 * the returned path. This is done for compatibility reasons.
 	 */
 	@Override
 	public String getAbsolutePath() {
