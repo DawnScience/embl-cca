@@ -114,7 +114,7 @@ public class FileLoader {
 
 //		public IStatus processImage(FileWithTag imageFile, boolean add) {
 //			Dataset set = null;
-//			IMetadata localMetaData = null;
+//			IMetadata localMetadata = null;
 //			boolean loadedAtLeast2;
 ////			synchronized (resultDataset) {
 //				if( isAborting() )
@@ -127,8 +127,8 @@ public class FileLoader {
 ////					imageModel = ImageModelFactory.getImageModel(filePath);
 //					final ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
 //					set = service.getDataset(filePath).clone(); //TODO check if set is null
-//					localMetaData = set.getMetadata();
-//					if (!(localMetaData instanceof IDiffractionMetadata))
+//					localMetadata = set.getMetadata();
+//					if (!(localMetadata instanceof IDiffractionMetadata))
 //						throw new RuntimeException("File has no diffraction metadata");
 //				} catch (Throwable e) {
 //					logger.error("Cannot load file "+filePath, e);
@@ -145,9 +145,9 @@ public class FileLoader {
 ////				logger.debug("HRMM, before [add=" + add + "], rD[ind]=" + resultDataset.getMergedDataset().getElementLongAbs(ind) + ", s[ind]=" + set.getElementLongAbs(ind));
 //			Double cutoff = Double.NaN;
 //			try {
-//				IDiffractionMetadata localDiffractionMetaData2 = (IDiffractionMetadata)localMetaData;
-////				Serializable s = localDiffractionMetaData2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
-//				cutoff = Double.parseDouble(localDiffractionMetaData2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
+//				IDiffractionMetadata localDiffractionMetadata2 = (IDiffractionMetadata)localMetadata;
+////				Serializable s = localDiffractionMetadata2.getMetaValue("NXdetector:pixel_overload"); //This would be if GDAMetadata would be available in CBFLoader
+//				cutoff = Double.parseDouble(localDiffractionMetadata2.getMetaValue("Count_cutoff").split("counts")[0]); //TODO little bit hardcoded
 //				logger.debug("Converting values above cutoff=" + cutoff);
 ////				convertAboveCutoffToError(set, threshold);
 //			} catch (Exception e) {
@@ -519,7 +519,7 @@ public class FileLoader {
 		if( resultSetNeedsUpdate ) {
 			IMetadata metadata = resultSet.getMetadata();
 			if( metadata instanceof IDiffractionMetadata ) { //This (and loader's algorithm) guarantees that each file has this kind of metadata
-				IDiffractionMetadata mergedDiffractionMetaData = (IDiffractionMetadata)metadata;
+				IDiffractionMetadata mergedDiffractionMetadata = (IDiffractionMetadata)metadata;
 				//oscStart = first.oscStart, oscRange = last.oscStart + last.oscRange - first.oscStart, oscGap = summa(this.oscStart - prev.oscEnd) + summa this.oscGap, exposure time = summa exposure time
 				//TODO implement the algorithm which considers "interleaved" set (for example: oscStart={0,90,180,270,1,91,181,271,2,...})
 				double exposureTime = 0;
@@ -540,8 +540,8 @@ public class FileLoader {
 				}
 				DiffractionCrystalEnvironment firstDCE = loadedFileAndMetadatas.firstElement().getDiffractionMetadata().getDiffractionCrystalEnvironment();
 				DiffractionCrystalEnvironment lastDCE = loadedFileAndMetadatas.lastElement().getDiffractionMetadata().getDiffractionCrystalEnvironment();
-	//			DetectorProperties mergedDetConfig = mergedDiffractionMetaData.getDetector2DProperties();
-				DiffractionCrystalEnvironment resultDCE = mergedDiffractionMetaData.getDiffractionCrystalEnvironment();
+	//			DetectorProperties mergedDetConfig = mergedDiffractionMetadata.getDetector2DProperties();
+				DiffractionCrystalEnvironment resultDCE = mergedDiffractionMetadata.getDiffractionCrystalEnvironment();
 				resultDCE.setPhiStart(firstDCE.getPhiStart());
 				double oscRange = Double.isNaN(lastDCE.getPhiStart()) || Double.isNaN(lastDCE.getPhiRange()) || Double.isNaN(firstDCE.getPhiStart()) ?
 						Double.NaN : lastDCE.getPhiStart() + lastDCE.getPhiRange() - firstDCE.getPhiStart();

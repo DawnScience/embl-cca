@@ -560,7 +560,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 			final Dataset resultSet = fileLoader.getMergedDataset();
 //			long hashCode = getHashCode(resultSet); //TODO Calculate a hashcode of dataset and compare to previous to see if it changes!!!
 //			System.out.println("Dataset HashCode=" + hashCode);
-//			IMetadata localMetaData = resultSet.getMetadata();
+//			IMetadata localMetadata = resultSet.getMetadata();
 /* TODO Could implement something like this aborting when switching to NOT_PLAYING while loading in remote display mode,
    but have to be careful because for example at this point the file is loaded in fileloader, how to undo it?
    At the moment when opening image from remote display window, it loads the file found in fileloader, because
