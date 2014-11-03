@@ -50,4 +50,44 @@ public class XDSHKLRecord {
 		this.bet1 = bet1;
 		this.psi = psi;
 	}
+
+    /**
+     * Returns a string representation of this record and its values.
+     * The returned string may be empty but may not be <code>null</code>.
+     *
+     * @return  a string representation of this point
+     */
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder(getClass().getName()).append('[');
+		sb.append("h=").append(h);
+		sb.append(", k=").append(k);
+		sb.append(", l=").append(l);
+		sb.append(", iobs=").append(iobs);
+		sb.append(", sigma=").append(sigma);
+		sb.append(", xcal=").append(xcal);
+		sb.append(", ycal=").append(ycal);
+		sb.append(", zcal=").append(zcal);
+		sb.append(", rlp=").append(rlp);
+		sb.append(", peak=").append(peak);
+		sb.append(", corr=").append(corr);
+		sb.append(", maxc=").append(maxc);
+		sb.append(", xobs=").append(xobs);
+		sb.append(", yobs=").append(yobs);
+		sb.append(", zobs=").append(zobs);
+		sb.append(", alf0=").append(alf0);
+		sb.append(", bet0=").append(bet0);
+		sb.append(", alf1=").append(alf1);
+		sb.append(", bet1=").append(bet1);
+		sb.append(", psi=").append(psi);
+		sb.append(']');
+		return sb.toString();
+	}
+
+	public int getH() { return h; }
+	public int getK() { return k; }
+	public int getL() { return l; }
+	public double getX() { return xobs; }
+	public double getY() { return yobs; }
+	public double getZ() { return zobs; }
 }
