@@ -54,7 +54,8 @@ public class DViewerPerspective implements IPerspectiveFactory {
 		folderLayout.addView(ToolPageView.TOOLPAGE_2D_VIEW_ID);
 
 		folderLayout = layout.createFolder("horiToolFolder", IPageLayout.BOTTOM, 0.85f, editorArea);
-		folderLayout.addView(new StringBuffer(FIXED_VIEW_ID).append(':').append(InfoPixelTool2D.INFOPIXELTOOL2D_ID).toString());
+		//InfoPixelTool is retired, it was/is/will be buggy
+//		folderLayout.addView(new StringBuffer(FIXED_VIEW_ID).append(':').append(InfoPixelTool2D.INFOPIXELTOOL2D_ID).toString());
 //		folderLayout.addView(ValuePageView.ID);
 		folderLayout.addView(IPageLayout.ID_PROGRESS_VIEW);
 //		folderLayout.addView(IConsoleConstants.ID_CONSOLE_VIEW);
