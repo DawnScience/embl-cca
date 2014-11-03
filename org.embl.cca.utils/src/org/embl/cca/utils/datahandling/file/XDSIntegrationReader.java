@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -20,7 +22,7 @@ public class XDSIntegrationReader extends BufferedReader {
 	 * @return HKL record, or null if the end of the stream has been reached
 	 * @throws IOException If an I/O error occurs
 	 */
-	public final XDSHKLRecord readHKLRecord() throws IOException {
+	public XDSHKLRecord readNextHKLRecord() throws IOException {
 //		double d = in.read();
 //		new HKL(Amount.valueOf(d, NonSI.ANGSTROM));
 		final XDSHKLRecord result;
@@ -47,6 +49,17 @@ public class XDSIntegrationReader extends BufferedReader {
 				Double.parseDouble(values[19]), Double.parseDouble(values[20]) //BET1, PSI
 			);
 			break;
+		} while( true );
+		return result;
+	}
+
+	public List<XDSHKLRecord> readAllHKLRecords() throws IOException {
+		ArrayList<XDSHKLRecord> result = new ArrayList<XDSHKLRecord>();
+		do {
+			final XDSHKLRecord record = readNextHKLRecord();
+			if( record == null )
+				break;
+			result.add(record);
 		} while( true );
 		return result;
 	}
