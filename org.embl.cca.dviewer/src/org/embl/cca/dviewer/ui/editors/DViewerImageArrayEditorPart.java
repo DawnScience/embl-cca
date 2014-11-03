@@ -34,6 +34,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.misc.UIListenerLogging;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
+import org.embl.cca.dviewer.ui.editors.utils.Point;
+import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.FileLoader;
@@ -804,6 +806,18 @@ public class DViewerImageArrayEditorPart extends EditorPart implements ITitledEd
 		final IDViewerImageControllable editor = getActiveImageControllableEditor();
 		if( editor != null )
 			editor.setDownsampleType(sender, downsampleType);
+	}
+
+	@Override
+	public Point2DD getMouseAxisPos() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		return editor.getMouseAxisPos();
+	}
+
+	@Override
+	public String getStatusText() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		return editor.getStatusText();
 	}
 
 	@Override

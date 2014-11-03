@@ -5,7 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -21,6 +24,9 @@ import org.dawb.workbench.ui.editors.preference.EditorConstants;
 import org.dawb.workbench.ui.editors.zip.ZipUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
 import org.dawnsci.plotting.AbstractPlottingSystem;
+import org.dawnsci.plotting.tools.Activator;
+import org.dawnsci.plotting.tools.InfoPixelLabelProvider;
+import org.dawnsci.plotting.tools.preference.InfoPixelConstants;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -39,9 +45,16 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.PlottingFactory;
+import org.eclipse.dawnsci.plotting.api.annotation.AnnotationUtils;
+import org.eclipse.dawnsci.plotting.api.annotation.IAnnotation;
 import org.eclipse.dawnsci.plotting.api.axis.IAxis;
+import org.eclipse.dawnsci.plotting.api.axis.ICoordinateSystem;
+import org.eclipse.dawnsci.plotting.api.axis.IPositionListener;
+import org.eclipse.dawnsci.plotting.api.axis.PositionEvent;
+import org.eclipse.dawnsci.plotting.api.region.IRegion;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
+import org.eclipse.dawnsci.plotting.api.trace.ILineTrace;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.slicing.api.system.AxisType;
@@ -66,23 +79,33 @@ import org.eclipse.ui.IActionBars2;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IReusableEditor;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.internal.ViewPane;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.embl.cca.dviewer.DViewerActivator;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
+import org.embl.cca.dviewer.ui.editors.utils.Point;
+import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageSaver;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageScaledSaver;
 import org.embl.cca.utils.datahandling.file.XDSHKLRecord;
 import org.embl.cca.utils.datahandling.file.XDSIntegrationReader;
+import org.embl.cca.utils.datahandling.text.DecimalPaddedFormat;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.CommonThreading;
+import org.embl.cca.utils.ui.nebula.AnnotationEmbl.CursorLineStyleEmbl;
+import org.embl.cca.utils.ui.nebula.AnnotationWrapperEmbl;
 import org.embl.cca.utils.ui.widget.SaveFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +155,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	protected final Boolean dataSetLock = new Boolean(true); //This is a lock, has no value
 	protected Action phaAction;
 	protected Action hklAction; //TODO temporary action
+	protected Action openViewAction; //TODO temporary action
 	/**
 	 * The current radius of PHA which is applied on dataSetOriginal when requested.
 	 */
@@ -142,6 +166,16 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 	protected final CreatePHAPlotJob createPHAPlotJob;
 
 	protected DownsampleType requiredDownsampleType = null;
+
+	/**
+	 * The current mouse position.
+	 */
+	protected Point2DD mousePos;
+	final protected InfoPixelLabelProvider iPLPResolution = new InfoPixelLabelProvider(null, 8);
+	final protected DecimalPaddedFormat statusXPosFormat = new DecimalPaddedFormat("#0.0##");
+	final protected DecimalPaddedFormat statusYPosFormat = new DecimalPaddedFormat("#0.0##");
+	final protected DecimalPaddedFormat statusDataFormat = new DecimalPaddedFormat(org.dawnsci.plotting.tools.Activator.getPlottingPreferenceStore().getString(InfoPixelConstants.DATA_FORMAT));
+	final protected String STATUS_FIELD_SEPARATOR = ", ";
 
 	/**
 	 * The container widget.
@@ -213,6 +247,7 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		this.listenerManager = listenerManager;
 		createPHAPlotJob = new CreatePHAPlotJob();
 		this.defaultPlotType= defaultPlotType;
+		mousePos = new Point2DD(0, 0);
 		final IPlottingSystem pS;
 		try {
 			pS = PlottingFactory.createPlottingSystem();
@@ -462,34 +497,58 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		toolMan.insertAfter( "org.dawb.workbench.plotting.histo", phaAction );
 
 		//TODO temporary code here, to develop HKL loader
-		final String hklFeatureName = "HKL";
-		final String hklFeatureFullName = "Load and apply HKL";
-		final String hklFeatureIdentifierName = hklFeatureName.toLowerCase();
-		hklAction = new Action(hklFeatureName, IAction.AS_PUSH_BUTTON ) {
-			@Override
-			public void run() {
-				//TODO Developing HKL loader here, but obviously it will be initiated from somewhere else
-				try {
-					final XDSIntegrationReader xdsIR = new XDSIntegrationReader(getDeepestInputStreamForFile("/home/naray/bigstorage/naray/STAC.test/xds_t1w1_run1_1/INTEGRATE.HKL.gz.bz2", "HKL"));
-					try {
-						final List<XDSHKLRecord> records = xdsIR.readAllHKLRecords();
-						System.out.println(records);
-					} finally {
-						try {
-							xdsIR.close();
-						} catch (final IOException e) {
-						}
-					}
-				} catch (final Exception e1) { //From constructing, or IOException
-					e1.printStackTrace();
-				}
-			}
-		};
-		hklAction.setId(getClass().getName() + "." + hklFeatureIdentifierName);
-		hklAction.setText("Apply " + hklFeatureName);
-		hklAction.setToolTipText("Apply " + hklFeatureFullName + " (" + hklFeatureName + ") on the image");
-		hklAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/apply.gif"));
-		toolMan.insertAfter( phaAction.getId(), hklAction );
+//		final String hklFeatureName = "HKL";
+//		final String hklFeatureFullName = "Load and apply HKL";
+//		final String hklFeatureIdentifierName = hklFeatureName.toLowerCase();
+//		hklAction = new Action(hklFeatureName, IAction.AS_PUSH_BUTTON ) {
+//			@Override
+//			public void run() {
+//				//TODO Developing HKL loader here, but obviously it will be initiated from somewhere else
+//				try {
+//					final XDSIntegrationReader xdsIR = new XDSIntegrationReader(getDeepestInputStreamForFile("/home/naray/bigstorage/naray/STAC.test/xds_t1w1_run1_1/INTEGRATE.HKL", "HKL"));
+//					try {
+//						final List<XDSHKLRecord> records = xdsIR.readAllHKLRecords();
+//						for( final XDSHKLRecord record : records) {
+//							final AnnotationWrapperEmbl ann1 = (AnnotationWrapperEmbl)AnnotationWrapperEmbl.replaceCreateAnnotation(plottingSystem, "" + record.getH() + "," + record.getK() + "," + record.getL());
+//							ann1.setCursorLineStyle(CursorLineStyleEmbl.NOCURSOR);
+//							ann1.setShowArrow(false);
+//							ann1.setShowPosition(false);
+//							ann1.setShowInfo(false);
+//							ann1.setdxdy(0, -5);
+//							ann1.setLocation(record.getX(), record.getY());
+//							plottingSystem.addAnnotation(ann1);
+//						}
+//					} finally {
+//						try {
+//							xdsIR.close();
+//						} catch (final IOException e) {
+//						}
+//					}
+//				} catch (final Exception e1) { //From constructing, or IOException
+//					e1.printStackTrace();
+//				}
+//			}
+//		};
+//		hklAction.setId(getClass().getName() + "." + hklFeatureIdentifierName);
+//		hklAction.setText("Apply " + hklFeatureName);
+//		hklAction.setToolTipText("Apply " + hklFeatureFullName + " (" + hklFeatureName + ") on the image");
+//		hklAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/apply.gif"));
+//		toolMan.insertAfter( phaAction.getId(), hklAction );
+
+		//TODO temporary code here, to develop HKL loader
+//		final String openViewFeatureName = "OpenView";
+//		final String openViewFeatureFullName = "Load and apply OpenView";
+//		final String openViewFeatureIdentifierName = openViewFeatureName.toLowerCase();
+//		openViewAction = new Action(openViewFeatureName, IAction.AS_PUSH_BUTTON ) {
+//			@Override
+//			public void run() {
+//			}
+//		};
+//		openViewAction.setId(getClass().getName() + "." + openViewFeatureIdentifierName);
+//		openViewAction.setText("Apply " + openViewFeatureName);
+//		openViewAction.setToolTipText("Apply " + openViewFeatureFullName + " (" + openViewFeatureName + ") on the image");
+//		openViewAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/apply.gif"));
+//		toolMan.insertAfter( hklAction.getId(), openViewAction );
 
 		IPreferenceStore ip = new ScopedPreferenceStore(InstanceScope.INSTANCE, "duk.ac.diamond.sda.polling"); //TODO
 		ip.getString("xpathPreference");
@@ -574,6 +633,14 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 		getEditorSite().setSelectionProvider(plottingSystem.getSelectionProvider());
 
 		plottingSystem.setRescale(org.dawb.workbench.ui.Activator.getDefault().getPreferenceStore().getBoolean(org.dawb.workbench.ui.editors.preference.EditorConstants.RESCALE_SETTING));
+		plottingSystem.addPositionListener(new IPositionListener() {
+			@Override
+			public void positionChanged(final PositionEvent evt) {
+				mousePos.x = evt.x;
+				mousePos.y = evt.y;
+				listenerManager.fireSomethingChanged(SomethingChangeEvent.MOUSE_POSITION);
+			}
+		});
 //		phaStateSelected();
 		editorInputChanged();
 	}
@@ -861,6 +928,10 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 					plottingSystem.repaint(); //Better than autoscaleAxes(), because it also repaints, and thread safe
 			}
 			imageTrace = (IImageTrace) trace;
+			final int[] setShape = trace.getData().getShape();
+			statusXPosFormat.setMaximumIntegerDigits(1+(int)Math.floor(Math.log10(setShape[1])));
+			statusYPosFormat.setMaximumIntegerDigits(1+(int)Math.floor(Math.log10(setShape[0])));
+			statusDataFormat.setMaximumIntegerDigits(1+(int)Math.floor(Math.log10(trace.getData().max(true, true).doubleValue())));
 			imageTrace.setRescaleHistogram(false); //dViewer's default, Histogram tool overrides
 			onPlotIsReady();
 		} finally {
@@ -1022,6 +1093,35 @@ public class DViewerImageEditorPart extends EditorPart implements IReusableEdito
 				createPHAPlotJob.reschedule(dataSetOriginal, rehistogram, phaRadius);
 			}
 		}
+	}
+
+	@Override
+	public Point2DD getMouseAxisPos() {
+		try {
+			if (imageTrace!=null)
+				return new Point2DD(imageTrace.getPointInAxisCoordinates(new double[] { mousePos.x, mousePos.y }));
+		} catch (final Throwable ignored) {
+		}
+		return mousePos; // Normal position
+	}
+
+	@Override
+	public String getStatusText() {
+		final Point2DD mouseAxisPos = getMouseAxisPos();
+		final StringBuilder result = new StringBuilder("x:").append(statusXPosFormat.format(mouseAxisPos.x)).append(STATUS_FIELD_SEPARATOR).append("y:").append(statusYPosFormat.format(mouseAxisPos.y));
+		if (imageTrace!=null) {
+			final Dataset dataSet = (Dataset)imageTrace.getData();
+			try {
+				//Copied from InfoPixelTool, because much faster than calculating all kind of stuff
+				result.append(STATUS_FIELD_SEPARATOR).append("value:").append(statusDataFormat.format(dataSet.getDouble((int)Math.floor(mousePos.y), (int)Math.floor(mousePos.x))));
+			} catch (final Throwable ignored) { //Probably never happens
+			}
+			try {
+				result.append(STATUS_FIELD_SEPARATOR).append("res[\u00c5]:").append(iPLPResolution.getText(mousePos.x, mousePos.y, Double.NaN, Double.NaN, dataSet, null));
+			} catch (final Throwable ignored) { //Probably divided by q=0
+			}
+		}
+		return result.toString();
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package org.embl.cca.dviewer.ui.editors;
 
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
+import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 
 public interface IDViewerImageControllable {
@@ -14,4 +15,6 @@ public interface IDViewerImageControllable {
 
 	public DownsampleType getDownsampleType();
 	public void setDownsampleType(final ISomethingChangeListener sender, final DownsampleType downsampleType);
+	public Point2DD getMouseAxisPos();
+	public String getStatusText();
 }

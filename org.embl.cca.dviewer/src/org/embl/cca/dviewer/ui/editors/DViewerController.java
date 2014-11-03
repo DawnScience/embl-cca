@@ -4,6 +4,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 
 import org.dawb.common.ui.util.GridUtils;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -38,7 +39,9 @@ public class DViewerController implements ISomethingChangeListener {
 //	private int imageFilesWindowWidth; //aka batchAmount
 	Button autoSelectLatestNewImageButton;
 	private SpinnerSlider phaRadiusUI;
-	ExecutableManager phaRadiusManager = null;
+//	ExecutableManager phaRadiusManager = null;
+
+	private Label statusLabel = null;
 
 	protected Composite controlComposite = null;
 	private Text minValueText = null;
@@ -90,6 +93,11 @@ public class DViewerController implements ISomethingChangeListener {
 
 	protected void internalUpdatePhaRadius() {
 		phaRadiusUI.setSelectionAsInteger(controllable.getPhaRadius());
+	}
+
+	protected void internalUpdateStatus() {
+		statusLabel.setText(controllable.getStatusText());
+		statusLabel.getParent().pack();
 	}
 
 	public void createImageSelectorUI(final Composite parent) {
@@ -200,8 +208,6 @@ public class DViewerController implements ISomethingChangeListener {
 		final int logScaleMin = 0;
 		final int logScaleMax = 31;
 
-		if( true ) //TODO Temporary disabled until something is implemented here
-			return;
 //		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
 
 //		Display display = parent.getDisplay();
@@ -209,6 +215,15 @@ public class DViewerController implements ISomethingChangeListener {
 		controlComposite.setLayout(new GridLayout(7, false));
 		controlComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		GridUtils.removeMargins(controlComposite);
+
+		//StatusBar
+		statusLabel = new Label(controlComposite, SWT.NONE); //Column 1
+		//Setting monospace font to avoid jumping numbers left-right
+		statusLabel.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
+		statusLabel.setVisible(true);
+
+		if( true ) //TODO Temporary disabled until something is implemented here
+			return;
 
 		// Minimum original
 		Label label = new Label(controlComposite, SWT.NONE); //Column 1
@@ -422,7 +437,9 @@ public class DViewerController implements ISomethingChangeListener {
 	public void somethingChange(final SomethingChangeEvent event) {
 //		if( CommonThreading.isCurrentThreadGUI() )
 //			return; //Because we get notifications for changes caused by this, which we want to ignore
-		if( event.getSomethingName().equals(SomethingChangeEvent.IMAGE_ARRAY_SOMETHING)) {
+		if( event.getSomethingName().equals(SomethingChangeEvent.MOUSE_POSITION) ) {
+			internalUpdateStatus();
+		} else if( event.getSomethingName().equals(SomethingChangeEvent.IMAGE_ARRAY_SOMETHING)) {
 			final int min = controllable.getImageArrayMin();
 			final int sup = controllable.getImageArraySup(); //total
 			final int batchIndex = controllable.getImageArrayBatchIndex(); //selection
