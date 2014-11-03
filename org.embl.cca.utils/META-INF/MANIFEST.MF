@@ -11,11 +11,15 @@ Require-Bundle: org.eclipse.ui,
  org.dawb.common.util;bundle-version="1.2.0",
  org.dawnsci.common.widgets;bundle-version="1.2.0",
  uk.ac.diamond.scisoft.analysis;bundle-version="1.3.0",
- uk.ac.diamond.sda.navigator;bundle-version="1.3.0"
+ uk.ac.diamond.sda.navigator;bundle-version="1.3.0",
+ org.eclipse.draw2d;bundle-version="3.8.1",
+ org.eclipse.nebula.visualization.xygraph;bundle-version="1.1.0",
+ org.eclipse.dawnsci.plotting.api;bundle-version="1.2.0",
+ org.dawnsci.plotting.system;bundle-version="1.2.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.embl.cca.utils,
  org.embl.cca.utils.datahandling,
+ org.embl.cca.utils.datahandling.collection,
  org.embl.cca.utils.datahandling.explorer,
  org.embl.cca.utils.datahandling.file,
  org.embl.cca.utils.datahandling.preference,
@@ -29,7 +33,9 @@ Export-Package: org.embl.cca.utils,
  org.embl.cca.utils.sorting,
  org.embl.cca.utils.threading,
  org.embl.cca.utils.threading.MUSC,
+ org.embl.cca.utils.ui.nebula,
  org.embl.cca.utils.ui.view.filenavigator,
+ org.embl.cca.utils.ui.view.filenavigator.handler,
  org.embl.cca.utils.ui.view.filenavigator.preference,
  org.embl.cca.utils.ui.view.nexusfileviewer,
  org.embl.cca.utils.ui.widget,
@@ -40,3 +46,4 @@ Import-Package: javax.measure.unit;version="4.3.1",
  org.eclipse.core.resources,
  org.jscience.physics.amount;version="4.3.1",
  org.slf4j;version="[1.7.6,1.7.7)"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
