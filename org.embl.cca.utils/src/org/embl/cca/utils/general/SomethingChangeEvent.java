@@ -38,6 +38,7 @@ public class SomethingChangeEvent extends EventObject {
 	public final static String AUTO_DISPLAY_REMOTED_IMAGE = "auto_display_remoted_image";
 	public final static String PHA_RADIUS = "pha_radius";
 	public final static String DOWNSAMPLE_TYPE = "downsample_type";
+	public final static String MOUSE_POSITION = "mouse_position";
 
 	/**
 	 * Creates a new something change event.
