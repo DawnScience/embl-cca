@@ -60,6 +60,23 @@
             name="dViewer">
       </perspective>
    </extension>
+   <extension
+         point="org.dawnsci.introRegister">
+      <introPageRegister
+            description="Opens the dViewer perspective"
+            icon="icons/dViewer-3Col-Splash.png"
+            id="org.embl.cca.dviewer.intro.DViewerPerspective"
+            class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspectiveLaunch"
+            name="dViewer">
+      </introPageRegister>
+   </extension>
+   <extension
+         point="org.eclipse.ui.intro.configExtension">
+      <configExtension
+            configId="org.dawnsci.intro.universalConfig"
+            content="intro/introContribution.xml">
+      </configExtension>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.views">
