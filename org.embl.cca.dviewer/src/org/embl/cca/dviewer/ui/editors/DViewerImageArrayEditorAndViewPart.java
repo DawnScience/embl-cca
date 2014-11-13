@@ -38,7 +38,6 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.misc.UIListenerLogging;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
 import org.eclipse.ui.part.WorkbenchPart;
@@ -63,7 +62,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	implements ITitledEditor, IReusableEditor, IShowEditorInput,//ISaveable
 	IViewPart, IDViewerControllable {
 
-	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart";
+	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorAndViewPart";
 
 	private static final Logger logger = LoggerFactory.getLogger(DViewerImageArrayEditorAndViewPart.class);
 
@@ -89,7 +88,6 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	public final static Dataset EMPTY_DATASET = new IntegerDataset(new int [] {}, 0, 0);
 	public  final static MemoryDatasetEditorInput EMPTY_DATASET_INPUT = new MemoryDatasetEditorInput(EMPTY_DATASET);
 
-	public final static String REMOTED_IMAGE = "Remoted Image";
 	protected boolean remotedImageEditor = false;
 	protected boolean autoDisplayRemotedImage = true;
 	protected DViewerRemotedDisplayState remotedDisplayState = DViewerRemotedDisplayState.PLAYING_AND_REMOTE_UPDATED;
@@ -299,12 +297,12 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		classRole.addPropertyListener(hostPropertyListener);
 	}
 
-	@Override
+	@Override //from IEditorPart
 	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException{
 		setSite(site);
 		if( input instanceof FilePathEditorInput ) {
 			final FilePathEditorInput fPEI = (FilePathEditorInput)input;
-			if( fPEI.equalityIDEquals(REMOTED_IMAGE)) {
+			if( fPEI.equalityIDEquals(DViewerImageArrayEditorPart.REMOTED_IMAGE)) {
 				remotedImageEditor = true;
 			}
 		}

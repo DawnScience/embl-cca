@@ -33,6 +33,8 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 
 	final DViewerImageArrayEditorAndViewPart innerEditorPart;
 
+	public final static String REMOTED_IMAGE = "Remoted Image";
+
 	public DViewerImageArrayEditorPart() {
 		innerEditorPart = new DViewerImageArrayEditorAndViewPart(this);
 		innerEditorPart.addPartPropertyListener(new IPropertyChangeListener() {
