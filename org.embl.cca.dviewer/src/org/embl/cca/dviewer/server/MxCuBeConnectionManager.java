@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.dawb.common.ui.util.EclipseUtils;
+import org.eclipse.core.runtime.Assert;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.socket.ConnectionHandler;
@@ -34,14 +35,12 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 	}
 
 	public void addMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
-		if (listener == null)
-			throw new IllegalArgumentException("The listener argument can not be null");
+		Assert.isNotNull(listener, "The listener argument can not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).addMxCuBeEventListener(listener);
 	}
 
 	public void removeMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
-		if (listener == null)
-			throw new IllegalArgumentException("The listener argument can not be null");
+		Assert.isNotNull(listener, "The listener argument can not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).removeMxCuBeEventListener(listener);
 	}
 
