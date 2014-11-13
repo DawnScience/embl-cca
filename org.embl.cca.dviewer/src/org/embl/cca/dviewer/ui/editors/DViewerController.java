@@ -3,7 +3,6 @@ package org.embl.cca.dviewer.ui.editors;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
-import org.dawb.common.ui.util.GridUtils;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -12,14 +11,13 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
+import org.embl.cca.utils.datahandling.text.DecimalPaddedFormat;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
@@ -30,28 +28,21 @@ public class DViewerController implements ISomethingChangeListener {
 
 	protected final IDViewerControllable controllable;
 
-	final static private NumberFormat decimalFormat = NumberFormat.getNumberInstance();
+	final static protected NumberFormat decimalFormat = NumberFormat.getNumberInstance();
 
-	private Label totalSliderImageLabel;
-	private Slider imageSlider;
-	private int imageSliderSelection;
-	private Text imageFilesWindowWidthText;
+	protected Slider imageSlider;
+	protected Label totalSliderImageLabel;
+	final protected DecimalPaddedFormat totalSliderImageFormat = new DecimalPaddedFormat("#0");
+	protected Label imageFilesWindowWidthLabel;
+	protected Text imageFilesWindowWidthText;
+	protected int imageSliderSelection;
 //	private int imageFilesWindowWidth; //aka batchAmount
-	Button autoSelectLatestNewImageButton;
-	private SpinnerSlider phaRadiusUI;
-//	ExecutableManager phaRadiusManager = null;
+	protected Button autoSelectLatestNewImageButton;
+	protected SpinnerSlider phaRadiusUI;
 
 	private Label statusLabel = null;
 
-	protected Composite controlComposite = null;
-	private Text minValueText = null;
-//	private LogScale userMinimumScale = null;
-	private SpinnerSlider userMinimumScale = null;
-	private Text suggestedMinimumText = null;
-	private Text maxValueText = null;
-//	private LogScale userMaximumScale = null;
-	private SpinnerSlider userMaximumScale = null;
-	private Text suggestedMaximumText = null;
+	protected Composite parentComposite = null;
 	protected ExecutableManager imageDisplayTracker = null;
 	protected double lastUserMinimum;
 	protected double lastUserMaximum;
@@ -67,28 +58,26 @@ public class DViewerController implements ISomethingChangeListener {
 		controllable.removeSomethingListener(this);
 	}
 
-	public void createImageEditorGUI(final Composite parent) {
-		/* Top line containing image selector sliders */
-		createImageSelectorUI(parent);
-		/* bottom line containing status and load image controls */
-		createImageControlUI(parent);
-		controllable.addSomethingListener(this);
-	}
-
 	protected void internalUpdateTotalSliderImageLabel() {
-		totalSliderImageLabel.setText(new StringBuilder().append(controllable.getImageArrayBatchIndex()+1).append('/').append(controllable.getImageArraySup()).toString());
-		totalSliderImageLabel.getParent().pack();
+		final int sliderMax = imageSlider.getMaximum() - 1;
+		totalSliderImageFormat.setMaximumIntegerDigits(1+(int)Math.floor(Math.log10(sliderMax)));
+		totalSliderImageLabel.setText(new StringBuilder()
+			.append(totalSliderImageFormat.format(controllable.getImageArrayBatchIndex()+1))
+			.append('/').append(sliderMax).toString());
+//		CommonExtension.layoutInParent(totalSliderImageLabel);
+		controllable.revalidateLayout(totalSliderImageLabel);
 	}
 
 	protected void internalUpdateAutoSelectLatestNewImage() {
 		autoSelectLatestNewImageButton.setSelection(controllable.getAutoSelectLatestNewImage());
 	}
 
-	protected void internalUpdateAutoDisplayRemotedImage() { //TODO will be internal
+	protected void internalUpdateAutoDisplayRemotedImage() {
 		final boolean idibrr = controllable.isDisplayingImageByRemoteRequest(); //selectedDisplayImageByRemoteRequest
 		autoDisplayRemotedImage.setText(idibrr ? "❙❙" : "▶");
 		autoDisplayRemotedImage.setToolTipText((idibrr ? "Do not d" : "D") + "isplay image by remote request");
-		autoDisplayRemotedImage.getParent().pack();
+//		CommonExtension.layoutInParent(autoDisplayRemotedImage);
+		controllable.revalidateLayout(autoDisplayRemotedImage);
 	}
 
 	protected void internalUpdatePhaRadius() {
@@ -97,21 +86,37 @@ public class DViewerController implements ISomethingChangeListener {
 
 	protected void internalUpdateStatus() {
 		statusLabel.setText(controllable.getStatusText());
-		statusLabel.getParent().pack();
+//		CommonExtension.layoutInParent(statusLabel);
+//		statusLabel.getParent().getParent().layout(new Control[] {statusLabel});
+//		CommonExtension.revalidateLayout(statusLabel);
+		controllable.revalidateLayout(statusLabel);
 	}
 
-	public void createImageSelectorUI(final Composite parent) {
-		final Composite sliderMain = new Composite(parent, SWT.NONE);
-		sliderMain.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		sliderMain.setLayout(new GridLayout(8, false));
-//		GridUtils.removeMargins(sliderMain);
-		
-		imageSlider = new Slider(sliderMain, SWT.HORIZONTAL);
+	public void createImageEditorGUI(final Composite parent) {
+		parentComposite = parent;
+		imageSlider = new Slider(parentComposite, SWT.HORIZONTAL | SWT.WRAP);
+		totalSliderImageLabel = new Label(parentComposite, SWT.WRAP);
+		imageFilesWindowWidthLabel = new Label(parentComposite, SWT.WRAP);
+		imageFilesWindowWidthText = new Text(parentComposite, SWT.BORDER | SWT.RIGHT | SWT.WRAP);
+		if( !controllable.isRemoted() ) {
+			autoSelectLatestNewImageButton = new Button(parentComposite, SWT.CHECK | SWT.WRAP);
+		} else {
+			autoDisplayRemotedImage = new Button(parentComposite, SWT.PUSH | SWT.WRAP);
+			displayRemotedImageDedicated = new Button(parentComposite, SWT.PUSH | SWT.WRAP);
+		}
+		phaRadiusUI = new SpinnerSlider(parentComposite, SWT.HORIZONTAL | SWT.WRAP);
+	}
+
+	public void createImageEditorStatusBar(final Composite parent) {
+		statusLabel = new Label(parent, SWT.WRAP);
+	}
+
+	public void initializeImageSelectorUI() {
 		imageSlider.setToolTipText("Image selector");
 		imageSlider.setThumb(controllable.getImageArrayBatchSize());
 		imageSliderSelection = imageSlider.getSelection();
-//		imageSlider.setBounds(115, 50, 25, 15);
-		totalSliderImageLabel = new Label(sliderMain, SWT.NONE);
+		//Setting monospace font to avoid jumping numbers left-right
+		totalSliderImageLabel.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 		totalSliderImageLabel.setToolTipText("Selected image/Number of images");
 		internalUpdateTotalSliderImageLabel();
 		imageSlider.addSelectionListener(new SelectionAdapter() {
@@ -120,10 +125,8 @@ public class DViewerController implements ISomethingChangeListener {
 //				updateSliderByUser( imageSlider.getSelection() );
 			}
 		});
-		final Label imageFilesWindowWidthLabel = new Label(sliderMain, SWT.NONE);
 		imageFilesWindowWidthLabel.setToolTipText("Number of images to sum up");
 		imageFilesWindowWidthLabel.setText("Batch Amount");
-		imageFilesWindowWidthText = new Text(sliderMain, SWT.BORDER | SWT.RIGHT);
 		imageFilesWindowWidthText.setToolTipText(imageFilesWindowWidthLabel.getToolTipText());
 		imageFilesWindowWidthText.setText(new StringBuilder().append(controllable.getImageArrayBatchSize()).toString());
 //		imageFilesWindowWidthText.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
@@ -151,7 +154,6 @@ public class DViewerController implements ISomethingChangeListener {
 			}
 		});
 		if( !controllable.isRemoted() ) {
-			autoSelectLatestNewImageButton = new Button(sliderMain, SWT.CHECK);
 			autoSelectLatestNewImageButton.setText("Auto latest");
 			autoSelectLatestNewImageButton.setToolTipText("Automatically scan directory and display last batch");
 			autoSelectLatestNewImageButton.setSelection(controllable.getAutoSelectLatestNewImage());
@@ -162,7 +164,6 @@ public class DViewerController implements ISomethingChangeListener {
 				}
 			});
 		} else {
-			autoDisplayRemotedImage = new Button(sliderMain, SWT.PUSH);
 			internalUpdateAutoDisplayRemotedImage();
 			autoDisplayRemotedImage.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -170,7 +171,6 @@ public class DViewerController implements ISomethingChangeListener {
 					controllable.toggleAutoDisplayRemotedImage();
 				}
 			});
-			displayRemotedImageDedicated = new Button(sliderMain, SWT.PUSH);
 			displayRemotedImageDedicated.setText("O");
 			displayRemotedImageDedicated.setToolTipText("Display image in a dedicated image editor");
 			displayRemotedImageDedicated.addSelectionListener(new SelectionAdapter() {
@@ -180,11 +180,6 @@ public class DViewerController implements ISomethingChangeListener {
 				}
 			});
 		}
-		phaRadiusUI = new SpinnerSlider(sliderMain, SWT.HORIZONTAL);
-		phaRadiusUI.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
-////		psfRadiusUI.setToolTipText(PSF.featureName + " radius selector");
-////		psfRadiusUI.setThumb(1);
-//		psfRadiusUI.setBounds(115, 50, 25, 15);
 		phaRadiusUI.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(final SelectionEvent e) {
 //				controllable.displayRemotedImageDedicated(DViewerController.this, psfRadiusUI.getSelection());
@@ -198,245 +193,21 @@ public class DViewerController implements ISomethingChangeListener {
 				controllable.getPhaRadiusMin(), controllable.getPhaRadiusSup() - 1, 0, 1, 10, 1, 10);
 		controllable.setPhaRadius(DViewerController.this, phaRadiusUI.getSelectionAsInteger());
 //		updatePsfRadiusSlider( Activator.getDefault().getPreferenceStore().getInt(EditorConstants.PREFERENCE_PSF_RADIUS) );
-	}
-
-	public void createImageControlUI(Composite parent) {
-		/**
-		 * A text to adjust 7 sized width of GUI displaying value.
-		 */
-		final String GUIValue7WidthSetter = "0000000";
-		final int logScaleMin = 0;
-		final int logScaleMax = 31;
-
-//		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
-
-//		Display display = parent.getDisplay();
-		controlComposite = new Composite(parent, SWT.NONE);
-		controlComposite.setLayout(new GridLayout(7, false));
-		controlComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		GridUtils.removeMargins(controlComposite);
 
 		//StatusBar
-		statusLabel = new Label(controlComposite, SWT.NONE); //Column 1
 		//Setting monospace font to avoid jumping numbers left-right
 		statusLabel.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
-		statusLabel.setVisible(true);
 
-		if( true ) //TODO Temporary disabled until something is implemented here
-			return;
-
-		// Minimum original
-		Label label = new Label(controlComposite, SWT.NONE); //Column 1
-		label.setText("Min Value=");
-		label.setToolTipText("The minimum value found in image");
-		minValueText = new Text(controlComposite, SWT.RIGHT); //Column 2
-		minValueText.setText(GUIValue7WidthSetter);
-		minValueText.setEditable(false);
-		minValueText.setToolTipText(label.getToolTipText());
-
-		// Suggested minimum
-		label = new Label(controlComposite, SWT.NONE); //Column 3
-		label.setText("Suggested=");
-		label.setToolTipText("The suggested minimum intensity used by the palette");
-		suggestedMinimumText = new Text(controlComposite, SWT.RIGHT); //Column 4
-		suggestedMinimumText.setText(GUIValue7WidthSetter);
-		suggestedMinimumText.setEditable(false);
-		suggestedMinimumText.setToolTipText(label.getToolTipText());
-
-		//Empty place
-		label = new Label(controlComposite, SWT.NONE); //Column 5
-		label.setVisible(false);
-
-		// Minimum current
-//		label = new Label(controlComposite, SWT.NONE); //Column 6
-//		label.setText("Min Intensity:");
-//		label.setToolTipText("The minimum intensity used by the palette");
-//		userMinimumScale = new LogScale(controlComposite, SWT.NONE); //Column 7
-//		userMinimumScale.setMinimum(logScaleMin);
-//		userMinimumScale.setMaximum(logScaleMax);
-//		userMinimumScale.setToolTipText("The currently set minimum intensity used by the palette");
-//		userMinimumScale.addSelectionListener(new SelectionListener() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				if( userMinimumScale == null || userMinimumScale.isDisposed()) return;
-//				final float v = (float)userMinimumScale.getLogicalSelection();
-//				updateIntensityMin(v);
-//			}
-//
-//			@Override
-//			public void widgetDefaultSelected(SelectionEvent e) {
-//				widgetSelected(e);
-//			}
-//		});
-//		label = new Label(controlComposite, SWT.NONE); //Column 8
-//		label.setText("Current=");
-//		label.setToolTipText(userMinimumScale.getToolTipText());
-//		userMinimumText = new Text(controlComposite, SWT.BORDER | SWT.RIGHT); //Column 7
-//		userMinimumText.setText(GUIValue7WidthSetter);
-//		userMinimumText.setToolTipText(userMinimumScale.getToolTipText());
-//		userMinimumText.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-//		userMinimumText.addModifyListener(new ModifyListener() {
-//			@Override
-//			public void modifyText(ModifyEvent e) {
-//				if( userMinimumText == null || userMinimumText.isDisposed()) return;
-//				if( !userMinimumText.isEnabled() || userMinimumText.getText().isEmpty() ) return;
-//				try {
-//					updateIntensityMin(decimalFormat.parse(userMinimumText.getText()).floatValue());
-//				} catch (ParseException ex) {
-//					logger.warn("Unable to parse minimum value: "+ userMinimumText.getText());
-//				}
-//			}
-//		});
-////		userMinimumText.setEnabled(!isAutoScale);
-////		userMinimumScale.setEnabled(!isAutoScale);
-/*		userMinimumScale = new SpinnerSlider( controlComposite, SWT.NONE ); //Column 6
-		userMinimumScale.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1));
-		userMinimumScale.setToolTipText("The minimum threshold used by the palette");
-		userMinimumScale.setValues("Min Threshold", 0,
-				logScaleMin, logScaleMax, 3, 1, 10, 1, 10, 0, 11, false); //TODO want digits=3, but does not work in SpinnerSlider yet
-		userMinimumScale.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-//				if( userMinimumScale == null || userMinimumScale.isDisposed()) return;
-				final double v = (double)userMinimumScale.getSelectionAsDouble();
-				System.out.println("GRRR: userMinimumScale.widgetSelected: updateIntensityMin(getSelectionAsDouble=" + v + ")");
-				updateIntensityMin(v);
-			}
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-		userMinimumScale.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-//				System.out.println("GRRR: userMinimumScale.modifyText, doing nothing!");
-				final double v = (double)userMinimumScale.getSelectionAsDouble();
-				System.out.println("GRRR: userMinimumScale.modifyText, updateIntensityMin(" + v + ")");
-				updateIntensityMin(v);
-//				userMinimumScale.selectCurrentValue(); //Updating selection (and its dependants) when text changes
-//				userMinimumScale.setSelectionAsDouble(userMinimumScale.getSelectionAsDouble()); //Looks funny, but that is the way
-			}
-		});
-
-		// Maximum original
-		label = new Label(controlComposite, SWT.NONE); //Column 1
-		label.setText("Max Value=");
-		label.setToolTipText("The maximum intensity used by the palette");
-		maxValueText = new Text(controlComposite, SWT.RIGHT); //Column 2
-		maxValueText.setText(GUIValue7WidthSetter);
-		maxValueText.setEditable(false);
-		maxValueText.setToolTipText(label.getToolTipText());
-
-		// Suggested maximum
-		label = new Label(controlComposite, SWT.NONE); //Column 3
-		label.setText("Suggested=");
-		label.setToolTipText("The suggested maximum intensity used by the palette");
-		suggestedMaximumText = new Text(controlComposite, SWT.RIGHT); //Column 4
-		suggestedMaximumText.setText(GUIValue7WidthSetter);
-		suggestedMaximumText.setEditable(false);
-		suggestedMaximumText.setToolTipText(label.getToolTipText());
-
-		//Use suggested
-		Button button = new Button(controlComposite, SWT.PUSH); //Column 5
-		button.setText("Use suggested");
-		button.setToolTipText("Use suggested value");
-		button.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-//				setUserMinimum(getSuggestedMinimum());
-//				setUserMaximum(getSuggestedMaximum());
-				setIntensityMinMax(getSuggestedMinimum(), getSuggestedMaximum());
-			}
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-
-		// Maximum current
-//		label = new Label(controlComposite, SWT.NONE); //Column 6
-//		label.setText("Max Intensity:");
-//		label.setToolTipText("The maximum intensity used by the palette");
-//		userMaximumScale = new LogScale(controlComposite, SWT.NONE); //Column 7
-//		userMaximumScale.setMinimum(logScaleMin);
-//		userMaximumScale.setMaximum(logScaleMax);
-//		userMaximumScale.setToolTipText("The currently set maximum intensity used by the palette");
-//		label = new Label(controlComposite, SWT.NONE); //Column 8
-//		label.setText("Current=");
-//		label.setToolTipText(userMaximumScale.getToolTipText());
-//		userMaximumScale.addSelectionListener(new SelectionListener() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				if( userMaximumScale == null || userMaximumScale.isDisposed()) return;
-//				final float v = (float)userMaximumScale.getLogicalSelection();
-//				updateIntensityMax(v);
-//			}
-//
-//			@Override
-//			public void widgetDefaultSelected(SelectionEvent e) {
-//				widgetSelected(e);
-//			}
-//		});
-//		userMaximumText = new Text(controlComposite, SWT.BORDER | SWT.RIGHT); //Column 9
-//		userMaximumText.setToolTipText(userMaximumScale.getToolTipText());
-//		userMaximumText.setText(GUIValue7WidthSetter);
-//		userMaximumText.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-//		userMaximumText.addModifyListener(new ModifyListener() {
-//			@Override
-//			public void modifyText(ModifyEvent e) {
-//				if( userMaximumText == null || userMaximumText.isDisposed()) return;
-//				if( !userMaximumText.isEnabled() || userMaximumText.getText().isEmpty() ) return;
-//				try {
-//					updateIntensityMax(decimalFormat.parse(userMaximumText.getText()).floatValue());
-//				} catch (ParseException ex) {
-//					logger.warn("Unable to parse maximum value: "+ userMaximumText.getText());
-//				}
-//			}
-//			;
-//		});
-////		userMaximumText.setEnabled(!isAutoScale);
-////		userMaximumScale.setEnabled(!isAutoScale);
-		userMaximumScale = new SpinnerSlider( controlComposite, SWT.NONE ); //Column 6
-		userMaximumScale.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1));
-		userMaximumScale.setToolTipText("The maximum threshold used by the palette");
-		userMaximumScale.setValues("Max Threshold", 0,
-				logScaleMin, logScaleMax, 3, 1, 10, 1, 10, 0, 1, false); //TODO want digits=3, but does not work in SpinnerSlider yet
-		userMaximumScale.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-//				if( userMaximumScale == null || userMaximumScale.isDisposed()) return;
-				final double v = (double)userMaximumScale.getSelectionAsDouble();
-				System.out.println("GRRR: userMaximumScale.widgetSelected: updateIntensityMax(getSelectionAsDouble=" + v + ")");
-				updateIntensityMax(v);
-			}
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
-		userMaximumScale.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-//				System.out.println("GRRR: userMinimumScale.modifyText, doing nothing!");
-				final double v = (double)userMaximumScale.getSelectionAsDouble();
-				System.out.println("GRRR: userMaximumScale.modifyText, updateIntensityMax(" + v + ")");
-				updateIntensityMax(v);
-//				userMaximumScale.selectCurrentValue(); //Updating selection (and its dependants) when text changes
-//				userMaximumScale.setSelectionAsDouble(userMaximumScale.getSelectionAsDouble()); //Looks funny, but that is the way
-			}
-		});
-*/
+		controllable.addSomethingListener(this);
 	}
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
 	 * GUI thread is assumed.
 	 */
 	@Override
 	public void somethingChange(final SomethingChangeEvent event) {
-//		if( CommonThreading.isCurrentThreadGUI() )
-//			return; //Because we get notifications for changes caused by this, which we want to ignore
 		if( event.getSomethingName().equals(SomethingChangeEvent.MOUSE_POSITION) ) {
 			internalUpdateStatus();
 		} else if( event.getSomethingName().equals(SomethingChangeEvent.IMAGE_ARRAY_SOMETHING)) {

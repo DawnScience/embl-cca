@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.dawnsci.common.widgets.editor.ITitledEditor;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -12,30 +12,25 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPropertyListener;
-import org.eclipse.ui.IReusableEditor;
-import org.eclipse.ui.ISaveablePart;
-import org.eclipse.ui.IShowEditorInput;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.ViewPart;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
-import org.embl.cca.dviewer.ui.views.DViewerImagePage;
 import org.embl.cca.utils.general.ISomethingChangeListener;
-//public class DViewerImageArrayEditorAndViewPart extends EditorPart implements
-//ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
 
-public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPartHost, IReusableEditor, ITitledEditor, ISaveablePart,
-	IShowEditorInput, IDViewerControllable {
+public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost, ITitledEditor,
+	IDViewerControllable {
 
-	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart";
+	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayViewPart";
 
-	final DViewerImageArrayEditorAndViewPart innerEditorPart;
+	final DViewerImageArrayEditorAndViewPart innerViewPart;
 
-	public DViewerImageArrayEditorPart() {
-		innerEditorPart = new DViewerImageArrayEditorAndViewPart(this);
-		innerEditorPart.addPartPropertyListener(new IPropertyChangeListener() {
+	public DViewerImageArrayViewPart(final PlotType defaultPlotType, final DViewerListenerManager listenerManager) {
+		innerViewPart = new DViewerImageArrayEditorAndViewPart(this);
+		innerViewPart.addPartPropertyListener(new IPropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				firePartPropertyChanged(event.getProperty(), (String)event.getOldValue(), (String)event.getNewValue());
@@ -45,175 +40,154 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 
 	@Override
 	public boolean getPha() {
-		return innerEditorPart.getPha();
+		return innerViewPart.getPha();
 	}
 
 	@Override
 	public void setPha(final ISomethingChangeListener sender, final boolean phaState) {
-		innerEditorPart.setPha(sender, phaState);
+		innerViewPart.setPha(sender, phaState);
 	}
 
 	@Override
 	public int getPhaRadiusMin() {
-		return innerEditorPart.getPhaRadiusMin();
+		return innerViewPart.getPhaRadiusMin();
 	}
 
 	@Override
 	public int getPhaRadiusSup() {
-		return innerEditorPart.getPhaRadiusSup();
+		return innerViewPart.getPhaRadiusSup();
 	}
 
 	@Override
 	public boolean isPhaRadiusValid(final int value) {
-		return innerEditorPart.isPhaRadiusValid(value);
+		return innerViewPart.isPhaRadiusValid(value);
 	}
 
 	@Override
 	public int getPhaRadius() {
-		return innerEditorPart.getPhaRadius();
+		return innerViewPart.getPhaRadius();
 	}
 
 	@Override
 	public void setPhaRadius(final ISomethingChangeListener sender, final int phaRadius) {
-		innerEditorPart.setPhaRadius(sender, phaRadius);
+		innerViewPart.setPhaRadius(sender, phaRadius);
 	}
 
 	@Override
 	public DownsampleType getDownsampleType() {
-		return innerEditorPart.getDownsampleType();
+		return innerViewPart.getDownsampleType();
 	}
 
 	@Override
 	public void setDownsampleType(final ISomethingChangeListener sender,
 			final DownsampleType downsampleType) {
-		innerEditorPart.setDownsampleType(sender, downsampleType);
+		innerViewPart.setDownsampleType(sender, downsampleType);
 	}
 
 	@Override
 	public Point2DD getMouseAxisPos() {
-		return innerEditorPart.getMouseAxisPos();
+		return innerViewPart.getMouseAxisPos();
 	}
 
 	@Override
 	public String getStatusText() {
-		return innerEditorPart.getStatusText();
+		return innerViewPart.getStatusText();
 	}
 
 	@Override //from ITitledEditor
 	public void setPartTitle(final String name) {
-		innerEditorPart.setPartTitle(name);
+		innerViewPart.setPartTitle(name);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void addPropertyListener(final IPropertyListener listener) {
 		super.addPropertyListener(listener);
-		if( innerEditorPart != null ) //Can be null when super.constructor runs
-			innerEditorPart.addPropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void createPartControl(final Composite parent) {
-		innerEditorPart.createPartControl(parent);
+		innerViewPart.createPartControl(parent);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void dispose() {
-		innerEditorPart.dispose();
+		innerViewPart.dispose();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public IWorkbenchPartSite getSite() {
-		return innerEditorPart.getSite();
+		return innerViewPart.getSite();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public Image getTitleImage() {
-		return innerEditorPart.getTitleImage();
+		return innerViewPart.getTitleImage();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public String getTitleToolTip() {
-		return innerEditorPart.getTitleToolTip();
+		return innerViewPart.getTitleToolTip();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void removePropertyListener(final IPropertyListener listener) {
-		innerEditorPart.removePropertyListener(listener);
+		innerViewPart.removePropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void setFocus() {
-		innerEditorPart.setFocus();
+		innerViewPart.setFocus();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart/IAdaptable
 	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
-		if (DViewerImagePage.class.equals(clazz)) {
-			return DViewerImagePage.getPageFor(this);
-		}
-		return innerEditorPart.getAdapter(clazz);
+		return innerViewPart.getAdapter(clazz);
 	}
 
-	@Override //from IEditorPart
+	//from IEditorPart, comfortable method in ViewPart as well
 	public IEditorInput getEditorInput() {
-		return innerEditorPart.getEditorInput();
+		return innerViewPart.getEditorInput();
 	}
 
-	@Override //from IEditorPart
-	public IEditorSite getEditorSite() {
-		return innerEditorPart.getEditorSite();
+	@Override //from IViewPart
+	public IViewSite getViewSite() {
+		return innerViewPart.getViewSite();
 	}
 
-	@Override //from IEditorPart
-	public void init(final IEditorSite site, final IEditorInput input)
-			throws PartInitException {
-		innerEditorPart.init(site, input);
+	@Override //from IViewPart
+	public void init(final IViewSite site) throws PartInitException {
+		innerViewPart.init(site);
 	}
 
-	@Override //from ISaveablePart
-	public void doSave(final IProgressMonitor monitor) {
-		innerEditorPart.doSave(monitor);
+	@Override //from IViewPart
+	public void init(final IViewSite site, final IMemento memento) throws PartInitException {
+		innerViewPart.init(site, memento);
 	}
 
-	@Override //from ISaveablePart
-	public void doSaveAs() {
-		innerEditorPart.doSaveAs();
+	@Override //from IViewPart
+	public void saveState(final IMemento memento) {
+		innerViewPart.saveState(memento);
 	}
 
-	@Override //from ISaveablePart
-	public boolean isDirty() {
-		return innerEditorPart.isDirty();
-	}
-
-	@Override //from ISaveablePart
-	public boolean isSaveAsAllowed() {
-		return innerEditorPart.isSaveAsAllowed();
-	}
-
-	@Override //from ISaveablePart
-	public boolean isSaveOnCloseNeeded() {
-		return innerEditorPart.isSaveOnCloseNeeded();
-	}
-
-	@Override //from IReusableEditor
+	//from IEditorPart, comfortable method in ViewPart as well
 	public void setInput(final IEditorInput input) {
-		innerEditorPart.setInput(input);
+		innerViewPart.setInput(input);
 	}
 
-	@Override //from EditorPart
+	//from IEditorPart, comfortable method in ViewPart as well
 	public void setInputWithNotify(final IEditorInput input) {
-		innerEditorPart.setInputWithNotify(input);
+		innerViewPart.setInputWithNotify(input);
 	}
 
 	@Override //from WorkbenchPart
 	public void setInitializationData(final IConfigurationElement cfig,
 			final String propertyName, final Object data) {
-		innerEditorPart.setInitializationData(cfig, propertyName, data);
+		innerViewPart.setInitializationData(cfig, propertyName, data);
 	}
 
 	@Override //from WorkbenchPart
 	public void showBusy(final boolean busy) {
-		innerEditorPart.showBusy(busy);
+		innerViewPart.showBusy(busy);
 	}
 
 	@Override //from IEditorPartHost (originated from IWorkbenchPart2)
@@ -223,8 +197,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 
 	@Override //from IEditorPartHost (originated from WorkbenchPart)
 	public void setPartName(final String partName) {
-		final String flaggedName = isRemoted() ? (isDisplayingImageByRemoteRequest() ? "▶" : "❙❙") + partName : partName;
-		super.setPartName(flaggedName);
+		super.setPartName(partName);
 	}
 
 	@Override //from IEditorPartHost (originated from IEditorPart/IWorkbenchPart)
@@ -250,33 +223,33 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 
 	@Override //from IEditorPart/IWorkbenchPartOrientation
 	public int getOrientation() {
-		return innerEditorPart.getOrientation();
+		return innerViewPart.getOrientation();
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart3
 	public void addPartPropertyListener(final IPropertyChangeListener listener) {
-		innerEditorPart.addPartPropertyListener(listener);
+		innerViewPart.addPartPropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart3
 	public void removePartPropertyListener(final IPropertyChangeListener listener) {
-		innerEditorPart.removePartPropertyListener(listener);
+		innerViewPart.removePartPropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart3
 	public void setPartProperty(final String key, final String value) {
-		innerEditorPart.setPartProperty(key, value);
+		innerViewPart.setPartProperty(key, value);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart3
 	public String getPartProperty(final String key) {
-		return innerEditorPart.getPartProperty(key);
+		return innerViewPart.getPartProperty(key);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override //from IEditorPart/IWorkbenchPart3
 	public Map getPartProperties() {
-		return innerEditorPart.getPartProperties();
+		return innerViewPart.getPartProperties();
 	}
 
 	/**
@@ -285,98 +258,99 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	@Override
 	// from IEditorPartHost
 	public void setToolbarParent(final Composite toolbarParent) {
-//		innerEditorPart.setToolbarParent(toolbarParent);
+//		innerViewPart.setToolbarParent(toolbarParent);
 	}
 
 	@Override //from IEditorPartHost
 	public Composite getContainer() {
-		return innerEditorPart.getContainer();
+		return innerViewPart.getContainer();
 	}
 
-	@Override //from IShowEditorInput
+	//from IShowEditorInput, comfortable method in ViewPart as well
 	public void showEditorInput(final IEditorInput editorInput) {
-		innerEditorPart.showEditorInput(editorInput);
+		innerViewPart.showEditorInput(editorInput);
+		
 	}
 
 	@Override //from IDViewerControllable
 	public void addSomethingListener(ISomethingChangeListener listener) {
-		innerEditorPart.addSomethingListener(listener);
+		innerViewPart.addSomethingListener(listener);
 	}
 
 	@Override //from IDViewerControllable
 	public void removeSomethingListener(ISomethingChangeListener listener) {
-		innerEditorPart.removeSomethingListener(listener);
+		innerViewPart.removeSomethingListener(listener);
 	}
 
 	@Override //from IDViewerControllable
 	public boolean getAutoSelectLatestNewImage() {
-		return innerEditorPart.getAutoSelectLatestNewImage();
+		return innerViewPart.getAutoSelectLatestNewImage();
 	}
 
 	@Override //from IDViewerControllable
 	public void setAutoSelectLatestNewImage(ISomethingChangeListener sender,
 			boolean autoFollow) {
-		innerEditorPart.setAutoSelectLatestNewImage(sender, autoFollow);
+		innerViewPart.setAutoSelectLatestNewImage(sender, autoFollow);
 	}
 
 	@Override //from IDViewerControllable
 	public boolean isRemoted() {
-		return innerEditorPart.isRemoted();
+		return innerViewPart.isRemoted();
 	}
 
 	@Override //from IDViewerControllable
 	public boolean isDisplayingImageByRemoteRequest() {
-		return innerEditorPart.isDisplayingImageByRemoteRequest();
+		return innerViewPart.isDisplayingImageByRemoteRequest();
 	}
 
 	@Override //from IDViewerControllable
 	public void toggleAutoDisplayRemotedImage() throws IllegalStateException {
-		innerEditorPart.toggleAutoDisplayRemotedImage();
+		innerViewPart.toggleAutoDisplayRemotedImage();
 	}
 
 	@Override //from IDViewerControllable
 	public void displayRemotedImageDedicated() {
-		innerEditorPart.displayRemotedImageDedicated();
+		innerViewPart.displayRemotedImageDedicated();
 	}
 
 	@Override //from IDViewerControllable
 	public int getImageArrayMin() {
-		return innerEditorPart.getImageArrayMin();
+		return innerViewPart.getImageArrayMin();
 	}
 
 	@Override //from IDViewerControllable
 	public int getImageArraySup() {
-		return innerEditorPart.getImageArraySup();
+		return innerViewPart.getImageArraySup();
 	}
 
 	@Override //from IDViewerControllable
 	public int getImageArrayBatchIndex() {
-		return innerEditorPart.getImageArrayBatchIndex();
+		return innerViewPart.getImageArrayBatchIndex();
 	}
 
 	@Override //from IDViewerControllable
 	public int getImageArrayBatchSize() {
-		return innerEditorPart.getImageArrayBatchSize();
+		return innerViewPart.getImageArrayBatchSize();
 	}
 
 	@Override //from IDViewerControllable
 	public void setBatchIndex(ISomethingChangeListener sender, int batchIndex) {
-		innerEditorPart.setBatchIndex(sender, batchIndex);
+		innerViewPart.setBatchIndex(sender, batchIndex);
 	}
 
 	@Override //from IDViewerControllable
 	public void setBatchSize(ISomethingChangeListener sender, int batchSize) {
-		innerEditorPart.setBatchSize(sender, batchSize);
+		innerViewPart.setBatchSize(sender, batchSize);
 	}
 
 	@Override //from IDViewerControllable
 	public boolean isBatchSizeValid(int value) {
-		return innerEditorPart.isBatchSizeValid(value);
+		return innerViewPart.isBatchSizeValid(value);
 	}
 
 	@Override //from IDViewerControllable
 	public void revalidateLayout(Control control) {
-		innerEditorPart.revalidateLayout(control);
+		innerViewPart.revalidateLayout(control);
 	}
 
 }

@@ -81,7 +81,7 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            category="uk.ac.diamond.scisoft.analysis.rcp"
+            category="org.dawb.workbench.ui.beta.views.category"
             class="org.embl.cca.dviewer.ui.views.DViewerView"
             icon="icons/dViewer-16x16-icon.png"
             id="org.embl.cca.dviewer.ui.views.dViewerView"
@@ -90,6 +90,25 @@
       </view>
    </extension>
 -->
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="org.dawb.workbench.ui.beta.views.category"
+            class="org.embl.cca.dviewer.ui.views.HKLSelectorView"
+            icon="icons/dViewer-16x16-icon.png"
+            id="org.embl.cca.dviewer.ui.views.HKLSelectorView"
+            name="HKL Selector"
+            restorable="true">
+      </view>
+      <view
+            category="org.dawb.workbench.ui.beta.views.category"
+            class="org.embl.cca.dviewer.ui.views.DViewerImageView"
+            icon="icons/dViewer-16x16-icon.png"
+            id="org.embl.cca.dviewer.ui.views.DViewerImageView"
+            name="dViewer Image Viewer"
+            restorable="true">
+      </view>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
