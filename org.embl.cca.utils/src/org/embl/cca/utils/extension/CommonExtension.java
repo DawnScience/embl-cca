@@ -6,6 +6,12 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IShowEditorInput;
@@ -203,6 +209,51 @@ public class CommonExtension {
 	public static IEditorPart getCurrentEditor() {
 		final IWorkbenchPage page = getCurrentPage();
 		return page.getActiveEditor();
+	}
+
+	/**
+	 * Simplified calling layout of nth ancestor of control.
+	 * The ancestor should not be <code>null</code>, but if it is <code>null</code>, nothing happens.
+	 * @param control the control which requests the layout in an ancestor
+	 * @param ancestor the ancestor of control to layout 
+	 */
+	public static void layoutIn(final Control control, final Composite ancestor) {
+	if( ancestor != null )
+		ancestor.layout(new Control[] {control});
+	}
+
+	//http://stackoverflow.com/questions/586414/why-does-an-swt-composite-sometimes-require-a-call-to-resize-to-layout-correct
+	//The webpage describes this more complicated solution, which is overkill in my opinion
+	public static void revalidateLayout(final Control control) {
+		Control c = control;
+		do {
+			if (c instanceof ExpandBar) {
+				final ExpandBar expandBar = (ExpandBar) c;
+				for (final ExpandItem expandItem : expandBar.getItems()) {
+					expandItem
+						.setHeight(expandItem.getControl().computeSize(expandBar.getSize().x, SWT.DEFAULT, true).y);
+				}
+			}
+			c = c.getParent();
+
+		} while (c != null && c.getParent() != null && !(c instanceof ScrolledComposite));
+
+		if (c instanceof ScrolledComposite) {
+			final ScrolledComposite scrolledComposite = (ScrolledComposite) c;
+			if (scrolledComposite.getExpandHorizontal() || scrolledComposite.getExpandVertical()) {
+				scrolledComposite
+					.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
+			} else {
+				scrolledComposite.getContent().pack(true);
+			}
+		}
+		if (c instanceof Composite) {
+			final Composite composite = (Composite) c;
+//			composite.layout(true, true);
+			//Alternative?:
+			composite.changed(new Control[] {control});
+			composite.layout(new Control[] {control});
+		}
 	}
 
 }
