@@ -73,7 +73,7 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 			public void runThis() {
 				final FilePathEditorInput fPEI = new FilePathEditorInput(filePath, DViewerImageArrayEditorPart.REMOTED_IMAGE, new File(filePath).getName());
 				try {
-					CommonExtension.openEditor(EclipseUtils.getPage(), fPEI, REMOTED_IMAGE_EDITOR, false, false);
+					CommonExtension.openEditor(fPEI, REMOTED_IMAGE_EDITOR, false, false);
 				} catch (Exception e) { //PartInitException, and Exception from uk.ac.diamond.scisoft.analysis.rcp.editors.ImageEditor.createFile
 					logger.error("Can not open editor. " + e.getMessage());
 				}
