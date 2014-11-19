@@ -36,7 +36,14 @@ public class SomethingChangeEvent extends EventObject {
 	public final static String IMAGE_ARRAY_SOMETHING = "image_array";
 	public final static String AUTO_SELECT_LATEST_NEW_IMAGE = "auto_select_latest_new_image";
 	public final static String AUTO_DISPLAY_REMOTED_IMAGE = "auto_display_remoted_image";
+	public final static String SHOW_EACH_NTH_IMAGE = "show_each_nth_image";
 	public final static String PHA_RADIUS = "pha_radius";
+	public final static String H_RANGE_MIN = "h_range_min";
+	public final static String H_RANGE_MAX = "h_range_max";
+	public final static String K_RANGE_MIN = "k_range_min";
+	public final static String K_RANGE_MAX = "k_range_max";
+	public final static String L_RANGE_MIN = "l_range_min";
+	public final static String L_RANGE_MAX = "l_range_max";
 	public final static String DOWNSAMPLE_TYPE = "downsample_type";
 	public final static String MOUSE_POSITION = "mouse_position";
 
