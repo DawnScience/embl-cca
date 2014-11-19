@@ -299,6 +299,7 @@ public class DViewerStartup implements IStartup {
 	public void earlyStartup() {
 		if( JavaSystem.getPropertyAsBoolean(dViewerEnabledJavaProperty) ) {
 			//TODO Add optional config somehow. Creating own logger is not accepted. How I could specify my own logger config?
+			//Previously: in org.dawnsci.base.product: -DdViewerLogSettings=logging/log_configuration.xml
 			//final String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
 			logger.debug("Starting " + getPackageName());
 	
