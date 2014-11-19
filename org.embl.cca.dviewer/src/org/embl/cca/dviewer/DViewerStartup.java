@@ -1,9 +1,11 @@
 package org.embl.cca.dviewer;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
 import org.dawnsci.plotting.system.PlottingSystemActivator;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.dawnsci.plotting.api.preferences.PlottingConstants;
 import org.eclipse.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
@@ -26,6 +28,7 @@ import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.AbstractContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
@@ -36,9 +39,13 @@ import org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
+import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.extension.EclipseBug362561Workaround;
+import org.embl.cca.utils.extension.FirstPageCreatedPollingNotifier;
+import org.embl.cca.utils.extension.IFirstPageCreatedListener;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.slf4j.Logger;
@@ -95,6 +102,39 @@ public class DViewerStartup implements IStartup {
 			else
 				menuService.removeContributionFactory(dViewerContribution);
 		}
+	};
+
+	protected final IFirstPageCreatedListener checkCommandLineArguments = new IFirstPageCreatedListener() {
+		@Override
+		public void firstPageCreated(final IWorkbenchPage page) {
+			final String[] args = Platform.getCommandLineArgs();
+			for (int i = 0; i < args.length; i++) {
+//				if (args[i].equals("-mydir")) {
+//					i++;
+//					try {
+//						mydir = new File(args[i]);
+//						if (!mydir.exists() || !mydir.isDirectory()) {
+//							mydir = null;
+//						}
+//					} catch (Exception e) {
+//						mydir = null;
+//					}
+//				}
+				if (args[i].equals("-openFile")) {
+					i++;
+					final File file = new File(args[i]);
+					if( file.exists() ) {
+						final FilePathEditorInput fPEI = new FilePathEditorInput(file.getAbsolutePath(), null, file.getName());
+						try {
+							CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, true);
+						} catch (final PartInitException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+
 	};
 
 	public void resetPreferences() {
@@ -288,6 +328,7 @@ public class DViewerStartup implements IStartup {
 			addPerspectiveSupport();
 			setDefaultPreferences();
 			startConnectionManager();
+			new FirstPageCreatedPollingNotifier(checkCommandLineArguments, 100);
 			new EclipseBug362561Workaround();
 		}
 		logger.debug("Started " + getPackageName());
