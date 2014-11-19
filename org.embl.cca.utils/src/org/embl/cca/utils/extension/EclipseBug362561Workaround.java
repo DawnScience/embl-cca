@@ -2,7 +2,6 @@ package org.embl.cca.utils.extension;
 
 import java.util.EnumSet;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
@@ -38,20 +37,7 @@ public class EclipseBug362561Workaround {
 	protected static IEditorPart bugfix362561ActiveEditor = null;
 	protected static final int Bug362561TimerPeriod = 500;
 	protected static Timer timer = new Timer("Bug362561 Workaround Startup", true);
-	static { timer.schedule(new TimerTask() {
-		@Override
-		public void run() {
-			CommonThreading.execUISynced(new Runnable() {
-				@Override
-				public void run() {
-					final IWorkbenchPage workbenchPage = CommonExtension.getActivePage();
-					if( workbenchPage != null ) {
-						timer.cancel();
-						startupWorkaroundForBug362561(workbenchPage);
-					}
-				}
-			});
-		}}, Bug362561TimerPeriod, Bug362561TimerPeriod); }
+
 	protected final static IPartListener2 bug362561PartListener = new PartAdapter() {
 		@Override
 		public void partActivated(IWorkbenchPartReference partRef) {
@@ -111,15 +97,23 @@ public class EclipseBug362561Workaround {
 		}
 	};
 
-	protected static void startupWorkaroundForBug362561(final IWorkbenchPage page) {
-		synchronized (bug362561WorkaroundState) {
-			if(!bug362561WorkaroundState.equals(Bug362561WorkaroundState.STARTUP))
-				return;
-			page.getWorkbenchWindow().addPerspectiveListener(bug362561PerspectiveListener);
-			page.getWorkbenchWindow().addPageListener(bug362561PageListener);
-			bug362561WorkaroundState = Bug362561WorkaroundState.INACTIVE;
-			bug362561PageListener.pageOpened(page); //Mimic page opened event, since it happened earlier
+	protected final static IFirstPageCreatedListener startupWorkaroundForBug362561 = new IFirstPageCreatedListener() {
+		@Override
+		public void firstPageCreated(final IWorkbenchPage page) {
+			synchronized (bug362561WorkaroundState) {
+				if(!bug362561WorkaroundState.equals(Bug362561WorkaroundState.STARTUP))
+					return;
+				page.getWorkbenchWindow().addPerspectiveListener(bug362561PerspectiveListener);
+				page.getWorkbenchWindow().addPageListener(bug362561PageListener);
+				bug362561WorkaroundState = Bug362561WorkaroundState.INACTIVE;
+				bug362561PageListener.pageOpened(page); //Mimic page opened event, since it happened earlier
+			}
 		}
+	};
+
+	public EclipseBug362561Workaround() {
+		new FirstPageCreatedPollingNotifier(startupWorkaroundForBug362561, Bug362561TimerPeriod);
+
 	}
 
 	protected static void deactivateWorkaroundForBug362561() {
