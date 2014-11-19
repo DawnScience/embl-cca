@@ -3,18 +3,23 @@ package org.embl.cca.utils.extension;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IShowEditorInput;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -146,6 +151,57 @@ public class CommonExtension {
 	}
 
 	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is given focus.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @return the shown view
+	 * @exception PartInitException
+	 *                if the view could not be initialized
+	 */
+	@SuppressWarnings("restriction")
+	public static IViewPart openView(final String viewId, final boolean detach) throws PartInitException {
+		final IWorkbenchPage page = getActivePage();
+		final IViewPart viewPart = page.showView(viewId);
+		final boolean detached = viewPart.getSite().getShell().getText().isEmpty(); //bit of hack
+		if( detach && !detached ) {
+			if( page instanceof org.eclipse.ui.internal.WorkbenchPage ) {
+				final IViewReference ref = page.findViewReference(viewId);
+				((org.eclipse.ui.internal.WorkbenchPage)page).detachView(ref);
+			}
+		}
+		return viewPart;
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is given focus.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @return the shown view, or <code>null</code> if it could not be initialized
+	 */
+	public static IViewPart openViewWithErrorDialog(final String viewId, final boolean detach) {
+		try {
+			return openView(viewId, detach);
+		} catch (final PartInitException e) {
+			final Shell shell = getActiveShell();
+			Assert.isNotNull(shell, "Environment error: can not find shell");
+			MessageDialog.openError(shell,
+					"View Opening Error", new StringBuilder("Could not open the view: \"")
+				.append(viewId).append("\".\n\n").append(e.getMessage()).toString());
+			return null;
+		}
+	}
+
+	/**
 	 * Gets the current page, even during startup. Current means either active,
 	 * or default when active is null.
 	 * @return the current page, or null if there is no current page
@@ -157,7 +213,7 @@ public class CommonExtension {
 		if (activePage!=null) return activePage;
 		return getDefaultPage();
 	}
-	
+
 	/**
 	 * Gets the active page.
 	 * @return the active page, or null if there is no active page
@@ -169,8 +225,7 @@ public class CommonExtension {
 		if (window==null) return null;
 		return window.getActivePage();
 	}
-	
-	
+
 	/**
 	 * Gets the default page. Default means the active page of first
 	 * workbench window.
@@ -181,6 +236,43 @@ public class CommonExtension {
 		final IWorkbenchWindow[] windows = getWorkbenchWindows();
 		if (windows==null) return null;
 		return windows[0].getActivePage();
+	}
+
+	/**
+	 * Gets the current shell, even during startup. Current means either active,
+	 * or default when active is null.
+	 * @return the current shell, or null if there is no current shell
+	 * @see #getActiveShell
+	 * @see #getDefaultShell
+	 */
+	public static Shell getCurrentShell() {
+		final Shell activeShell = getActiveShell();
+		if (activeShell !=null) return activeShell;
+		return getDefaultShell();
+	}
+
+	/**
+	 * Gets the active shell.
+	 * @return the active shell, or null if there is no active shell
+	 */
+	public static Shell getActiveShell() {
+		final IWorkbench bench = PlatformUI.getWorkbench();
+		if (bench==null) return null;
+		final IWorkbenchWindow window = bench.getActiveWorkbenchWindow();
+		if (window==null) return null;
+		return window.getShell();
+	}
+
+	/**
+	 * Gets the default shell. Default means the active shell of first
+	 * workbench window.
+	 * @return the active shell of first workbench window, or null if there is
+	 * no workbench window or active shell
+	 */
+	public static Shell getDefaultShell() {
+		final IWorkbenchWindow[] windows = getWorkbenchWindows();
+		if (windows==null) return null;
+		return windows[0].getShell();
 	}
 
 	/**
