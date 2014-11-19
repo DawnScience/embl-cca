@@ -1,5 +1,6 @@
 package org.embl.cca.utils.ui.widget;
 
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionListener;
@@ -82,8 +83,14 @@ public class SpinnerSlider extends Composite {
 	public SpinnerSlider(Composite parent, int style) {
 		super (parent, checkStyle(style));
 		label = new Label(this, SWT.HORIZONTAL);
+		//Setting monospace font to avoid different lengths
+		label.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 		spinner = new Spinner(this, SWT.HORIZONTAL);
+		//Setting monospace font to avoid different lengths
+		spinner.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 		slider = new Slider(this, SWT.HORIZONTAL);
+		//Setting monospace font to avoid different lengths
+		slider.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 		addListener(SWT.Dispose, new Listener() {
 		     public void handleEvent(Event e) {
 		    	 logger.debug("DEBUG: spinnerslider disposed!");
@@ -248,7 +255,7 @@ public class SpinnerSlider extends Composite {
 	protected Point computeSizeByParts(Point labelSize, Point spinnerSize, Point sliderSize) {
 		int width = labelSize.x + spinnerSize.x + sliderSize.x + layout.horizontalSpacing * (layout.numColumns - 1);
 		int height = Math.max(Math.max(labelSize.y, spinnerSize.y), sliderSize.y);
-		System.out.println("SpinnerSlider.computeSize: labelSize=" + labelSize + ", spinnerSize=" + spinnerSize + ", sliderSize=" + sliderSize + ", width=" + width + ", height=" + height);
+//		System.out.println("SpinnerSlider.computeSize: labelSize=" + labelSize + ", spinnerSize=" + spinnerSize + ", sliderSize=" + sliderSize + ", width=" + width + ", height=" + height);
 		//Here calculating trim
 		Rectangle trim = computeTrim(0, 0, width, height);
 		return new Point(trim.width, trim.height);
