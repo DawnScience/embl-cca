@@ -73,6 +73,112 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 	}
 
 	@Override
+	public int getHMin() {
+		return innerViewPart.getHMin();
+	}
+
+	@Override
+	public int getHSup() {
+		return innerViewPart.getHSup();
+	}
+
+	@Override
+	public boolean isHValid(final int value) {
+		return innerViewPart.isHValid(value);
+	}
+
+	@Override
+	public int getHRangeMin() {
+		return innerViewPart.getHRangeMin();
+	}
+
+	@Override
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		innerViewPart.setHRangeMin(sender, hRangeMin);
+	}
+
+	@Override
+	public int getHRangeMax() {
+		return innerViewPart.getHRangeMax();
+	}
+
+	@Override
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		innerViewPart.setHRangeMax(sender, hRangeMax);
+	}
+
+	@Override
+	public int getKMin() {
+		return innerViewPart.getKMin();
+	}
+
+	@Override
+	public int getKSup() {
+		return innerViewPart.getKSup();
+	}
+
+	@Override
+	public boolean isKValid(final int value) {
+		return innerViewPart.isKValid(value);
+	}
+
+	@Override
+	public int getKRangeMin() {
+		return innerViewPart.getKRangeMin();
+	}
+
+	@Override
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		innerViewPart.setKRangeMin(sender, kRangeMin);
+		
+	}
+
+	@Override
+	public int getKRangeMax() {
+		return innerViewPart.getKRangeMax();
+	}
+
+	@Override
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		innerViewPart.setKRangeMax(sender, kRangeMax);
+	}
+
+	@Override
+	public int getLMin() {
+		return innerViewPart.getLMin();
+	}
+
+	@Override
+	public int getLSup() {
+		return innerViewPart.getLSup();
+	}
+
+	@Override
+	public boolean isLValid(final int value) {
+		return innerViewPart.isLValid(value);
+	}
+
+	@Override
+	public int getLRangeMin() {
+		return innerViewPart.getLRangeMin();
+	}
+
+	@Override
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		innerViewPart.setLRangeMin(sender, lRangeMin);
+	}
+
+	@Override
+	public int getLRangeMax() {
+		return innerViewPart.getLRangeMax();
+	}
+
+	@Override
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		innerViewPart.setLRangeMax(sender, lRangeMax);
+	}
+
+	@Override
 	public DownsampleType getDownsampleType() {
 		return innerViewPart.getDownsampleType();
 	}
@@ -136,7 +242,7 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 
 	@Override //from IViewPart/IWorkbenchPart
 	public void removePropertyListener(final IPropertyListener listener) {
-		innerViewPart.removePropertyListener(listener);
+		super.removePropertyListener(listener);
 	}
 
 	@Override //from IViewPart/IWorkbenchPart

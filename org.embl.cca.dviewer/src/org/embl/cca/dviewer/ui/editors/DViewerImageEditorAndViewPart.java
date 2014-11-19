@@ -63,7 +63,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IActionBars2;
@@ -88,12 +87,15 @@ import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
+import org.embl.cca.dviewer.ui.views.DViewerControlsView;
+import org.embl.cca.dviewer.ui.views.DViewerImageView;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageSaver;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageScaledSaver;
 import org.embl.cca.utils.datahandling.text.DecimalPaddedFormat;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.CommonThreading;
@@ -180,8 +182,8 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	protected int dataSetPHARadius;
 	protected final Boolean dataSetLock = new Boolean(true); //This is a lock, has no value
 	protected Action phaAction;
-	protected Action hklAction; //TODO temporary action
-	protected Action openViewAction; //TODO temporary action
+	protected Action openDViewerViewAction;
+	protected Action openDViewerControlsAction;
 	/**
 	 * The current radius of PHA which is applied on dataSetOriginal when requested.
 	 */
@@ -192,6 +194,10 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	protected final CreatePHAPlotJob createPHAPlotJob;
 
 	protected DownsampleType requiredDownsampleType = null;
+
+	protected int hMin, hSup, hRangeMin, hRangeMax;
+	protected int kMin, kSup, kRangeMin, kRangeMax;
+	protected int lMin, lSup, lRangeMin, lRangeMax;
 
 	/**
 	 * The current mouse position.
@@ -569,15 +575,11 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	}
 
 	
-//	protected Control getControl() {
-//		return container;
-//	}
-//
 	protected void saveAs(Dataset ds, boolean autoscale, double min, double max) {
 		final Shell shell = getSite().getWorkbenchWindow().getShell();
 		Assert.isNotNull(shell, "Environment error: can not find shell");
 		if( saveAsDialog == null ) {
-			saveAsDialog = new SaveFileDialog(shell, DViewerActivator.getLocalPreferenceStore(), ID);
+			saveAsDialog = new SaveFileDialog(shell, DViewerActivator.getLocalPreferenceStore(), DViewerImageEditorPart.ID);
 			saveAsDialog.setText("Save Image As");
 			saveAsDialog.setOverwrite(true);
 			saveAsDialog.addWritableImageFilters();
@@ -675,7 +677,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	public void createPartControl(final Composite parent) { //By PlotDataEditor
 		container = new Composite(parent, SWT.NONE);
 		getContainer().setLayout(new GridLayout(1, false));
-		getContainer().setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+//		getContainer().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
 		if (getContainer().getLayout() instanceof GridLayout) //For sure
 			GridUtils.removeMargins(getContainer());
 
@@ -692,7 +694,6 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 			}
 		}); 
 
-//		final IActionBars bars = getEditorSite().getActionBars();asd
 		final IActionBars bars;
 		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
 			bars = getEditorSite().getActionBars();
@@ -702,7 +703,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		wrapper = ActionBarWrapper.createActionBars(toolbarParent != null ? toolbarParent : getContainer(),(IActionBars2)bars);
 
 		final Composite plot  = new Composite(getContainer(), SWT.NONE);
-		plot.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
+//		plot.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_CYAN));
 		plot.setLayout(new FillLayout()); //layout must be FillLayout for showing plotting
 		plot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true)); //grabExcessVerticalSpace must be true for showing plotting
 		plottingSystem.createPlotPart(plot, getEditorInput().getName(), wrapper, defaultPlotType, classRole);
@@ -730,10 +731,42 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		phaAction.setChecked((boolean)EditorPreferenceInitializer.ApplyPha.getValue());
 		toolMan.insertAfter( "org.dawb.workbench.plotting.histo", phaAction );
 
-		//TODO temporary code here, to develop HKL loader
-//		final String hklFeatureName = "HKL";
-//		final String hklFeatureFullName = "Load and apply HKL";
-//		final String hklFeatureIdentifierName = hklFeatureName.toLowerCase();
+		final String openDViewerControlsAfter;
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) ) {
+			final String dViewerViewFeatureName = "dViewerView";
+			final String dViewerViewFeatureFullName = "dViewer View";
+			final String dViewerViewFeatureIdentifierName = dViewerViewFeatureName.toLowerCase();
+			openDViewerViewAction = new Action(dViewerViewFeatureName, IAction.AS_PUSH_BUTTON ) {
+				@Override
+				public void run() {
+					onDViewerViewSelected();
+				}
+			};
+			openDViewerViewAction.setId(getClass().getName() + "." + dViewerViewFeatureIdentifierName);
+			openDViewerViewAction.setText("Show " + dViewerViewFeatureName);
+			openDViewerViewAction.setToolTipText("Show " + dViewerViewFeatureFullName);
+			openDViewerViewAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/dViewer-view-16x16-icon.png"));
+			toolMan.insertAfter( phaAction.getId(), openDViewerViewAction );
+			openDViewerControlsAfter = openDViewerViewAction.getId();
+		} else
+			openDViewerControlsAfter = phaAction.getId();
+
+		final String dViewerControlsFeatureName = "dViewerControls";
+		final String dViewerControlsFeatureFullName = "dViewer Controls View";
+		final String dViewerControlsFeatureIdentifierName = dViewerControlsFeatureName.toLowerCase();
+		openDViewerControlsAction = new Action(dViewerControlsFeatureName, IAction.AS_PUSH_BUTTON ) {
+			@Override
+			public void run() {
+				onDViewerControlsSelected();
+			}
+		};
+		openDViewerControlsAction.setId(getClass().getName() + "." + dViewerControlsFeatureIdentifierName);
+		openDViewerControlsAction.setText("Show " + dViewerControlsFeatureName);
+		openDViewerControlsAction.setToolTipText("Show " + dViewerControlsFeatureFullName);
+		openDViewerControlsAction.setImageDescriptor(DViewerActivator.getImageDescriptor("/icons/dViewer-controls-16x16-icon.png"));
+		toolMan.insertAfter( openDViewerControlsAfter, openDViewerControlsAction );
+
+//TODO temporary code here, to develop HKL loader
 //		hklAction = new Action(hklFeatureName, IAction.AS_PUSH_BUTTON ) {
 //			@Override
 //			public void run() {
@@ -1141,9 +1174,11 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 				trace = plottingSystem.createPlot2D(data, getAxesForPlot(data), data.getName(), plottingMonitor);
 			} else {
 				trace = plottingSystem.updatePlot2D(data, getAxesForPlot(data), data.getName(), plottingMonitor);
-				if (plottingSystem.isRescale())
+				if (trace != null && plottingSystem.isRescale())
 					plottingSystem.repaint(); //Better than autoscaleAxes(), because it also repaints, and thread safe
 			}
+			if( trace == null ) //thisMonitor is cancelled
+				return;
 			imageTrace = (IImageTrace) trace;
 			final int[] setShape = trace.getData().getShape();
 			statusXPosFormat.setMaximumIntegerDigits(1+(int)Math.floor(Math.log10(setShape[1])));
@@ -1203,6 +1238,16 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		} //else see onPhaPlotIsCancelled
 	}
 
+	protected void onDViewerControlsSelected() {
+		System.out.println("dViewer Controls Selected (" + openDViewerControlsAction.isChecked() + ")!");
+		CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
+	}
+
+	protected void onDViewerViewSelected() {
+		System.out.println("dViewer View Selected (" + openDViewerViewAction.isChecked() + ")!");
+		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
+	}
+
 	@Override //from IDViewerImageControllable
 	public DownsampleType getDownsampleType() {
 		return imageTrace != null ? imageTrace.getDownsampleType() : null;
@@ -1245,7 +1290,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IDViewerImageControllable
 	public boolean isPhaRadiusValid(final int value) {
-		return value>=DViewerEditorConstants.PHA_RADIUS_MIN && value<=DViewerEditorConstants.PHA_RADIUS_MAX;
+		return value>=getPhaRadiusMin() && value<getPhaRadiusSup();
 	}
 
 	@Override //from IDViewerImageControllable
@@ -1310,6 +1355,207 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 				createPHAPlotJob.reschedule(dataSetOriginal, rehistogram, phaRadius);
 			}
 		}
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHMin() {
+		return hMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHSup() {
+		return hSup;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isHValid(final int value) {
+		return value>=getHMin() && value<getHSup();
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHRangeMin() {
+		return hRangeMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		if( getHRangeMin() == hRangeMin )
+			return;
+		final int hMin = getHMin();
+		final int hSup = getHSup();
+		try {
+			Assert.isLegal(isHValid(hRangeMin), "The hRangeMin (" + hRangeMin + ") is illegal, " + hMin + " <= hRangeMin < " + hSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.H_RANGE_MIN, sender);
+			return;
+		}
+		this.hRangeMin = hRangeMin;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.H_RANGE_MIN);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHRangeMax() {
+		return hRangeMax;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		if( getHRangeMax() == hRangeMax )
+			return;
+		final int hMin = getHMin();
+		final int hSup = getHSup();
+		try {
+			Assert.isLegal(isHValid(hRangeMax), "The hRangeMax (" + hRangeMax + ") is illegal, " + hMin + " <= hRangeMax < " + hSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.H_RANGE_MAX, sender);
+			return;
+		}
+		this.hRangeMax = hRangeMax;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.H_RANGE_MAX);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKMin() {
+		return kMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKSup() {
+		return kSup;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isKValid(final int value) {
+		return value>=getKMin() && value<getKSup();
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKRangeMin() {
+		return kRangeMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		if( getKRangeMin() == kRangeMin )
+			return;
+		final int kMin = getKMin();
+		final int kSup = getKSup();
+		try {
+			Assert.isLegal(isKValid(kRangeMin), "The kRangeMin (" + kRangeMin + ") is illegal, " + kMin + " <= kRangeMin < " + kSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.K_RANGE_MIN, sender);
+			return;
+		}
+		this.kRangeMin = kRangeMin;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.K_RANGE_MIN);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKRangeMax() {
+		return kRangeMax;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		if( getKRangeMax() == kRangeMax )
+			return;
+		final int kMin = getKMin();
+		final int kSup = getKSup();
+		try {
+			Assert.isLegal(isKValid(kRangeMax), "The kRangeMax (" + kRangeMax + ") is illegal, " + kMin + " <= kRangeMax < " + kSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.K_RANGE_MAX, sender);
+			return;
+		}
+		this.kRangeMax = kRangeMax;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.K_RANGE_MAX);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLMin() {
+		return lMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLSup() {
+		return lSup;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isLValid(final int value) {
+		return value>=getLMin() && value<getLSup();
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLRangeMin() {
+		return lRangeMin;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		if( getLRangeMin() == lRangeMin )
+			return;
+		final int lMin = getLMin();
+		final int lSup = getLSup();
+		try {
+			Assert.isLegal(isLValid(lRangeMin), "The lRangeMin (" + lRangeMin + ") is illegal, " + lMin + " <= lRangeMin < " + lSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.L_RANGE_MIN, sender);
+			return;
+		}
+		this.lRangeMin = lRangeMin;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.L_RANGE_MIN);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLRangeMax() {
+		return lRangeMax;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		if( getLRangeMax() == lRangeMax )
+			return;
+		final int lMin = getLMin();
+		final int lSup = getLSup();
+		try {
+			Assert.isLegal(isLValid(lRangeMax), "The lRangeMax (" + lRangeMax + ") is illegal, " + lMin + " <= lRangeMax < " + lSup + " must be true.");
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.L_RANGE_MAX, sender);
+			return;
+		}
+		this.lRangeMax = lRangeMax;
+		synchronized (dataSetLock) {
+			if( isPlotReady() )
+				; //phaRadiusChanged(); //TODO update HKL display (lock should be changed probably)
+		}
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.L_RANGE_MAX);
 	}
 
 	@Override //from IDViewerImageControllable

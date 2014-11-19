@@ -94,18 +94,18 @@
          point="org.eclipse.ui.views">
       <view
             category="org.dawb.workbench.ui.beta.views.category"
-            class="org.embl.cca.dviewer.ui.views.HKLSelectorView"
-            icon="icons/dViewer-16x16-icon.png"
-            id="org.embl.cca.dviewer.ui.views.HKLSelectorView"
-            name="HKL Selector"
+            class="org.embl.cca.dviewer.ui.views.DViewerControlsView"
+            icon="icons/dViewer-controls-16x16-icon.png"
+            id="org.embl.cca.dviewer.ui.views.DViewerControlsView"
+            name="dViewer Controls"
             restorable="true">
       </view>
       <view
             category="org.dawb.workbench.ui.beta.views.category"
             class="org.embl.cca.dviewer.ui.views.DViewerImageView"
-            icon="icons/dViewer-16x16-icon.png"
+            icon="icons/dViewer-view-16x16-icon.png"
             id="org.embl.cca.dviewer.ui.views.DViewerImageView"
-            name="dViewer Image Viewer"
+            name="dViewer View"
             restorable="true">
       </view>
    </extension>

@@ -10,7 +10,6 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
@@ -27,7 +26,7 @@ import org.embl.cca.utils.general.ISomethingChangeListener;
 //ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
 
 public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPartHost, IReusableEditor, ITitledEditor, ISaveablePart,
-	IShowEditorInput, IDViewerControllable {
+	IShowEditorInput, IDViewerControllable, IDViewerControlsPageAdaptable {
 
 	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart";
 
@@ -81,6 +80,112 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	}
 
 	@Override
+	public int getHMin() {
+		return innerEditorPart.getHMin();
+	}
+
+	@Override
+	public int getHSup() {
+		return innerEditorPart.getHSup();
+	}
+
+	@Override
+	public boolean isHValid(final int value) {
+		return innerEditorPart.isHValid(value);
+	}
+
+	@Override
+	public int getHRangeMin() {
+		return innerEditorPart.getHRangeMin();
+	}
+
+	@Override
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		innerEditorPart.setHRangeMin(sender, hRangeMin);
+	}
+
+	@Override
+	public int getHRangeMax() {
+		return innerEditorPart.getHRangeMax();
+	}
+
+	@Override
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		innerEditorPart.setHRangeMax(sender, hRangeMax);
+	}
+
+	@Override
+	public int getKMin() {
+		return innerEditorPart.getKMin();
+	}
+
+	@Override
+	public int getKSup() {
+		return innerEditorPart.getKSup();
+	}
+
+	@Override
+	public boolean isKValid(final int value) {
+		return innerEditorPart.isKValid(value);
+	}
+
+	@Override
+	public int getKRangeMin() {
+		return innerEditorPart.getKRangeMin();
+	}
+
+	@Override
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		innerEditorPart.setKRangeMin(sender, kRangeMin);
+		
+	}
+
+	@Override
+	public int getKRangeMax() {
+		return innerEditorPart.getKRangeMax();
+	}
+
+	@Override
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		innerEditorPart.setKRangeMax(sender, kRangeMax);
+	}
+
+	@Override
+	public int getLMin() {
+		return innerEditorPart.getLMin();
+	}
+
+	@Override
+	public int getLSup() {
+		return innerEditorPart.getLSup();
+	}
+
+	@Override
+	public boolean isLValid(final int value) {
+		return innerEditorPart.isLValid(value);
+	}
+
+	@Override
+	public int getLRangeMin() {
+		return innerEditorPart.getLRangeMin();
+	}
+
+	@Override
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		innerEditorPart.setLRangeMin(sender, lRangeMin);
+	}
+
+	@Override
+	public int getLRangeMax() {
+		return innerEditorPart.getLRangeMax();
+	}
+
+	@Override
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		innerEditorPart.setLRangeMax(sender, lRangeMax);
+	}
+
+	@Override
 	public DownsampleType getDownsampleType() {
 		return innerEditorPart.getDownsampleType();
 	}
@@ -109,8 +214,6 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	@Override //from IEditorPart/IWorkbenchPart
 	public void addPropertyListener(final IPropertyListener listener) {
 		super.addPropertyListener(listener);
-		if( innerEditorPart != null ) //Can be null when super.constructor runs
-			innerEditorPart.addPropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
@@ -140,7 +243,7 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void removePropertyListener(final IPropertyListener listener) {
-		innerEditorPart.removePropertyListener(listener);
+		super.removePropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
@@ -342,6 +445,32 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	}
 
 	@Override //from IDViewerControllable
+	public int getShowEachNthImageMin() {
+		return innerEditorPart.getShowEachNthImageMin();
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImageSup() {
+		return innerEditorPart.getShowEachNthImageSup();
+	}
+
+	@Override //from IDViewerControllable
+	public boolean isShowEachNthImageValid(final int showEachNthImage) {
+		return innerEditorPart.isShowEachNthImageValid(showEachNthImage);
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImage() {
+		return innerEditorPart.getShowEachNthImage();
+	}
+
+	@Override //from IDViewerControllable
+	public void setShowEachNthImage(final ISomethingChangeListener sender,
+			final int showEachNthImage) {
+		innerEditorPart.setShowEachNthImage(sender, showEachNthImage);
+	}
+
+	@Override //from IDViewerControllable
 	public int getImageArrayMin() {
 		return innerEditorPart.getImageArrayMin();
 	}
@@ -362,23 +491,23 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	}
 
 	@Override //from IDViewerControllable
+	public boolean isBatchIndexValid(final int value) {
+		return innerEditorPart.isBatchIndexValid(value);
+	}
+
+	@Override //from IDViewerControllable
 	public void setBatchIndex(ISomethingChangeListener sender, int batchIndex) {
 		innerEditorPart.setBatchIndex(sender, batchIndex);
 	}
 
 	@Override //from IDViewerControllable
-	public void setBatchSize(ISomethingChangeListener sender, int batchSize) {
-		innerEditorPart.setBatchSize(sender, batchSize);
-	}
-
-	@Override //from IDViewerControllable
-	public boolean isBatchSizeValid(int value) {
+	public boolean isBatchSizeValid(final int value) {
 		return innerEditorPart.isBatchSizeValid(value);
 	}
 
 	@Override //from IDViewerControllable
-	public void revalidateLayout(Control control) {
-		innerEditorPart.revalidateLayout(control);
+	public void setBatchSize(ISomethingChangeListener sender, int batchSize) {
+		innerEditorPart.setBatchSize(sender, batchSize);
 	}
 
 }

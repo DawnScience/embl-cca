@@ -76,6 +76,112 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 	}
 
 	@Override
+	public int getHMin() {
+		return innerEditorPart.getHMin();
+	}
+
+	@Override
+	public int getHSup() {
+		return innerEditorPart.getHSup();
+	}
+
+	@Override
+	public boolean isHValid(final int value) {
+		return innerEditorPart.isHValid(value);
+	}
+
+	@Override
+	public int getHRangeMin() {
+		return innerEditorPart.getHRangeMin();
+	}
+
+	@Override
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		innerEditorPart.setHRangeMin(sender, hRangeMin);
+	}
+
+	@Override
+	public int getHRangeMax() {
+		return innerEditorPart.getHRangeMax();
+	}
+
+	@Override
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		innerEditorPart.setHRangeMax(sender, hRangeMax);
+	}
+
+	@Override
+	public int getKMin() {
+		return innerEditorPart.getKMin();
+	}
+
+	@Override
+	public int getKSup() {
+		return innerEditorPart.getKSup();
+	}
+
+	@Override
+	public boolean isKValid(final int value) {
+		return innerEditorPart.isKValid(value);
+	}
+
+	@Override
+	public int getKRangeMin() {
+		return innerEditorPart.getKRangeMin();
+	}
+
+	@Override
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		innerEditorPart.setKRangeMin(sender, kRangeMin);
+		
+	}
+
+	@Override
+	public int getKRangeMax() {
+		return innerEditorPart.getKRangeMax();
+	}
+
+	@Override
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		innerEditorPart.setKRangeMax(sender, kRangeMax);
+	}
+
+	@Override
+	public int getLMin() {
+		return innerEditorPart.getLMin();
+	}
+
+	@Override
+	public int getLSup() {
+		return innerEditorPart.getLSup();
+	}
+
+	@Override
+	public boolean isLValid(final int value) {
+		return innerEditorPart.isLValid(value);
+	}
+
+	@Override
+	public int getLRangeMin() {
+		return innerEditorPart.getLRangeMin();
+	}
+
+	@Override
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		innerEditorPart.setLRangeMin(sender, lRangeMin);
+	}
+
+	@Override
+	public int getLRangeMax() {
+		return innerEditorPart.getLRangeMax();
+	}
+
+	@Override
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		innerEditorPart.setLRangeMax(sender, lRangeMax);
+	}
+
+	@Override
 	public DownsampleType getDownsampleType() {
 		return innerEditorPart.getDownsampleType();
 	}
@@ -139,7 +245,7 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void removePropertyListener(final IPropertyListener listener) {
-		innerEditorPart.removePropertyListener(listener);
+		super.removePropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart

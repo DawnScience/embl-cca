@@ -10,7 +10,6 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPropertyListener;
@@ -74,6 +73,112 @@ public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost
 	}
 
 	@Override
+	public int getHMin() {
+		return innerViewPart.getHMin();
+	}
+
+	@Override
+	public int getHSup() {
+		return innerViewPart.getHSup();
+	}
+
+	@Override
+	public boolean isHValid(final int value) {
+		return innerViewPart.isHValid(value);
+	}
+
+	@Override
+	public int getHRangeMin() {
+		return innerViewPart.getHRangeMin();
+	}
+
+	@Override
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		innerViewPart.setHRangeMin(sender, hRangeMin);
+	}
+
+	@Override
+	public int getHRangeMax() {
+		return innerViewPart.getHRangeMax();
+	}
+
+	@Override
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		innerViewPart.setHRangeMax(sender, hRangeMax);
+	}
+
+	@Override
+	public int getKMin() {
+		return innerViewPart.getKMin();
+	}
+
+	@Override
+	public int getKSup() {
+		return innerViewPart.getKSup();
+	}
+
+	@Override
+	public boolean isKValid(final int value) {
+		return innerViewPart.isKValid(value);
+	}
+
+	@Override
+	public int getKRangeMin() {
+		return innerViewPart.getKRangeMin();
+	}
+
+	@Override
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		innerViewPart.setKRangeMin(sender, kRangeMin);
+		
+	}
+
+	@Override
+	public int getKRangeMax() {
+		return innerViewPart.getKRangeMax();
+	}
+
+	@Override
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		innerViewPart.setKRangeMax(sender, kRangeMax);
+	}
+
+	@Override
+	public int getLMin() {
+		return innerViewPart.getLMin();
+	}
+
+	@Override
+	public int getLSup() {
+		return innerViewPart.getLSup();
+	}
+
+	@Override
+	public boolean isLValid(final int value) {
+		return innerViewPart.isLValid(value);
+	}
+
+	@Override
+	public int getLRangeMin() {
+		return innerViewPart.getLRangeMin();
+	}
+
+	@Override
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		innerViewPart.setLRangeMin(sender, lRangeMin);
+	}
+
+	@Override
+	public int getLRangeMax() {
+		return innerViewPart.getLRangeMax();
+	}
+
+	@Override
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		innerViewPart.setLRangeMax(sender, lRangeMax);
+	}
+
+	@Override
 	public DownsampleType getDownsampleType() {
 		return innerViewPart.getDownsampleType();
 	}
@@ -131,7 +236,7 @@ public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost
 
 	@Override //from IEditorPart/IWorkbenchPart
 	public void removePropertyListener(final IPropertyListener listener) {
-		innerViewPart.removePropertyListener(listener);
+		super.removePropertyListener(listener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
@@ -309,6 +414,32 @@ public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost
 	}
 
 	@Override //from IDViewerControllable
+	public int getShowEachNthImageMin() {
+		return innerViewPart.getShowEachNthImageMin();
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImageSup() {
+		return innerViewPart.getShowEachNthImageSup();
+	}
+
+	@Override //from IDViewerControllable
+	public boolean isShowEachNthImageValid(final int showEachNthImage) {
+		return innerViewPart.isShowEachNthImageValid(showEachNthImage);
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImage() {
+		return innerViewPart.getShowEachNthImage();
+	}
+
+	@Override //from IDViewerControllable
+	public void setShowEachNthImage(final ISomethingChangeListener sender,
+			final int showEachNthImage) {
+		innerViewPart.setShowEachNthImage(sender, showEachNthImage);
+	}
+
+	@Override //from IDViewerControllable
 	public void displayRemotedImageDedicated() {
 		innerViewPart.displayRemotedImageDedicated();
 	}
@@ -334,23 +465,23 @@ public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost
 	}
 
 	@Override //from IDViewerControllable
-	public void setBatchIndex(ISomethingChangeListener sender, int batchIndex) {
-		innerViewPart.setBatchIndex(sender, batchIndex);
-	}
-
-	@Override //from IDViewerControllable
-	public void setBatchSize(ISomethingChangeListener sender, int batchSize) {
-		innerViewPart.setBatchSize(sender, batchSize);
-	}
-
-	@Override //from IDViewerControllable
-	public boolean isBatchSizeValid(int value) {
+	public boolean isBatchIndexValid(final int value) {
 		return innerViewPart.isBatchSizeValid(value);
 	}
 
 	@Override //from IDViewerControllable
-	public void revalidateLayout(Control control) {
-		innerViewPart.revalidateLayout(control);
+	public void setBatchIndex(final ISomethingChangeListener sender, final int batchIndex) {
+		innerViewPart.setBatchIndex(sender, batchIndex);
+	}
+
+	@Override //from IDViewerControllable
+	public boolean isBatchSizeValid(final int value) {
+		return innerViewPart.isBatchSizeValid(value);
+	}
+
+	@Override //from IDViewerControllable
+	public void setBatchSize(final ISomethingChangeListener sender, final int batchSize) {
+		innerViewPart.setBatchSize(sender, batchSize);
 	}
 
 }

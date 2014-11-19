@@ -6,6 +6,7 @@ import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
@@ -13,13 +14,9 @@ import org.eclipse.ui.part.Page;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayViewPart;
 import org.embl.cca.dviewer.ui.editors.DViewerListenerManager;
-import org.embl.cca.utils.errorhandling.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DViewerImagePage extends Page implements IAdaptable {
 
-	private final static Logger logger = LoggerFactory.getLogger(DViewerImagePage.class);
 	public final static String DViewerImagePageAsString = "dViewer View";
 
 	protected IViewSite site;
@@ -70,7 +67,11 @@ public class DViewerImagePage extends Page implements IAdaptable {
 		try {
 			viewer.init(getViewSite());
 		} catch (final PartInitException e) {
-			ExceptionUtils.logError(logger, new StringBuilder("Cannot initiate ").append(getClass().getName()).toString(), e, this);
+			final Shell shell = getSite().getShell();
+			Assert.isNotNull(shell, "Environment error: can not find shell");
+			MessageDialog.openError(shell,
+					"View Initializing Error", new StringBuilder("Cannot initiate \"")
+				.append(viewer.getClass().getName()).append("\".\n\n").append(e.getMessage()).toString());
 			return;
 		}
 		viewer.setInput(origin.getEditorInput());

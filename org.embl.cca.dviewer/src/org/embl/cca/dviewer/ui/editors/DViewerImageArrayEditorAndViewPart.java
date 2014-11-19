@@ -19,15 +19,15 @@ import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPropertyListener;
@@ -36,13 +36,14 @@ import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartConstants;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.internal.misc.UIListenerLogging;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
 import org.eclipse.ui.part.WorkbenchPart;
+import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
-import org.embl.cca.dviewer.ui.views.HKLSelectorPage;
+import org.embl.cca.dviewer.ui.views.DViewerControlsPage;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.FileLoader;
@@ -57,17 +58,16 @@ import org.embl.cca.utils.threading.CommonThreading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
 public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	implements ITitledEditor, IReusableEditor, IShowEditorInput,//ISaveable
-	IViewPart, IDViewerControllable {
+	IViewPart, IDViewerControllable, IDViewerControlsPageAdaptable {
 
 	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorAndViewPart";
 
 	private static final Logger logger = LoggerFactory.getLogger(DViewerImageArrayEditorAndViewPart.class);
 
 	//Support for IEditorPart and IViewPart, beginning here
-	protected final IWorkbenchPart classRole; //IEditorPartHost or IViewPartHost
+	protected final IWorkbenchPart classRole; //(IEditorPartHost or IViewPartHost) and IDViewerControllable
 	/**
 	 * If classRole is IViewPartHost, then this value is used:
 	 * Editor input, or <code>null</code> if none.
@@ -82,8 +82,13 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	};
 	//Support for IEditorPart and IViewPart, ending here
 
-	public final static int BATCH_SIZE_MAX = 999;
-	public final static int BATCH_SIZE_MIN = 1;
+	protected final IPropertyListener inputListener = new IPropertyListener() {
+		public void propertyChanged(final Object source, final int propId) {
+			if (propId == IWorkbenchPartConstants.PROP_INPUT) {
+				editorInputChanged();
+			}
+		}
+	};
 
 	public final static Dataset EMPTY_DATASET = new IntegerDataset(new int [] {}, 0, 0);
 	public  final static MemoryDatasetEditorInput EMPTY_DATASET_INPUT = new MemoryDatasetEditorInput(EMPTY_DATASET);
@@ -91,10 +96,16 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	protected boolean remotedImageEditor = false;
 	protected boolean autoDisplayRemotedImage = true;
 	protected DViewerRemotedDisplayState remotedDisplayState = DViewerRemotedDisplayState.PLAYING_AND_REMOTE_UPDATED;
-
-	protected static IEditorPart dummyEditorPart = null;
-	protected static IEditorReference dummyEditorReference = null;
-	protected IWorkbenchPart plotDataPart = null;
+	protected int showEachNthImage = 1;
+	/**
+	 * This counter is decreased each time a remote image is received,
+	 * and when reaches 0, remote image is displayed, and this counter
+	 * is reset to showEachNthImage.
+	 */
+	protected int showImageCounter = 1;
+	
+	protected IWorkbenchPart plotDataPart;
+	protected Label statusLabel;
 
 	protected final FileLoader fileLoader;
 //	protected final Thread imageFilesAutoLatestThread;
@@ -149,12 +160,21 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	 * The container widget containing everything.
 	 */
 	protected Composite mainContainer;
-	/**
-	 * The container containing GUI controls.
-	 */
-	protected Composite guiContainer;
 
 	protected final DViewerListenerManager listenerManager;
+
+	protected final ISomethingChangeListener somethingChangeListener = new ISomethingChangeListener() {
+		/**
+		 * {@inheritDoc}
+		 * <p>
+		 * GUI thread is assumed.
+		 */
+		@Override
+		public void somethingChange(final SomethingChangeEvent event) {
+			if( event.getSomethingName().equals(SomethingChangeEvent.MOUSE_POSITION) )
+				internalUpdateStatus();
+		}
+	};
 
 	protected class AutoSelectLatestNewImageJob extends Job {
 		protected class SelectLatestImageBatchJob extends Job {
@@ -287,13 +307,15 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	public DViewerImageArrayEditorAndViewPart(final IWorkbenchPart classRole) {
 		if( !(IEditorPartHost.class.isAssignableFrom(classRole.getClass())
-				|| IViewPartHost.class.isAssignableFrom(classRole.getClass())) )
-			throw new IllegalArgumentException("classRole must be IEditorPartHost or IViewPartHost");
+				|| IViewPartHost.class.isAssignableFrom(classRole.getClass()))
+				|| !IDViewerControllable.class.isAssignableFrom(classRole.getClass()) )
+			throw new IllegalArgumentException("classRole must be (IEditorPartHost or IViewPartHost) and IDViewerControllable");
 		this.classRole = classRole;
 		fileLoader = new FileLoader();
 		fileLoader.addFileLoaderListener(fileLoaderListener);
 		autoSelectLatestNewImageJob = new AutoSelectLatestNewImageJob();
 		listenerManager = new DViewerListenerManager();
+		addPropertyListener(inputListener);
 		classRole.addPropertyListener(hostPropertyListener);
 	}
 
@@ -306,6 +328,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 				remotedImageEditor = true;
 			}
 		}
+		remotedImageEditor = true; //TODO ONLY FOR TESTING REMOTED WINDOW!
 		setInput(input);
 	}
 
@@ -332,7 +355,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IShowEditorInput
 	public void showEditorInput(final IEditorInput editorInput) {
-		setInput(editorInput);
+		setInputWithNotify(editorInput);
 	}
 
 	@Override //from IEditorPart
@@ -529,10 +552,10 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	@Override //from WorkbenchPart
 	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
-		if (clazz == HKLSelectorPage.class) {
-			return HKLSelectorPage.getPageFor(this);
-//		} else if (clazz == DViewerImagePage.class) {
-//			return DViewerImagePage.getPageFor(this);
+		if (clazz == DViewerControlsPage.class) {
+			return DViewerControlsPage.getPageFor((IDViewerControllable)classRole);
+		} else if (clazz == IDViewerControlsPageAdaptable.class) {
+			return new IDViewerControlsPageAdaptable() {};
 		}
 		return getActivePart().getAdapter(clazz);
 	}
@@ -552,6 +575,12 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 					else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
 						getActiveDViewerSubView().setInput(input);
 				} else {
+					System.out.println("editorInputChanged, showImageCounter=" + showImageCounter + ", showEachNthImage=" + showEachNthImage);
+					if( isRemoted() ) { //This is the "Show each Nth received image" feature
+						if( --showImageCounter > 0 )
+							return;
+						showImageCounter = showEachNthImage;
+					}
 //				updateSlider( getPath( getEditorInput() ) );
 					//TODO import raw loader from previous version?
 					final String filePath = getPath( getEditorInput() );
@@ -600,22 +629,6 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		return getOrientation();
 	}
 
-	/**
-	 * Returns the reference of dummy editor if there is one.
-	 * <p>
-	 * Subclasses should not override this method
-	 * </p>
-	 * <p>
-	 * Clients should not call this method, it merely supports a bugfix hack.
-	 * </p>
-	 * 
-	 * @nooverride
-	 * @return the reference of dummy editor, or <code>null</code> if none
-	 */
-	public static IEditorReference getDummyEditorReference() {
-		return dummyEditorReference;
-	}
-	
 	/**
 	 * Returns the active nested part if there is one.
 	 * <p>
@@ -742,32 +755,12 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	 */
 	@SuppressWarnings("restriction")
 	protected void handlePropertyChange(final int propertyId) {
-		UIListenerLogging.logPartReferencePropertyChange(this.getSite().getPage().getActivePartReference(), propertyId);
+		org.eclipse.ui.internal.misc.UIListenerLogging.logPartReferencePropertyChange(getSite().getPage().getActivePartReference(), propertyId);
 		firePropertyChange(propertyId);
 	}
 
 	@Override //from WorkbenchPart
 	public void createPartControl(final Composite parent) {
-		mainContainer = new Composite(parent, SWT.NONE);
-		final GridLayout mainGridLayout = new GridLayout(1, false);
-		mainContainer.setLayout(mainGridLayout);
-//		container.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
-		GridUtils.removeMargins(mainContainer); //valid for GridLayout only
-
-		guiContainer = new Composite(mainContainer, SWT.NONE);
-		guiContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-//		guiContainer.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-		final RowLayout layoutRow = new RowLayout();
-		layoutRow.marginBottom = 0; //default: 3
-		layoutRow.marginTop = 0; //default: 3
-		layoutRow.marginLeft = 0; //default: 3
-		layoutRow.marginRight = 0; //default: 3
-		layoutRow.marginHeight = 0; //default: 0
-		layoutRow.marginWidth = 0; //default: 0
-		layoutRow.spacing = 3; //default: 3
-		layoutRow.center = true;
-		guiContainer.setLayout(layoutRow);
-
 		try {
 			if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
 				plotDataPart = new DViewerImageEditorPart(PlotType.IMAGE, listenerManager);
@@ -778,22 +771,35 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 				"dViewer Initializing Error", "Can not create WorkbenchPart\n" + e.getMessage());
 			if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
 				getSite().getPage().closeEditor((IEditorPartHost)classRole, false);
+			return;
 		}
 
-		final DViewerController dViewerController = new DViewerController(this);
-		dViewerController.createImageEditorGUI(guiContainer); //create controls basically (without initializing)
+		mainContainer = new Composite(parent, SWT.NONE);
+		final GridLayout mainGridLayout = new GridLayout(1, false);
+		mainContainer.setLayout(mainGridLayout);
+//		container.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_GREEN));
+		GridUtils.removeMargins(mainContainer); //valid for GridLayout only
 
-		final Composite toolbarContainer = new Composite(guiContainer, SWT.NONE);
+//		final DViewerController dViewerController = new DViewerController(this, mainContainer);
+//		dViewerController.createImageEditorGUI(mainContainer); //create controls basically (without initializing)
+
+		final Composite toolbarAndStatusContainer = new Composite(mainContainer, SWT.NONE);
+//		toolbarAndStatusContainer.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_YELLOW));
+		toolbarAndStatusContainer.setLayout(DViewerController.createRowLayout());
+
+		final Composite toolbarContainer = new Composite(toolbarAndStatusContainer, SWT.NONE);
 		final GridLayout toolbarGridLayout = new GridLayout(1, false);
 		toolbarContainer.setLayout(toolbarGridLayout);
-//		toolbarContainer.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
-		GridUtils.removeMargins(mainContainer); //valid for GridLayout only
+//		toolbarContainer.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_BLUE));
+		GridUtils.removeMargins(toolbarContainer); //valid for GridLayout only
 
 		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
 			getActiveDViewerSubEditor().setToolbarParent(toolbarContainer);
 		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
 			getActiveDViewerSubView().setToolbarParent(toolbarContainer);
-		dViewerController.createImageEditorStatusBar(guiContainer); //create statusbar
+		statusLabel = new Label(toolbarAndStatusContainer, SWT.WRAP); //create statusbar
+		//Setting monospace font to avoid jumping numbers left-right
+		statusLabel.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 
 		try {
 			if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
@@ -813,14 +819,27 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 				handlePropertyChange(propertyId);
 			}
 		});
-		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
-			getActiveDViewerSubEditor().getContainer().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true)); //grabExcessVerticalSpace must be true for showing plotting
-		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
-			getActiveDViewerSubView().getContainer().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true)); //grabExcessVerticalSpace must be true for showing plotting
+		addSomethingListener(somethingChangeListener); //activePart must already exist for this listener
 
-		dViewerController.initializeImageSelectorUI(); //initialize controls
+		final Composite subComposite; 
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			subComposite = getActiveDViewerSubEditor().getContainer();
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			subComposite = getActiveDViewerSubView().getContainer();
+		else
+			subComposite = null;
+		for( final Control c : mainContainer.getChildren() ) {
+			c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, c.equals(subComposite))); //grabExcessVerticalSpace must be true for showing plotting
+		}
+//		dViewerController.initializeImageSelectorUI(); //initialize controls
+
 		editorInputChanged();
 		parent.pack(true);
+	}
+
+	protected void internalUpdateStatus() {
+		statusLabel.setText(getStatusText());
+		CommonExtension.layoutIn(statusLabel, mainContainer);
 	}
 
 	@Override
@@ -869,10 +888,51 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		final FilePathEditorInput fPEI = new FilePathEditorInput(
 			fileLoader.getFile().getAbsolutePathWithoutProtocol(), null, fileLoader.getFile().getName()); //TODO what name to pass
 		try {
-			CommonExtension.openEditor(fPEI, ID, false, false);
+			CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, false);
 		} catch (final PartInitException e) {
 			ExceptionUtils.logError(logger, "Can not open editor", e, this);
 		}
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImageMin() {
+		return DViewerEditorConstants.SHOW_EACH_NTH_IMAGE_MIN;
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImageSup() {
+		return DViewerEditorConstants.SHOW_EACH_NTH_IMAGE_MAX + 1;
+	}
+
+	@Override //from IDViewerControllable
+	public boolean isShowEachNthImageValid(final int showEachNthImage) {
+		return showEachNthImage>=getShowEachNthImageMin() && showEachNthImage<=getShowEachNthImageSup() - 1;
+	}
+
+	@Override //from IDViewerControllable
+	public int getShowEachNthImage() {
+		return showEachNthImage;
+	}
+
+	@Override //from IDViewerControllable
+	public void setShowEachNthImage(final ISomethingChangeListener sender,
+			final int showEachNthImage) {
+		if( this.showEachNthImage == showEachNthImage )
+			return;
+		final int showEachNthImageMin = getShowEachNthImageMin();
+		final int showEachNthImageMax = getShowEachNthImageSup() - 1;
+		try {
+			Assert.isLegal(isShowEachNthImageValid(showEachNthImage), new StringBuilder("The showEachNthImage (")
+			.append(showEachNthImage).append(") is illegal, ").append(showEachNthImageMin)
+			.append(" <= showEachNthImage <= ").append(showEachNthImageMax).append(" must be true.").toString());
+		} catch(final IllegalArgumentException e) {
+			if( sender != null )
+				listenerManager.sendSomethingChanged(SomethingChangeEvent.SHOW_EACH_NTH_IMAGE, sender);
+			return;
+		}
+		showImageCounter = Math.max(1, showImageCounter + showEachNthImage - this.showEachNthImage);
+		this.showEachNthImage = showEachNthImage;
+		listenerManager.fireSomethingChanged(SomethingChangeEvent.SHOW_EACH_NTH_IMAGE);
 	}
 
 	protected void closeActiveEditorIfFirstLoadingUnsuccessful() {
@@ -904,11 +964,6 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	@Override
 	public int getImageArrayBatchSize() {
 		return batchSize;
-	}
-
-	@Override
-	public boolean isBatchSizeValid(final int value) {
-		return value>=BATCH_SIZE_MIN && value<=BATCH_SIZE_MAX;
 	}
 
 	protected int getImageArrayBatchSizeEffective() {
@@ -956,6 +1011,11 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	}
 
 	@Override
+	public boolean isBatchIndexValid(final int value) {
+		return value>=getImageArrayMin() && value<=Math.max(getImageArrayMin(), getImageArrayMin() + getImageArraySup() - batchSize);
+	}
+
+	@Override
 	public void setBatchIndex(final ISomethingChangeListener sender, int batchIndex) {
 		setBatchIndex(sender, batchIndex, false);
 	}
@@ -968,7 +1028,9 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 			final int batchIndexMin = getImageArrayMin();
 			final int batchIndexMax = Math.max(getImageArrayMin(), batchIndexMin + getImageArraySup() - batchSize);
 			try {
-				Assert.isLegal(batchIndex>=batchIndexMin && batchIndex<=batchIndexMax, "The batchIndex (" + batchIndex + ") is illegal, " + batchIndexMin + " <= batchIndex <= " + batchIndexMax + " must be true.");
+				Assert.isLegal(isBatchIndexValid(batchIndex), new StringBuilder("The batchIndex (")
+					.append(batchIndex).append(") is illegal, ").append(batchIndexMin)
+					.append(" <= batchIndex <= ").append(batchIndexMax).append(" must be true.").toString());
 			} catch(final IllegalArgumentException e) {
 				if( sender != null )
 					listenerManager.sendSomethingChanged(SomethingChangeEvent.IMAGE_ARRAY_SOMETHING, sender);
@@ -988,14 +1050,19 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	}
 
 	@Override
+	public boolean isBatchSizeValid(final int value) {
+		return value>=DViewerEditorConstants.BATCH_SIZE_MIN && value<=getImageArraySup() - getImageArrayMin();
+	}
+
+	@Override
 	public void setBatchSize(final ISomethingChangeListener sender, final int batchSize) {
 		synchronized (imageArrayLock) {
 			if( this.batchSize == batchSize )
 				return;
 			try {
 				Assert.isLegal(isBatchSizeValid(batchSize), new StringBuilder("The batchSize (")
-					.append(batchSize).append(") is illegal, ").append(BATCH_SIZE_MIN)
-					.append(" <= batchSize <= ").append(BATCH_SIZE_MAX).append(" must be true.").toString());
+					.append(batchSize).append(") is illegal, ").append(DViewerEditorConstants.BATCH_SIZE_MIN)
+					.append(" <= batchSize <= ").append(getImageArraySup() - getImageArrayMin()).append(" must be true.").toString());
 			} catch(final IllegalArgumentException e) {
 				if( sender != null )
 					listenerManager.sendSomethingChanged(SomethingChangeEvent.IMAGE_ARRAY_SOMETHING, sender);
@@ -1063,6 +1130,168 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	}
 
 	@Override //from IDViewerImageControllable
+	public int getHMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getHMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHSup() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getHSup();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isHValid(final int value) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.isHValid(value);
+		return false;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHRangeMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getHRangeMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setHRangeMin(sender, hRangeMin);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getHRangeMax() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getHRangeMax();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setHRangeMax(sender, hRangeMax);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getKMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKSup() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getKSup();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isKValid(final int value) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.isKValid(value);
+		return false;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKRangeMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getKRangeMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setKRangeMin(sender, kRangeMin);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getKRangeMax() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getKRangeMax();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setKRangeMax(sender, kRangeMax);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getLMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLSup() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getLSup();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public boolean isLValid(final int value) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.isLValid(value);
+		return false;
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLRangeMin() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getLRangeMin();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setLRangeMin(sender, lRangeMin);
+	}
+
+	@Override //from IDViewerImageControllable
+	public int getLRangeMax() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			return editor.getLRangeMax();
+		return 0;
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setLRangeMax(sender, lRangeMax);
+	}
+
+	@Override //from IDViewerImageControllable
 	public DownsampleType getDownsampleType() {
 		final IDViewerImageControllable editor = getActiveImageControllableEditor();
 		if( editor != null )
@@ -1098,11 +1327,6 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	@Override //from IDViewerImageControllable
 	public void removeSomethingListener(final ISomethingChangeListener listener) {
 		listenerManager.removeSomethingListener(listener);
-	}
-
-	@Override //from IDViewerImageControllable
-	public void revalidateLayout(final Control control) {
-		CommonExtension.layoutIn(control, mainContainer);
 	}
 
 }

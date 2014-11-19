@@ -13,6 +13,31 @@ public interface IDViewerImageControllable {
 	public int getPhaRadius();
 	public void setPhaRadius(final ISomethingChangeListener sender, final int phaRadius);
 
+	public int getHMin();
+	public int getHSup();
+	public boolean isHValid(final int value);
+	public int getHRangeMin();
+	public void setHRangeMin(final ISomethingChangeListener sender, final int hRangeMin);
+	public int getHRangeMax();
+	public void setHRangeMax(final ISomethingChangeListener sender, final int hRangeMax);
+
+	public int getKMin();
+	public int getKSup();
+	public boolean isKValid(final int value);
+	public int getKRangeMin();
+	public void setKRangeMin(final ISomethingChangeListener sender, final int kRangeMin);
+	public int getKRangeMax();
+	public void setKRangeMax(final ISomethingChangeListener sender, final int kRangeMax);
+
+	public int getLMin();
+	public int getLSup();
+	public boolean isLValid(final int value);
+	public int getLRangeMin();
+	public void setLRangeMin(final ISomethingChangeListener sender, final int lRangeMin);
+	public int getLRangeMax();
+	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax);
+
+
 	public DownsampleType getDownsampleType();
 	public void setDownsampleType(final ISomethingChangeListener sender, final DownsampleType downsampleType);
 	public Point2DD getMouseAxisPos();

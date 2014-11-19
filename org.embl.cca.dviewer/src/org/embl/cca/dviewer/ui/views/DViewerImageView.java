@@ -10,7 +10,11 @@ import org.embl.cca.dviewer.ui.editors.IDViewerControllable;
 
 public class DViewerImageView extends PageBookView {
 
-	public static final String ID = "org.embl.cca.utils.ui.views.DViewerImageView";
+	public static final String ID = "org.embl.cca.dviewer.ui.views.DViewerImageView";
+
+	public final static String getViewName() {
+		return DViewerImagePage.DViewerImagePageAsString;
+	}
 
 	@Override
 	protected IPage createDefaultPage(final PageBook book) {
@@ -22,13 +26,13 @@ public class DViewerImageView extends PageBookView {
 
 	@Override
 	protected boolean isImportant(final IWorkbenchPart part) {
+//		final Object isAdaptable = part.getAdapter(DViewerImagePageAdaptable.class);
+//		return isAdaptable != null;
 		return part instanceof IDViewerControllable;
 	}
 
 	@Override
 	protected PageRec doCreatePage(final IWorkbenchPart part) {
-		if( !isImportant(part) )
-			return null;
 		final DViewerImagePage page = (DViewerImagePage)part.getAdapter(DViewerImagePage.class);
 		if( page == null )
 			return null;
@@ -54,12 +58,18 @@ public class DViewerImageView extends PageBookView {
 		return null;
 	}
 
+	@Override
 	public void partActivated(final IWorkbenchPart part) {
 		super.partActivated(part);
-		String title = (String)super.getAdapter(String.class);
+		String title = (String)getAdapter(String.class);
 		if( title == null )
-			title = DViewerImagePage.DViewerImagePageAsString;
+			title = getViewName();
 		setPartName(title);
+	}
+
+	@Override
+	protected Object getViewAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+		return super.getViewAdapter(adapter);
 	}
 
 	@Override
