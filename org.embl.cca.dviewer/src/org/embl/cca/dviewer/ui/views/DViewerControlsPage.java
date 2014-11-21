@@ -17,6 +17,7 @@ public class DViewerControlsPage extends Page implements IAdaptable {
 
 	protected final IDViewerControllable controllable;
 	protected Composite mainContainer;
+	protected DViewerController dViewerController;
 
 	/**
 	 * Creates a HKLSelectorPage for ed editor part.
@@ -32,6 +33,12 @@ public class DViewerControlsPage extends Page implements IAdaptable {
 	}
 
 	@Override
+	public void dispose() {
+		dViewerController.dispose();
+		super.dispose();
+	}
+
+	@Override
 	public void createControl(final Composite parent) {
 		mainContainer = new Composite(parent, SWT.NONE);
 		final GridLayout mainGridLayout = new GridLayout(1, false);
@@ -39,7 +46,7 @@ public class DViewerControlsPage extends Page implements IAdaptable {
 //		mainContent.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_GREEN));
 		GridUtils.removeMargins(mainContainer); //valid for GridLayout only
 
-		final DViewerController dViewerController = new DViewerController(controllable, mainContainer);
+		dViewerController = new DViewerController(controllable, mainContainer);
 		dViewerController.createImageEditorGUI(mainContainer); //create controls basically (without initializing)
 		for( final Control c : mainContainer.getChildren() ) {
 			c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

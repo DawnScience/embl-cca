@@ -38,16 +38,16 @@ public class DViewerControlsView extends PageBookView {
 		final MessagePage messagePage = new MessagePage();
 		initPage(messagePage);
 		messagePage.createControl(book);
-		messagePage.getControl().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_YELLOW));
-		book.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
+//		messagePage.getControl().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_YELLOW));
+//		book.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
 		return messagePage;
 	}
 
 	@Override
 	protected boolean isImportant(final IWorkbenchPart part) {
 		final Object isAdaptable = part.getAdapter(IDViewerControlsPageAdaptable.class);
-		return isAdaptable != null;
-//		return part instanceof IDViewerControllable;
+		final boolean result = isAdaptable != null;
+		return result;
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class DViewerControlsView extends PageBookView {
 			return null;
 		initPage(page);
 		page.createControl(getPageBook());
-		page.getControl().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_GREEN));
+//		page.getControl().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_GREEN));
 		return new PageRec(part, page);
 	}
 
@@ -79,6 +79,12 @@ public class DViewerControlsView extends PageBookView {
 
 	@Override
 	public void partActivated(final IWorkbenchPart part) {
+		//If part is important PageBookView, it is probably DViewerImageView,
+		//and then the page for that part must be recreated. It can be forced
+		//by closing that part in this PageBookView.
+		if( isImportant(part) && part instanceof PageBookView ) {
+			partClosed(part);
+		}
 		super.partActivated(part);
 		String title = (String)getAdapter(String.class);
 		if( title == null )

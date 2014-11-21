@@ -198,6 +198,16 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 	}
 
 	@Override
+	public void requestDViewerView() {
+		innerEditorPart.requestDViewerView();
+	}
+
+	@Override
+	public void requestDViewerControls() {
+		innerEditorPart.requestDViewerControls();
+	}
+
+	@Override
 	public String getStatusText() {
 		return innerEditorPart.getStatusText();
 	}
@@ -259,11 +269,6 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 	}
 
 	@Override //from IEditorPart
-	public IEditorInput getEditorInput() {
-		return innerEditorPart.getEditorInput();
-	}
-
-	@Override //from IEditorPart
 	public IEditorSite getEditorSite() {
 		return innerEditorPart.getEditorSite();
 	}
@@ -299,14 +304,21 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 		return innerEditorPart.isSaveOnCloseNeeded();
 	}
 
+	@Override //from IEditorPart
+	public IEditorInput getEditorInput() {
+		return super.getEditorInput();
+	}
+
 	@Override //from IReusableEditor
 	public void setInput(final IEditorInput input) {
-		innerEditorPart.setInput(input);
+		super.setInput(input);
+		setPartTitle(getEditorInput().getName());
 	}
 
 	@Override //from EditorPart
 	public void setInputWithNotify(final IEditorInput input) {
-		innerEditorPart.setInputWithNotify(input);
+		super.setInputWithNotify(input);
+		setPartTitle(getEditorInput().getName());
 	}
 
 	@Override //from WorkbenchPart

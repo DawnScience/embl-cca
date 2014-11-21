@@ -7,6 +7,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -82,12 +83,50 @@ public class DViewerController {
 		}
 	}; 
 
+	final SelectionListener phaRadiusSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setPhaRadius(somethingChangeListener, phaRadiusUI.getSelectionAsInteger());
+		}
+	};
+
+	final SelectionListener hRangeMinSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setHRangeMin(somethingChangeListener, hRangeMinUI.getSelectionAsInteger());
+		}
+	};
+	final SelectionListener hRangeMaxSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setHRangeMax(somethingChangeListener, hRangeMaxUI.getSelectionAsInteger());
+		}
+	};
+	final SelectionListener kRangeMinSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setKRangeMin(somethingChangeListener, kRangeMinUI.getSelectionAsInteger());
+		}
+	};
+	final SelectionListener kRangeMaxSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setKRangeMax(somethingChangeListener, kRangeMaxUI.getSelectionAsInteger());
+		}
+	};
+	final SelectionListener lRangeMinSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setLRangeMin(somethingChangeListener, lRangeMinUI.getSelectionAsInteger());
+		}
+	};
+	final SelectionListener lRangeMaxSelectionListener = new SelectionAdapter() {
+		public void widgetSelected(final SelectionEvent e) {
+			controllable.setLRangeMax(somethingChangeListener, lRangeMaxUI.getSelectionAsInteger());
+		}
+	};
+
 	public DViewerController(final IDViewerControllable controllable, final Composite layouterTopParent) {
 		this.controllable = controllable;
 		this.layouterTopParent = layouterTopParent;
 	}
 
 	public void dispose() {
+		System.out.println("*** " + getClass().getSimpleName() + " is disposing!");
 		controllable.removeSomethingListener(somethingChangeListener);
 	}
 
@@ -102,7 +141,8 @@ public class DViewerController {
 		totalSliderImageLabel.setText(new StringBuilder()
 			.append(totalSliderImageFormat.format(controllable.getImageArrayBatchIndex()+1))
 			.append('/').append(sup).toString());
-		imageFilesWindowWidthSpinner.setValues(batchSize, min, sup, 0, 1, sup/5);
+		//Note: SpinnerSlider is 1 based, controllable is 0 based!
+		imageFilesWindowWidthSpinner.setValues(batchSize, min+1, sup+1, 0, 1, Math.max(1,  sup/5));
 		System.out.println("SS min=" + imageFilesWindowWidthSpinner.getMinimum() + ", max=" + imageFilesWindowWidthSpinner.getMaximum());
 		CommonExtension.layoutIn(totalSliderImageLabel, layouterTopParent);
 	}
@@ -331,11 +371,7 @@ public class DViewerController {
 			showRemotedImageLabel.setText("received image");
 			somethingChangeListener.somethingChange(new SomethingChangeEvent(this, SomethingChangeEvent.SHOW_EACH_NTH_IMAGE));
 		}
-		phaRadiusUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setPhaRadius(somethingChangeListener, phaRadiusUI.getSelectionAsInteger());
-			}
-		});
+		phaRadiusUI.addSelectionListener(phaRadiusSelectionListener);
 		phaRadiusUI.setValues(PHA.featureShortName + " Radius", controllable.getPhaRadius(),
 				controllable.getPhaRadiusMin(), controllable.getPhaRadiusSup() - 1, 0, 1, 10, 1, 10);
 		controllable.setPhaRadius(somethingChangeListener, phaRadiusUI.getSelectionAsInteger());
@@ -344,61 +380,38 @@ public class DViewerController {
 		final String hFeatureShortName = "H";
 		final String kFeatureShortName = "K";
 		final String lFeatureShortName = "L";
-		hRangeMinUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setHRangeMin(somethingChangeListener, hRangeMinUI.getSelectionAsInteger());
-			}
-		}); //TODO since no HKL file, min=0, sup-1=-1, and slider complains!
+		hRangeMinUI.addSelectionListener(hRangeMinSelectionListener);
+		//TODO since no HKL file, min=0, sup-1=-1, and slider complains!
 		hRangeMinUI.setValues(hFeatureShortName + " min", controllable.getHMin(),
 //				controllable.getHMin(), controllable.getHSup() - 1, 0, 1, 10, 1, 10);
 				0, 5, 0, 1, 10, 1, 10);
 		controllable.setHRangeMin(somethingChangeListener, hRangeMinUI.getSelectionAsInteger());
 
-		hRangeMaxUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setHRangeMax(somethingChangeListener, hRangeMaxUI.getSelectionAsInteger());
-			}
-		});
+		hRangeMaxUI.addSelectionListener(hRangeMaxSelectionListener);
 		hRangeMaxUI.setValues(hFeatureShortName + " max", controllable.getHSup() - 1,
 //				controllable.getHMin(), controllable.getHSup() - 1, 0, 1, 10, 1, 10);
 				-5, 5, 0, 1, 10, 1, 10);
 		controllable.setHRangeMax(somethingChangeListener, hRangeMaxUI.getSelectionAsInteger());
 
-		kRangeMinUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setKRangeMin(somethingChangeListener, kRangeMinUI.getSelectionAsInteger());
-			}
-		});
+		kRangeMinUI.addSelectionListener(kRangeMinSelectionListener);
 		kRangeMinUI.setValues(kFeatureShortName + " min", controllable.getKMin(),
 //				controllable.getKMin(), controllable.getKSup() - 1, 0, 1, 10, 1, 10);
 				0, 25, 0, 1, 10, 1, 10);
 		controllable.setKRangeMin(somethingChangeListener, kRangeMinUI.getSelectionAsInteger());
 
-		kRangeMaxUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setKRangeMax(somethingChangeListener, kRangeMaxUI.getSelectionAsInteger());
-			}
-		});
+		kRangeMaxUI.addSelectionListener(kRangeMaxSelectionListener);
 		kRangeMaxUI.setValues(kFeatureShortName + " max", controllable.getKSup() - 1,
 //				controllable.getKMin(), controllable.getKSup() - 1, 0, 1, 10, 1, 10);
 				-15, 25, 0, 1, 10, 1, 10);
 		controllable.setKRangeMax(somethingChangeListener, kRangeMaxUI.getSelectionAsInteger());
 
-		lRangeMinUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setLRangeMin(somethingChangeListener, lRangeMinUI.getSelectionAsInteger());
-			}
-		});
+		lRangeMinUI.addSelectionListener(lRangeMinSelectionListener);
 		lRangeMinUI.setValues(lFeatureShortName + " min", controllable.getLMin(),
 //				controllable.getLMin(), controllable.getLSup() - 1, 0, 1, 10, 1, 10);
 				0, 155, 0, 1, 10, 1, 10);
 		controllable.setLRangeMin(somethingChangeListener, lRangeMinUI.getSelectionAsInteger());
 
-		lRangeMaxUI.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(final SelectionEvent e) {
-				controllable.setLRangeMax(somethingChangeListener, lRangeMaxUI.getSelectionAsInteger());
-			}
-		});
+		lRangeMaxUI.addSelectionListener(lRangeMinSelectionListener);
 		lRangeMaxUI.setValues(lFeatureShortName + " max", controllable.getLSup() - 1,
 //				controllable.getLMin(), controllable.getLSup() - 1, 0, 1, 10, 1, 10);
 				-255, 155, 0, 1, 10, 1, 10);

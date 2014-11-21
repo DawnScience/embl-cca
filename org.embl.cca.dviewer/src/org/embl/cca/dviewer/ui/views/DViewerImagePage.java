@@ -7,6 +7,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
@@ -20,10 +22,19 @@ public class DViewerImagePage extends Page implements IAdaptable {
 	public final static String DViewerImagePageAsString = "dViewer View";
 
 	protected IViewSite site;
-	protected DViewerImageArrayEditorPart origin; //TODO this should be Input, because we are totally independent from originator (what about remotes?)
+	protected DViewerImageArrayEditorPart origin;
 	protected DViewerImageArrayViewPart viewer;
 
 	protected final DViewerListenerManager listenerManager;
+
+	final IPropertyListener inputListener = new IPropertyListener() {
+		@Override
+		public void propertyChanged(final Object source, final int propId) {
+			if( origin.equals(source) && propId == IEditorPart.PROP_INPUT ) {
+				viewer.showEditorInput(origin.getEditorInput());
+			}
+		}
+	};
 
 	/**
 	 * Creates a DViewerImagePage for IDViewerControllable controllable.
@@ -35,12 +46,14 @@ public class DViewerImagePage extends Page implements IAdaptable {
 	}
 
 	public DViewerImagePage(final DViewerImageArrayEditorPart controllable) {
+		Assert.isNotNull(controllable, "The controllable is null, it must not be null");
 		origin = controllable;
 		listenerManager = new DViewerListenerManager();
 	}
 
 	@Override
 	public void dispose() {
+		origin.removePropertyListener(inputListener);
 		listenerManager.dispose();
 		super.dispose();
 	}
@@ -76,6 +89,7 @@ public class DViewerImagePage extends Page implements IAdaptable {
 		}
 		viewer.setInput(origin.getEditorInput());
 		viewer.createPartControl(parent);
+		origin.addPropertyListener(inputListener);
 	}
 
 	@Override

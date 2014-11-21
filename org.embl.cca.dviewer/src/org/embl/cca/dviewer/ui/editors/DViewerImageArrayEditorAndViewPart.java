@@ -68,13 +68,8 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	//Support for IEditorPart and IViewPart, beginning here
 	protected final IWorkbenchPart classRole; //(IEditorPartHost or IViewPartHost) and IDViewerControllable
-	/**
-	 * If classRole is IViewPartHost, then this value is used:
-	 * Editor input, or <code>null</code> if none.
-	 */
-	protected IEditorInput editorInput = null;
 
-	//These events are managed by host: PROP_TITLE, PROP_CONTENT_DESCRIPTION, PROP_PART_NAME
+	//These events are managed by host: PROP_TITLE, PROP_CONTENT_DESCRIPTION, PROP_PART_NAME, PROP_INPUT
 	protected final IPropertyListener hostPropertyListener = new IPropertyListener() {
 		public void propertyChanged(final Object source, final int propId) {
 			firePropertyChange(propId);
@@ -315,39 +310,43 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		fileLoader.addFileLoaderListener(fileLoaderListener);
 		autoSelectLatestNewImageJob = new AutoSelectLatestNewImageJob();
 		listenerManager = new DViewerListenerManager();
-		addPropertyListener(inputListener);
 		classRole.addPropertyListener(hostPropertyListener);
+		classRole.addPropertyListener(inputListener);
 	}
 
-	@Override //from IEditorPart
-	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException{
-		setSite(site);
-		if( input instanceof FilePathEditorInput ) {
-			final FilePathEditorInput fPEI = (FilePathEditorInput)input;
+	protected void setRemotedByInput() {
+		if( getEditorInput() instanceof FilePathEditorInput ) {
+			final FilePathEditorInput fPEI = (FilePathEditorInput)getEditorInput();
 			if( fPEI.equalityIDEquals(DViewerImageArrayEditorPart.REMOTED_IMAGE)) {
 				remotedImageEditor = true;
 			}
 		}
-		remotedImageEditor = true; //TODO ONLY FOR TESTING REMOTED WINDOW!
-		setInput(input);
+	}
+	
+	@Override //from IEditorPart
+	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException{
+		setSite(site);
+		setInput(input); //Also calls setRemotedByInput, because no previous input
 	}
 
 	@Override //from IViewPart
-	public void init(IViewSite site) throws PartInitException {
+	public void init(final IViewSite site) throws PartInitException {
 		setSite(site);
 	}
 
 	@Override //from IViewPart
-	public void init(IViewSite site, IMemento memento) throws PartInitException {
+	public void init(final IViewSite site, final IMemento memento) throws PartInitException {
 		init(site);
 	}
 
 	@Override //from IViewPart
-	public void saveState(IMemento memento) {
+	public void saveState(final IMemento memento) {
 	}
 
 	@Override //from WorkbenchPart
 	public void dispose() {
+		classRole.removePropertyListener(inputListener);
+		classRole.removePropertyListener(hostPropertyListener);
 		getActivePart().dispose();
 		listenerManager.dispose();
 		super.dispose();
@@ -360,15 +359,19 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IEditorPart
 	public IEditorInput getEditorInput() {
-		return editorInput ;
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			return ((IEditorPartHost)classRole).getEditorInput();
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			return ((IViewPartHost)classRole).getEditorInput();
+		return null;
 	}
 
 	@Override //from IReusableEditor
 	public void setInput(final IEditorInput input) {
-		logger.debug("setInput(IEditorInput) called");
-		Assert.isLegal(input != null);
-		editorInput = input;
-		setPartTitle(input.getName());
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IEditorPartHost)classRole).setInput(input);
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IViewPartHost)classRole).setInput(input);
 	}
 //	@Override
 //	public void setInput(final IEditorInput input) {
@@ -401,9 +404,10 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	 *            the editor input
 	 */
 	public void setInputWithNotify(final IEditorInput input) {
-		logger.debug("setInputWithNotify(IEditorInput) called");
-		setInput(input);
-		firePropertyChange(IEditorPart.PROP_INPUT);
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IEditorPartHost)classRole).setInputWithNotify(input);
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IViewPartHost)classRole).setInputWithNotify(input);
 	}
 
 	@Override //from IEditorPart
@@ -418,10 +422,10 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IWorkbenchPart
 	public String getTitleToolTip() {
-		if (editorInput == null) {
+		if (getEditorInput() == null) {
 			return super.getTitleToolTip();
 		}
-		return editorInput.getToolTipText();
+		return getEditorInput().getToolTipText();
 	}
 
 	@Override //from WorkbenchPart
@@ -888,7 +892,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		final FilePathEditorInput fPEI = new FilePathEditorInput(
 			fileLoader.getFile().getAbsolutePathWithoutProtocol(), null, fileLoader.getFile().getName()); //TODO what name to pass
 		try {
-			CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, false);
+			CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, true);
 		} catch (final PartInitException e) {
 			ExceptionUtils.logError(logger, "Can not open editor", e, this);
 		}
@@ -1317,6 +1321,18 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	public String getStatusText() {
 		final IDViewerImageControllable editor = getActiveImageControllableEditor();
 		return editor.getStatusText();
+	}
+
+	@Override //from IDViewerImageControllable
+	public void requestDViewerView() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		editor.requestDViewerView();
+	}
+
+	@Override //from IDViewerImageControllable
+	public void requestDViewerControls() {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		editor.requestDViewerControls();
 	}
 
 	@Override //from IDViewerImageControllable

@@ -3,6 +3,7 @@ package org.embl.cca.dviewer.ui.editors;
 import java.util.Map;
 
 import org.dawnsci.common.widgets.editor.ITitledEditor;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
@@ -11,6 +12,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IViewSite;
@@ -26,6 +28,12 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 	public static final String ID = "org.embl.cca.dviewer.ui.editors.DViewerImageViewPart";
 
 	final DViewerImageEditorAndViewPart innerViewPart;
+
+	/**
+	 * In ViewPart the editor input does not exist, have to manage it here.
+	 * Editor input, or <code>null</code> if none.
+	 */
+	protected IEditorInput editorInput = null;
 
 	public DViewerImageViewPart(final PlotType defaultPlotType, final DViewerListenerManager listenerManager) {
 		innerViewPart = new DViewerImageEditorAndViewPart(this, defaultPlotType, listenerManager);
@@ -199,6 +207,16 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 		return innerViewPart.getStatusText();
 	}
 
+	@Override
+	public void requestDViewerView() {
+		innerViewPart.requestDViewerView();
+	}
+
+	@Override
+	public void requestDViewerControls() {
+		innerViewPart.requestDViewerControls();
+	}
+
 	@Override //from ITitledEditor
 	public void setPartTitle(final String name) {
 		innerViewPart.setPartTitle(name);
@@ -255,11 +273,6 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 		return innerViewPart.getAdapter(adapter);
 	}
 
-	//from IEditorPart, comfortable method in ViewPart as well
-	public IEditorInput getEditorInput() {
-		return innerViewPart.getEditorInput();
-	}
-
 	@Override //from IViewPart
 	public IViewSite getViewSite() {
 		return innerViewPart.getViewSite();
@@ -281,13 +294,21 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 	}
 
 	//from IEditorPart, comfortable method in ViewPart as well
+	public IEditorInput getEditorInput() {
+		return editorInput;
+	}
+
+	//from IEditorPart, comfortable method in ViewPart as well
 	public void setInput(final IEditorInput input) {
-		innerViewPart.setInput(input);
+		Assert.isLegal(input != null);
+		editorInput = input;
+		setPartTitle(getEditorInput().getName());
 	}
 
 	//from EditorPart, comfortable method in ViewPart as well
 	public void setInputWithNotify(final IEditorInput input) {
-		innerViewPart.setInputWithNotify(input);
+		setInput(input);
+		firePropertyChange(IEditorPart.PROP_INPUT);
 	}
 
 	@Override //from WorkbenchPart

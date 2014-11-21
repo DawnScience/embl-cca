@@ -12,18 +12,22 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.ISaveablePart;
 import org.eclipse.ui.IShowEditorInput;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.dviewer.ui.views.DViewerImagePage;
+import org.embl.cca.utils.extension.PartAdapter;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 //public class DViewerImageArrayEditorAndViewPart extends EditorPart implements
 //ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
+import org.embl.cca.utils.threading.CommonThreading;
 
 public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPartHost, IReusableEditor, ITitledEditor, ISaveablePart,
 	IShowEditorInput, IDViewerControllable, IDViewerControlsPageAdaptable {
@@ -206,6 +210,16 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 		return innerEditorPart.getStatusText();
 	}
 
+	@Override
+	public void requestDViewerView() {
+		innerEditorPart.requestDViewerView();
+	}
+
+	@Override
+	public void requestDViewerControls() {
+		innerEditorPart.requestDViewerControls();
+	}
+
 	@Override //from ITitledEditor
 	public void setPartTitle(final String name) {
 		innerEditorPart.setPartTitle(name);
@@ -216,9 +230,25 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 		super.addPropertyListener(listener);
 	}
 
+	IPartListener2 partCreatedAndActivatedListener;
 	@Override //from IEditorPart/IWorkbenchPart
 	public void createPartControl(final Composite parent) {
 		innerEditorPart.createPartControl(parent);
+		partCreatedAndActivatedListener = new PartAdapter() {
+			@Override
+			public void partActivated(final IWorkbenchPartReference partRef) {
+				if( DViewerImageArrayEditorPart.this.equals(partRef.getPart(false))) {
+					getSite().getPage().removePartListener(partCreatedAndActivatedListener);
+					CommonThreading.execUIAsynced(new Runnable() {
+						@Override
+						public void run() {
+							requestDViewerView();
+						}
+					});
+				}
+			}
+		};
+		getSite().getPage().addPartListener(partCreatedAndActivatedListener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart
@@ -260,11 +290,6 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	}
 
 	@Override //from IEditorPart
-	public IEditorInput getEditorInput() {
-		return innerEditorPart.getEditorInput();
-	}
-
-	@Override //from IEditorPart
 	public IEditorSite getEditorSite() {
 		return innerEditorPart.getEditorSite();
 	}
@@ -300,14 +325,27 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 		return innerEditorPart.isSaveOnCloseNeeded();
 	}
 
+	@Override //from IEditorPart
+	public IEditorInput getEditorInput() {
+		return super.getEditorInput();
+	}
+
 	@Override //from IReusableEditor
 	public void setInput(final IEditorInput input) {
-		innerEditorPart.setInput(input);
+		final boolean firstInput = getEditorInput() == null;
+		super.setInput(input);
+		setPartTitle(getEditorInput().getName());
+		if( firstInput ) //This case is for this being ViewPart
+			innerEditorPart.setRemotedByInput();
 	}
 
 	@Override //from EditorPart
 	public void setInputWithNotify(final IEditorInput input) {
-		innerEditorPart.setInputWithNotify(input);
+		final boolean firstInput = getEditorInput() == null;
+		super.setInputWithNotify(input);
+		if( firstInput ) //This case is for this being ViewPart
+			innerEditorPart.setRemotedByInput();
+		setPartTitle(getEditorInput().getName());
 	}
 
 	@Override //from WorkbenchPart

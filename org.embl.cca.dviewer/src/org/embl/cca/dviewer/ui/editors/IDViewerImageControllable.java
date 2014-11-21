@@ -37,9 +37,11 @@ public interface IDViewerImageControllable {
 	public int getLRangeMax();
 	public void setLRangeMax(final ISomethingChangeListener sender, final int lRangeMax);
 
-
 	public DownsampleType getDownsampleType();
 	public void setDownsampleType(final ISomethingChangeListener sender, final DownsampleType downsampleType);
 	public Point2DD getMouseAxisPos();
 	public String getStatusText();
+
+	public void requestDViewerView();
+	public void requestDViewerControls();
 }

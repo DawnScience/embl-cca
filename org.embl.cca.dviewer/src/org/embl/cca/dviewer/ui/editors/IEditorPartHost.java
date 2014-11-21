@@ -1,6 +1,7 @@
 package org.embl.cca.dviewer.ui.editors;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 
 public interface IEditorPartHost extends IEditorPart {
@@ -15,4 +16,7 @@ public interface IEditorPartHost extends IEditorPart {
 	public void setTitle(final String title);
 	public String getContentDescription();
 	public void setContentDescription(final String description);
+	public IEditorInput getEditorInput();
+	public void setInputWithNotify(final IEditorInput input);
+	public void setInput(final IEditorInput input);
 }

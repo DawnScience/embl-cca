@@ -1,16 +1,36 @@
 package org.embl.cca.dviewer.ui.views;
 
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.IPage;
 import org.eclipse.ui.part.MessagePage;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.PageBookView;
 import org.embl.cca.dviewer.ui.editors.IDViewerControllable;
+import org.embl.cca.utils.extension.PartAdapter;
+import org.embl.cca.utils.threading.CommonThreading;
 
 public class DViewerImageView extends PageBookView {
 
 	public static final String ID = "org.embl.cca.dviewer.ui.views.DViewerImageView";
+
+	//Bugfix: detached view displays nothing when part is changed, it seems layout solves the issue
+	final ControlListener detachedViewBugfixControlListener = new ControlListener() {
+		@Override
+		public void controlResized(final ControlEvent e) {
+			final Composite c = ((Composite)e.getSource()).getParent(); //parent of book
+			if( !c.isDisposed() )
+				c.getParent().layout(true, true);
+		}
+		@Override
+		public void controlMoved(ControlEvent e) {
+		}
+	};
 
 	public final static String getViewName() {
 		return DViewerImagePage.DViewerImagePageAsString;
@@ -18,6 +38,7 @@ public class DViewerImageView extends PageBookView {
 
 	@Override
 	protected IPage createDefaultPage(final PageBook book) {
+		book.addControlListener(detachedViewBugfixControlListener);
 		final MessagePage messagePage = new MessagePage();
 		initPage(messagePage);
 		messagePage.createControl(book);
@@ -28,9 +49,11 @@ public class DViewerImageView extends PageBookView {
 	protected boolean isImportant(final IWorkbenchPart part) {
 //		final Object isAdaptable = part.getAdapter(DViewerImagePageAdaptable.class);
 //		return isAdaptable != null;
-		return part instanceof IDViewerControllable;
+		final boolean result = part instanceof IDViewerControllable;
+		return result;
 	}
 
+	IPartListener2 partCreatedAndActivatedListener;
 	@Override
 	protected PageRec doCreatePage(final IWorkbenchPart part) {
 		final DViewerImagePage page = (DViewerImagePage)part.getAdapter(DViewerImagePage.class);
@@ -39,6 +62,21 @@ public class DViewerImageView extends PageBookView {
 		page.setViewSite(getViewSite()); //Did not find other way of passing ViewSite
 		initPage(page);
 		page.createControl(getPageBook());
+		partCreatedAndActivatedListener = new PartAdapter() {
+			@Override
+			public void partActivated(final IWorkbenchPartReference partRef) {
+				if( DViewerImageView.this.equals(partRef.getPart(false))) {
+					getSite().getPage().removePartListener(partCreatedAndActivatedListener);
+					CommonThreading.execUIAsynced(new Runnable() {
+						@Override
+						public void run() {
+							page.viewer.requestDViewerControls();
+						}
+					});
+				}
+			}
+		};
+		getSite().getPage().addPartListener(partCreatedAndActivatedListener);
 		return new PageRec(part, page);
 	}
 
@@ -80,4 +118,10 @@ public class DViewerImageView extends PageBookView {
 		return super.getAdapter(adapter);
 	}
 
+	@Override
+	public void dispose() {
+		if( !getPageBook().isDisposed() )
+			getPageBook().removeControlListener(detachedViewBugfixControlListener);
+		super.dispose();
+	}
 }

@@ -76,6 +76,7 @@ import org.eclipse.ui.ISaveablePart;
 import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartConstants;
 import org.eclipse.ui.IWorkbenchPartSite;
@@ -124,11 +125,6 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	//Support for IEditorPart and IViewPart, beginning here
 	protected final IWorkbenchPart classRole; //IEditorPartHost or IViewPartHost
-	/**
-	 * If classRole is IViewPartHost, then this value is used:
-	 * Editor input, or <code>null</code> if none.
-	 */
-	protected IEditorInput editorInput = null;
 
 	//These events are managed by host: PROP_TITLE, PROP_CONTENT_DESCRIPTION, PROP_PART_NAME
 	protected final IPropertyListener hostPropertyListener = new IPropertyListener() {
@@ -335,15 +331,19 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IEditorPart
 	public IEditorInput getEditorInput() {
-		return editorInput ;
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			return ((IEditorPartHost)classRole).getEditorInput();
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			return ((IViewPartHost)classRole).getEditorInput();
+		return null;
 	}
 
 	@Override //from IReusableEditor
 	public void setInput(final IEditorInput input) {
-		logger.debug("setInput(IEditorInput) called");
-		Assert.isLegal(input != null);
-		editorInput = input;
-		setPartTitle(input.getName());
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IEditorPartHost)classRole).setInput(input);
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IViewPartHost)classRole).setInput(input);
 	}
 
 	/**
@@ -363,9 +363,10 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	 *            the editor input
 	 */
 	public void setInputWithNotify(final IEditorInput input) {
-		logger.debug("setInputWithNotify(IEditorInput) called");
-		setInput(input);
-		firePropertyChange(IEditorPart.PROP_INPUT);
+		if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IEditorPartHost)classRole).setInputWithNotify(input);
+		else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) )
+			((IViewPartHost)classRole).setInputWithNotify(input);
 	}
 
 	@Override //from IEditorPart
@@ -380,10 +381,10 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	@Override //from IWorkbenchPart
 	public String getTitleToolTip() {
-		if (editorInput == null) {
+		if (getEditorInput() == null) {
 			return super.getTitleToolTip();
 		}
-		return editorInput.getToolTipText();
+		return getEditorInput().getToolTipText();
 	}
 
 	@Override //from WorkbenchPart
@@ -1246,6 +1247,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	protected void onDViewerViewSelected() {
 		System.out.println("dViewer View Selected (" + openDViewerViewAction.isChecked() + ")!");
 		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
+		CommonExtension.setViewShellState(DViewerImageView.ID, IWorkbenchPage.STATE_MAXIMIZED);
 	}
 
 	@Override //from IDViewerImageControllable
@@ -1585,6 +1587,16 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 			}
 		}
 		return result.toString();
+	}
+
+	@Override
+	public void requestDViewerView() {
+		onDViewerViewSelected();
+	}
+
+	@Override
+	public void requestDViewerControls() {
+		onDViewerControlsSelected();
 	}
 
 }
