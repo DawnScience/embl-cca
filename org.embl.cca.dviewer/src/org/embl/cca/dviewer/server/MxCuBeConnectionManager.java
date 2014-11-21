@@ -35,12 +35,12 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 	}
 
 	public void addMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
-		Assert.isNotNull(listener, "The listener argument can not be null");
+		Assert.isNotNull(listener, "The listener is null, it must not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).addMxCuBeEventListener(listener);
 	}
 
 	public void removeMxCuBeEventListenerTry(final IMxCuBeEventListener listener) {
-		Assert.isNotNull(listener, "The listener argument can not be null");
+		Assert.isNotNull(listener, "The listener is null, it must not be null");
 		((MxCuBeMessageAndEventTranslator)getMessageHandler()).removeMxCuBeEventListener(listener);
 	}
 
@@ -73,7 +73,7 @@ public class MxCuBeConnectionManager extends ConnectionManager implements IMxCuB
 			public void runThis() {
 				final FilePathEditorInput fPEI = new FilePathEditorInput(filePath, DViewerImageArrayEditorPart.REMOTED_IMAGE, new File(filePath).getName());
 				try {
-					CommonExtension.openEditor(fPEI, REMOTED_IMAGE_EDITOR, false, false);
+					CommonExtension.openEditor(fPEI, REMOTED_IMAGE_EDITOR, false, true);
 				} catch (Exception e) { //PartInitException, and Exception from uk.ac.diamond.scisoft.analysis.rcp.editors.ImageEditor.createFile
 					logger.error("Can not open editor. " + e.getMessage());
 				}
