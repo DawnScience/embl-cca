@@ -25,6 +25,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.part.ViewPart;
 
 public class CommonExtension {
 	/**
@@ -198,6 +200,45 @@ public class CommonExtension {
 					"View Opening Error", new StringBuilder("Could not open the view: \"")
 				.append(viewId).append("\".\n\n").append(e.getMessage()).toString());
 			return null;
+		}
+	}
+
+	/**
+	 * Sets the state of the view identified by the given view id in this page.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param state new state of view (IWorkbenchPage.STATE_MAXIMIZED, IWorkbenchPage.MINIMIZED, IWorkbenchPage.RESTORED)
+	 */
+	public static void setViewState(final String viewId, final int state) {
+		final IWorkbenchPage page = getActivePage();
+		final IViewReference ref = page.findViewReference(viewId);
+		final int currentState = page.getPartState(ref);
+		if(currentState != state) {
+			page.setPartState(ref, state);
+//			page.toggleZoom(ref);
+//			ActionFactory.MAXIMIZE.create(page.getWorkbenchWindow()).run();
+		}
+	}
+
+	/**
+	 * Sets the state of shell of view identified by the given view id in this page.
+	 * The shell of view is the real window containing the view as well.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param state new state of shell of view (IWorkbenchPage.STATE_MAXIMIZED, IWorkbenchPage.MINIMIZED)
+	 */
+	public static void setViewShellState(final String viewId, final int state) {
+		final IWorkbenchPage page = getActivePage();
+		final IViewReference ref = page.findViewReference(viewId);
+		switch (state) {
+		case IWorkbenchPage.STATE_MAXIMIZED:
+			ref.getView(false).getSite().getShell().setMaximized(true);
+			break;
+		case IWorkbenchPage.STATE_MINIMIZED:
+			ref.getView(false).getSite().getShell().setMinimized(true);
+			break;
 		}
 	}
 
