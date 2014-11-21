@@ -8,54 +8,54 @@ import org.eclipse.ui.IWorkbenchPartReference;
 public class PartAdapter implements IPartListener, IPartListener2 {
 
 	@Override
-	public void partActivated(IWorkbenchPartReference partRef) {
+	public void partActivated(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partBroughtToTop(IWorkbenchPartReference partRef) {
+	public void partBroughtToTop(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partClosed(IWorkbenchPartReference partRef) {
+	public void partClosed(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partDeactivated(IWorkbenchPartReference partRef) {
+	public void partDeactivated(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partOpened(IWorkbenchPartReference partRef) {
+	public void partOpened(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partHidden(IWorkbenchPartReference partRef) {
+	public void partHidden(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partVisible(IWorkbenchPartReference partRef) {
+	public void partVisible(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partInputChanged(IWorkbenchPartReference partRef) {
+	public void partInputChanged(final IWorkbenchPartReference partRef) {
 	}
 
 	@Override
-	public void partActivated(IWorkbenchPart part) {
+	public void partActivated(final IWorkbenchPart part) {
 	}
 
 	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {
+	public void partBroughtToTop(final IWorkbenchPart part) {
 	}
 
 	@Override
-	public void partClosed(IWorkbenchPart part) {
+	public void partClosed(final IWorkbenchPart part) {
 	}
 
 	@Override
-	public void partDeactivated(IWorkbenchPart part) {
+	public void partDeactivated(final IWorkbenchPart part) {
 	}
 
 	@Override
-	public void partOpened(IWorkbenchPart part) {
+	public void partOpened(final IWorkbenchPart part) {
 	}
 }
