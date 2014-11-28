@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TypedListener;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.ui.widget.support.IndexAndValueConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +48,33 @@ import org.slf4j.LoggerFactory;
 */
 public class SpinnerSlider extends Composite {
 
-	final static IndexAndValueConverter DEFAULT_CONVERTER = new IndexAndValueConverter() {
-		public Integer index2Value(int i) {
+	public final static IndexAndValueConverter NOT_NEGATIVE_INTEGER_CONVERTER = new IndexAndValueConverter() {
+		@Override
+		public Integer index2Value(final int i) {
 			return i;
 		}
 		@Override
-		public int value2index(Number real) {
+		public int value2index(final Number real) {
 			return real.intValue();
 		}
 	};
+
+	public final static class IntegerConverter extends IndexAndValueConverter {
+		protected final int min;
+		public IntegerConverter(final int min) {
+			this.min = min;
+		}
+		@Override
+		public Integer index2Value(final int i) {
+			return i + min;
+		}
+		@Override
+		public int value2index(final Number real) {
+			return real.intValue() - min;
+		}
+	};
+
+	public final static IndexAndValueConverter DEFAULT_CONVERTER = NOT_NEGATIVE_INTEGER_CONVERTER;
 
 	private static Logger logger = LoggerFactory.getLogger(SpinnerSlider.class);
 
@@ -327,7 +346,7 @@ public class SpinnerSlider extends Composite {
 
 //	static int checkAndAdjustDigits(int preferredDigits, final int sliderIndexMaximum, final IndexAndValueConverter converter) {
 //		double log = Math.log10(converter.index2Value( sliderIndexMaximum ).doubleValue() * Math.pow(10, preferredDigits) / (((double)Integer.MAX_VALUE) + 1)) + 1;
-		static int checkAndAdjustDigits(int preferredDigits, final Number valueMax, boolean ignoreOverrange) {
+	static int checkAndAdjustDigits(int preferredDigits, final Number valueMax, boolean ignoreOverrange) {
 		double log = Math.log10(valueMax.doubleValue() * Math.pow(10, preferredDigits) / (((double)Integer.MAX_VALUE) + 1)) + 1;
 		if( log >= 1 ) {
 			preferredDigits -= (int)log;
@@ -401,7 +420,11 @@ public class SpinnerSlider extends Composite {
 //				spinner.setSelection( selection );
 //			}
 //		});
-		getParent().layout(true, true);
+		spinner.pack(true);
+		pack(true);
+		CommonExtension.layoutIn(spinner, this);
+		CommonExtension.layoutIn(this, getParent());
+//		getParent().layout(true, true);
 	}
 
 	public void setValues(final String title, final int valueSelection, final int sliderIndexMinimum, final int sliderIndexMaximum,
