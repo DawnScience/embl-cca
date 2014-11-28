@@ -1,6 +1,8 @@
 package org.embl.cca.utils;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -52,6 +54,19 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static Activator getDefault() {
 		return plugin;
+	}
+
+	/**
+	 * Creates the image, this should be disposed later.
+	 * @param path
+	 * @return Image
+	 */
+	public static Image getImage(final String path) {
+		return getImageDescriptor(path).createImage();
+	}
+
+	public static ImageDescriptor getImageDescriptor(final String path) {
+		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
 	@Override
