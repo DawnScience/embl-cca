@@ -25,6 +25,8 @@ import java.util.List;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.Image;
+import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.ImageConstants;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.threading.CommonThreading;
@@ -194,7 +196,13 @@ public class FileSystemEntryNode extends TreeNode implements IAdaptable {
 
 	public Image getImage(final FileSystemLabelProvider fslp) {
 		//Converting to File, so the service is not confused by protocol
-		return fslp.getService().getIconForFile(getFile().toFile());
+		final Image result;
+		if( getFile().getName().equals("XDS_ASCII.HKL") ) {
+			result = Activator.getImage(ImageConstants.IMG_HKL);
+		} else {
+			result = fslp.getService().getIconForFile(getFile().toFile());
+		}
+		return result;
 	}
 
 	@Override

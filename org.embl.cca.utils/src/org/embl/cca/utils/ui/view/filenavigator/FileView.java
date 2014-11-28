@@ -24,6 +24,7 @@ import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.views.ImageMonitorView;
+import org.dawb.common.util.list.ListenerList;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
@@ -91,11 +92,12 @@ public class FileView extends ViewPart implements IFileView, IFileSystemContentP
 	protected EFile savedSelection;
 	protected Text filePath;
 
+	protected final ListenerList<IOpenFileListener> openFileListener = new ListenerList<IOpenFileListener>();
+
 	protected boolean initialized = false;
 
 	public FileView() {
 		super();
-//		checkCommandLineArguments();
 	}
 
 	@Override
@@ -470,12 +472,20 @@ public class FileView extends ViewPart implements IFileView, IFileSystemContentP
 		return new FileEditorInput(file.getAbsoluteFile());
 	}
 
+	public void addOpenFileListener(final IOpenFileListener listener) {
+		openFileListener.add(listener);
+	}
+
+	public void removeOpenFileListener(final IOpenFileListener listener) {
+		openFileListener.remove(listener);
+	}
+
 	public void openSelectedFile() {
 		final EFile file = getSelectedFile();
 		openFile(file);
 	}
 
-	protected void openFile(EFile file) {
+	protected void openFile(final EFile file) {
 		if (file == null)
 			return;
 
@@ -499,6 +509,11 @@ public class FileView extends ViewPart implements IFileView, IFileSystemContentP
 			}
 
 		} else { // Open file
+			for(final IOpenFileListener e : openFileListener) {
+				System.out.println("*** FileView: openFile: custom! ***");
+				if( e.openFile(file) )
+					return;
+			}
 			try {
 				EclipseUtils.openExternalEditor(getEditorInput(file), file
 						.getAbsolutePath());
@@ -510,6 +525,7 @@ public class FileView extends ViewPart implements IFileView, IFileSystemContentP
 
 	@Override
 	public void dispose() {
+		openFileListener.removeAllElements();
 		super.dispose();
 	}
 
