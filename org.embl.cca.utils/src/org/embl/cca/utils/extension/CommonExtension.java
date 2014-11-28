@@ -46,9 +46,9 @@ public class CommonExtension {
 	 * @return The created object, which is c class based, or null if the conditions could not be satisfied.
 	 * @throws CoreException
 	 */
-	protected static Object getInstanceOf(String extensionPointId, Class<?> c) throws CoreException {
+	protected static Object getInstanceOf(final String extensionPointId, Class<?> c) throws CoreException {
 		final IConfigurationElement[] elems = Platform.getExtensionRegistry().getConfigurationElementsFor(extensionPointId);
-		for (IConfigurationElement elem : elems) {
+		for (final IConfigurationElement elem : elems) {
 			final Object factory = elem.createExecutableExtension("class");
 			if( c.isInstance(factory) )
 				return factory;
@@ -152,6 +152,19 @@ public class CommonExtension {
 		return openEditor(getCurrentPage(), input, editorId, bringToTop, activate);
 	}
 
+	public static IViewPart findView(final String viewId, final boolean restore) {
+		final IWorkbenchPage page = getActivePage();
+		final IViewReference ref = page.findViewReference(viewId);
+		if( ref == null )
+			return null;
+		return ref.getView(restore);
+	}
+
+	public static IViewReference findViewRef(final String viewId, final boolean restore) {
+		final IWorkbenchPage page = getActivePage();
+		return page.findViewReference(viewId);
+	}
+
 	/**
 	 * Shows the view identified by the given view id in this page and gives it
 	 * focus. If there is a view identified by the given view id (and with no
@@ -230,16 +243,30 @@ public class CommonExtension {
 	 * @param state new state of shell of view (IWorkbenchPage.STATE_MAXIMIZED, IWorkbenchPage.MINIMIZED)
 	 */
 	public static void setViewShellState(final String viewId, final int state) {
-		final IWorkbenchPage page = getActivePage();
-		final IViewReference ref = page.findViewReference(viewId);
+		final Shell shell = getShell(viewId);
 		switch (state) {
 		case IWorkbenchPage.STATE_MAXIMIZED:
-			ref.getView(false).getSite().getShell().setMaximized(true);
+			shell.setMaximized(true);
 			break;
 		case IWorkbenchPage.STATE_MINIMIZED:
-			ref.getView(false).getSite().getShell().setMinimized(true);
+			shell.setMinimized(true);
 			break;
 		}
+	}
+
+	/**
+	 * Gets the shell of view identified by the given view id in this page.
+	 * The shell of view is the real window containing the view as well.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @return the shell of view, or null if the view was not instantiated
+	 * @see #getActivePage
+	 */
+	public static Shell getShell(final String viewId) {
+		final IWorkbenchPage page = getActivePage();
+		final IViewReference ref = page.findViewReference(viewId);
+		return ref.getView(false).getSite().getShell();
 	}
 
 	/**
