@@ -13,6 +13,7 @@ public class ImageConstants {
 	public static final String IMG_CONVERT = "icons/convert.gif";
 	public static final String IMG_COLLAPSE_ALL = "icons/CollapseAll.png";
 	public static final String IMG_CLONE_EL = "icons/clone-el.gif";
+	public static final String IMG_HKL = "icons/dViewer-HKL-16x16-icon.png";
 
 	public static String[] IMAGES = new String[] { IMG_FOLDER, IMG_FILE,
 		IMG_CLOSE, IMG_RUN, IMG_COPY,
