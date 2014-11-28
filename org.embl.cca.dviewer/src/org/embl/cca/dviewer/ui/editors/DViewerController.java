@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
+import org.embl.cca.dviewer.DViewerStartup;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
 import org.embl.cca.utils.datahandling.text.DecimalPaddedFormat;
 import org.embl.cca.utils.datahandling.text.StringUtils;
@@ -27,6 +28,7 @@ import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.ui.widget.SpinnerSlider;
+import org.embl.cca.utils.ui.widget.SpinnerSlider.IntegerConverter;
 
 public class DViewerController {
 
@@ -376,6 +378,7 @@ public class DViewerController {
 				controllable.getPhaRadiusMin(), controllable.getPhaRadiusSup() - 1, 0, 1, 10, 1, 10);
 		controllable.setPhaRadius(somethingChangeListener, phaRadiusUI.getSelectionAsInteger());
 
+		if( DViewerStartup.useHKL ) {
 		//H, K, L controls
 		final String hFeatureShortName = "H";
 		final String kFeatureShortName = "K";
@@ -390,7 +393,7 @@ public class DViewerController {
 		hRangeMaxUI.addSelectionListener(hRangeMaxSelectionListener);
 		hRangeMaxUI.setValues(hFeatureShortName + " max", controllable.getHSup() - 1,
 //				controllable.getHMin(), controllable.getHSup() - 1, 0, 1, 10, 1, 10);
-				-5, 5, 0, 1, 10, 1, 10);
+				0, 5 - (-5), 0, 1, 10, 1, 10, new IntegerConverter(-5));
 		controllable.setHRangeMax(somethingChangeListener, hRangeMaxUI.getSelectionAsInteger());
 
 		kRangeMinUI.addSelectionListener(kRangeMinSelectionListener);
@@ -402,7 +405,7 @@ public class DViewerController {
 		kRangeMaxUI.addSelectionListener(kRangeMaxSelectionListener);
 		kRangeMaxUI.setValues(kFeatureShortName + " max", controllable.getKSup() - 1,
 //				controllable.getKMin(), controllable.getKSup() - 1, 0, 1, 10, 1, 10);
-				-15, 25, 0, 1, 10, 1, 10);
+				0, 25 - (-15), 0, 1, 10, 1, 10, new IntegerConverter(-15));
 		controllable.setKRangeMax(somethingChangeListener, kRangeMaxUI.getSelectionAsInteger());
 
 		lRangeMinUI.addSelectionListener(lRangeMinSelectionListener);
@@ -414,7 +417,7 @@ public class DViewerController {
 		lRangeMaxUI.addSelectionListener(lRangeMinSelectionListener);
 		lRangeMaxUI.setValues(lFeatureShortName + " max", controllable.getLSup() - 1,
 //				controllable.getLMin(), controllable.getLSup() - 1, 0, 1, 10, 1, 10);
-				-255, 155, 0, 1, 10, 1, 10);
+				0, 155 - (-255), 0, 1, 10, 1, 10, new IntegerConverter(-255));
 		controllable.setLRangeMax(somethingChangeListener, lRangeMaxUI.getSelectionAsInteger());
 
 //		final Composite exec =new Composite(hklControls, SWT.NONE);
@@ -428,7 +431,9 @@ public class DViewerController {
 //	//			controllable.setAutoSelectLatestNewImage(DViewerController.this, autoSelectLatestNewImageButton.getSelection());
 //			}
 //		});
+		}
 		controllable.addSomethingListener(somethingChangeListener);
+		parentComposite.pack(true);
 	}
 
 }

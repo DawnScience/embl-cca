@@ -18,15 +18,20 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -38,7 +43,10 @@ import org.eclipse.ui.services.IServiceLocator;
 import org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective;
 import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
+import org.embl.cca.dviewer.ui.editors.IDViewerControllable;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
+import org.embl.cca.dviewer.ui.views.DViewerControlsView;
+import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.text.StringUtils;
@@ -48,6 +56,8 @@ import org.embl.cca.utils.extension.FirstPageCreatedPollingNotifier;
 import org.embl.cca.utils.extension.IFirstPageCreatedListener;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
 import org.embl.cca.utils.threading.CommonThreading;
+import org.embl.cca.utils.ui.view.filenavigator.FileView;
+import org.embl.cca.utils.ui.view.filenavigator.IOpenFileListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +69,9 @@ public class DViewerStartup implements IStartup {
 	public final static String dViewerEnabledJavaProperty = "dViewer";
 	public final static String dViewerImagePortProperty = "dViewerImagePort";
 	public final static String dViewerLogSettingsProperty = "dViewerLogSettings";
+	//Variables set by command line arguments
+	public static File openFile = null;
+	public static boolean useHKL = false;
 
 	protected final static HashSet<String> requiredMenus = new HashSet<String>(Arrays.asList(new String[] {"file", "edit", "window", "help"}));
 	protected final IAction resetPreferencesAction = new Action("Reset Preferences") {
@@ -104,38 +117,92 @@ public class DViewerStartup implements IStartup {
 		}
 	};
 
-	protected final IFirstPageCreatedListener checkCommandLineArguments = new IFirstPageCreatedListener() {
+	protected final IFirstPageCreatedListener openFileIfSpecified = new IFirstPageCreatedListener() {
 		@Override
 		public void firstPageCreated(final IWorkbenchPage page) {
-			final String[] args = Platform.getCommandLineArgs();
-			for (int i = 0; i < args.length; i++) {
-//				if (args[i].equals("-mydir")) {
-//					i++;
-//					try {
-//						mydir = new File(args[i]);
-//						if (!mydir.exists() || !mydir.isDirectory()) {
-//							mydir = null;
-//						}
-//					} catch (Exception e) {
-//						mydir = null;
-//					}
-//				}
-				if (args[i].equals("-openFile")) {
-					i++;
-					final File file = new File(args[i]);
-					if( file.exists() ) {
-						final FilePathEditorInput fPEI = new FilePathEditorInput(file.getAbsolutePath(), null, file.getName());
-						try {
-							CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, true);
-						} catch (final PartInitException e) {
-							e.printStackTrace();
-						}
-					}
+			if( openFile != null && openFile.exists() ) {
+				final FilePathEditorInput fPEI = new FilePathEditorInput(openFile.getAbsolutePath(), null, openFile.getName());
+				try {
+					CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, true);
+				} catch (final PartInitException e) {
+					e.printStackTrace();
 				}
 			}
 		}
-
 	};
+
+	protected final IOpenFileListener openFileListener = new IOpenFileListener() {
+		@Override
+		public boolean openFile(final EFile file) {
+			//IOpenFileListener
+			if( file.getName().equalsIgnoreCase("XDS_ASCII.HKL")) {
+//				IViewPart controlsView = CommonExtension.findView(DViewerControlsView.ID, false);
+//				if( controlsView == null ) {
+				final IEditorPart currentEditor = CommonExtension.getCurrentEditor();
+				if( currentEditor == null )
+					return false;
+//				}
+				if( currentEditor instanceof IDViewerControllable ) {
+					((IDViewerControllable)currentEditor).setHKLFile(file);
+					return true;
+				}
+			}
+			return false;
+		}
+	};
+
+	protected final IPartListener2 fileViewPartListener = new IPartListener2() {
+		@Override
+		public void partVisible(IWorkbenchPartReference partRef) {
+		}
+		@Override
+		public void partOpened(IWorkbenchPartReference partRef) {
+			if( partRef.getId().equals(FileView.ID) )
+				((FileView)partRef.getPart(false)).addOpenFileListener(openFileListener);
+		}
+		@Override
+		public void partInputChanged(IWorkbenchPartReference partRef) {
+		}
+		@Override
+		public void partHidden(IWorkbenchPartReference partRef) {
+		}
+		@Override
+		public void partDeactivated(IWorkbenchPartReference partRef) {
+		}
+		@Override
+		public void partClosed(IWorkbenchPartReference partRef) {
+			if( partRef.getId().equals(FileView.ID) )
+				((FileView)partRef.getPart(false)).removeOpenFileListener(openFileListener);
+		}
+		@Override
+		public void partBroughtToTop(IWorkbenchPartReference partRef) {
+		}
+		@Override
+		public void partActivated(IWorkbenchPartReference partRef) {
+		}
+	};
+
+	protected void processCommandLineArguments() {
+		final String[] args = Platform.getCommandLineArgs();
+		for (int i = 0; i < args.length; i++) {
+//			if (args[i].equals("-mydir")) {
+//				i++;
+//				try {
+//					mydir = new File(args[i]);
+//					if (!mydir.exists() || !mydir.isDirectory()) {
+//						mydir = null;
+//					}
+//				} catch (Exception e) {
+//					mydir = null;
+//				}
+//			}
+			if (args[i].equals("-openFile")) {
+				openFile = new File(args[++i]);
+			} else if (args[i].equals("-hkl")) {
+				useHKL = true;
+			}
+		}
+	}
 
 	public void resetPreferences() {
 		EditorPreferenceInitializer.DownsamplingType.resetValue();
@@ -295,6 +362,21 @@ public class DViewerStartup implements IStartup {
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().removePerspectiveListener(perspectiveListener);
 	}
 
+	public void addOpenFileSupport() {
+		CommonThreading.execUISynced(new Runnable() {
+			@Override
+			public void run() {
+				CommonExtension.getCurrentPage().addPartListener(fileViewPartListener);
+				final IViewReference fileViewRef = CommonExtension.findViewRef(FileView.ID, false);
+				fileViewPartListener.partOpened(fileViewRef);
+			}
+		});
+	}
+
+	public void removeOpenFileSupport() {
+		CommonExtension.getCurrentPage().removePartListener(fileViewPartListener);
+	}
+
 	@Override
 	public void earlyStartup() {
 		if( JavaSystem.getPropertyAsBoolean(dViewerEnabledJavaProperty) ) {
@@ -305,6 +387,7 @@ public class DViewerStartup implements IStartup {
 	
 			PlatformUI.getWorkbench().addWorkbenchListener( new IWorkbenchListener() {
 				public boolean preShutdown( final IWorkbench workbench, final boolean forced ) {
+					removeOpenFileSupport();
 					stopConnectionManager();
 					removePerspectiveSupport();
 					return true;
@@ -313,6 +396,7 @@ public class DViewerStartup implements IStartup {
 				}
 			});
 
+			processCommandLineArguments();
 			final IEditorRegistry editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
 			final IFileEditorMapping[] allEditors = editorRegistry.getFileEditorMappings();
 			for( final IFileEditorMapping editor : allEditors ) {
@@ -329,8 +413,9 @@ public class DViewerStartup implements IStartup {
 			addPerspectiveSupport();
 			setDefaultPreferences();
 			startConnectionManager();
-			new FirstPageCreatedPollingNotifier(checkCommandLineArguments, 100);
+			new FirstPageCreatedPollingNotifier(openFileIfSpecified, 100);
 			new EclipseBug362561Workaround();
+			addOpenFileSupport();
 		}
 		logger.debug("Started " + getPackageName());
 	}

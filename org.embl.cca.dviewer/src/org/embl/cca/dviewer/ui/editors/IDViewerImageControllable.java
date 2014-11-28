@@ -2,6 +2,7 @@ package org.embl.cca.dviewer.ui.editors;
 
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
+import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 
 public interface IDViewerImageControllable {
@@ -12,6 +13,8 @@ public interface IDViewerImageControllable {
 	public boolean isPhaRadiusValid(final int value);
 	public int getPhaRadius();
 	public void setPhaRadius(final ISomethingChangeListener sender, final int phaRadius);
+
+	public void setHKLFile(final EFile file);
 
 	public int getHMin();
 	public int getHSup();

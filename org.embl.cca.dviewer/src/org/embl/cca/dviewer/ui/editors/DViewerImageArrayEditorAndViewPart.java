@@ -44,6 +44,7 @@ import org.eclipse.ui.part.WorkbenchPart;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.dviewer.ui.views.DViewerControlsPage;
+import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.FileLoader;
@@ -1131,6 +1132,13 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		final IDViewerImageControllable editor = getActiveImageControllableEditor();
 		if( editor != null )
 			editor.setPhaRadius(sender, phaRadius);
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHKLFile(final EFile file) {
+		final IDViewerImageControllable editor = getActiveImageControllableEditor();
+		if( editor != null )
+			editor.setHKLFile(file);
 	}
 
 	@Override //from IDViewerImageControllable

@@ -20,6 +20,7 @@ import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
+import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 
 public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost, ITitledEditor,
@@ -78,6 +79,11 @@ public class DViewerImageArrayViewPart extends ViewPart implements IViewPartHost
 	@Override
 	public void setPhaRadius(final ISomethingChangeListener sender, final int phaRadius) {
 		innerViewPart.setPhaRadius(sender, phaRadius);
+	}
+
+	@Override //from IDViewerImageControllable
+	public void setHKLFile(final EFile file) {
+		innerViewPart.setHKLFile(file);
 	}
 
 	@Override

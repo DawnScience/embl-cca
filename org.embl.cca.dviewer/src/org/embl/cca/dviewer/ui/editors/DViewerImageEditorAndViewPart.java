@@ -3,8 +3,10 @@ package org.embl.cca.dviewer.ui.editors;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -90,9 +92,12 @@ import org.embl.cca.dviewer.ui.editors.utils.PHA;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.dviewer.ui.views.DViewerControlsView;
 import org.embl.cca.dviewer.ui.views.DViewerImageView;
+import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageSaver;
 import org.embl.cca.utils.datahandling.file.SmarterJavaImageScaledSaver;
+import org.embl.cca.utils.datahandling.file.XDSASCIIHKLReader;
+import org.embl.cca.utils.datahandling.file.XDSASCIIHKLRecord;
 import org.embl.cca.utils.datahandling.text.DecimalPaddedFormat;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.errorhandling.ExceptionUtils;
@@ -100,6 +105,8 @@ import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.CommonThreading;
+import org.embl.cca.utils.ui.nebula.AnnotationEmbl.CursorLineStyleEmbl;
+import org.embl.cca.utils.ui.nebula.AnnotationWrapperEmbl;
 import org.embl.cca.utils.ui.widget.SaveFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +198,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	protected DownsampleType requiredDownsampleType = null;
 
+	protected EFile hklFile;
 	protected int hMin, hSup, hRangeMin, hRangeMax;
 	protected int kMin, kSup, kRangeMin, kRangeMax;
 	protected int lMin, lSup, lRangeMin, lRangeMax;
@@ -655,8 +663,9 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		wrapper.setVisible(isVisible);
 	}
 
-	public InputStream getDeepestInputStreamForFile(String fileName, final String fileExtension) throws FileNotFoundException  {
-		InputStream fis = new FileInputStream(new File(fileName));
+	public InputStream getDeepestInputStreamForFile(final File file, final String fileExtension) throws FileNotFoundException  {
+		InputStream fis = new FileInputStream(file);
+		String fileName = file.getName();
 		do {
 			final String ext = FileUtils.getFileExtension(fileName);
 			if( ext.equals(fileExtension) )
@@ -668,10 +677,14 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 					throw new UnsupportedOperationException(e);
 				}
 			} else //else if() {} //Here could add other streamers
-				throw new UnsupportedOperationException("Can not handle the  extension: " + ext);
+				throw new UnsupportedOperationException("Can not handle the extension: " + ext);
 			fileName = fileName.substring(0, fileName.length() - ext.length() - 1);
 		} while( true );
 		return fis;
+	}
+
+	public InputStream getDeepestInputStreamForFile(final String fileName, final String fileExtension) throws FileNotFoundException  {
+		return getDeepestInputStreamForFile(new File(fileName), fileExtension);
 	}
 
 	@Override //from WorkbenchPart
@@ -1239,15 +1252,18 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		} //else see onPhaPlotIsCancelled
 	}
 
-	protected void onDViewerControlsSelected() {
-		System.out.println("dViewer Controls Selected (" + openDViewerControlsAction.isChecked() + ")!");
-		CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
-	}
-
 	protected void onDViewerViewSelected() {
 		System.out.println("dViewer View Selected (" + openDViewerViewAction.isChecked() + ")!");
 		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
 		CommonExtension.setViewShellState(DViewerImageView.ID, IWorkbenchPage.STATE_MAXIMIZED);
+	}
+
+	protected void onDViewerControlsSelected() {
+		System.out.println("dViewer Controls Selected (" + openDViewerControlsAction.isChecked() + ")!");
+//		Shell dvc = new Shell(CommonExtension.getShell(DViewerImageView.ID), SWT.ON_TOP);
+//		dvc.setActive();
+		CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
+
 	}
 
 	@Override //from IDViewerImageControllable
@@ -1356,6 +1372,61 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 			else {
 				createPHAPlotJob.reschedule(dataSetOriginal, rehistogram, phaRadius);
 			}
+		}
+	}
+
+	HashMap<Integer, HashMap<Integer, HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>>>> imageIndexMap;
+	@Override //from IDViewerImageControllable
+	public void setHKLFile(final EFile file) {
+		hklFile = file;
+		if( hklFile != null ) {
+			try {
+				final XDSASCIIHKLReader xdsReader = new XDSASCIIHKLReader(getDeepestInputStreamForFile(file, "HKL"));
+				try {
+					xdsReader.readHeader();
+					final List<XDSASCIIHKLRecord> records = xdsReader.readAllHKLRecords();
+					imageIndexMap = new HashMap<Integer, HashMap<Integer, HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>>>>(100); //TODO HashMap is not good, we h ave duplicate keys
+					for( final XDSASCIIHKLRecord record : records) {
+						int i = record.getStartImageIndex();
+						final HashMap<Integer, HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>>> hMap;
+						if( !imageIndexMap.containsKey(i) ) {
+							hMap = new HashMap<Integer, HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>>>();
+							imageIndexMap.put(i, hMap);
+						} else
+							hMap = imageIndexMap.get(i);
+						final HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>> kMap;
+						if( !hMap.containsKey(record.getH()) ) {
+							kMap = new HashMap<Integer, HashMap<Integer, XDSASCIIHKLRecord>>();
+							hMap.put(record.getH(), kMap);
+						} else
+							kMap = hMap.get(record.getH());
+						final HashMap<Integer, XDSASCIIHKLRecord> lMap;
+						if( !kMap.containsKey(record.getK()) ) {
+							lMap = new HashMap<Integer, XDSASCIIHKLRecord>();
+							kMap.put(record.getK(), lMap);
+						} else
+							lMap = kMap.get(record.getK());
+						lMap.put(record.getL(), record);
+//						final AnnotationWrapperEmbl ann1 = (AnnotationWrapperEmbl)AnnotationWrapperEmbl.replaceCreateAnnotation(plottingSystem, "" + record.getH() + "," + record.getK() + "," + record.getL());
+//						ann1.setCursorLineStyle(CursorLineStyleEmbl.NOCURSOR);
+//						ann1.setShowArrow(false);
+//						ann1.setShowPosition(false);
+//						ann1.setShowInfo(false);
+//						ann1.setdxdy(0, -5);
+//						ann1.setLocation(record.getX(), record.getY());
+//						plottingSystem.addAnnotation(ann1);
+					}
+				} finally {
+					try {
+						xdsReader.close();
+					} catch (final IOException e) {
+					}
+				}
+			} catch (final Exception e1) { //From constructing, or IOException
+				e1.printStackTrace();
+			}
+		} else {
+			imageIndexMap = null;//TODO remove the annotations and the stored HKL values
 		}
 	}
 
