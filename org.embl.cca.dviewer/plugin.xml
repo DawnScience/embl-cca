@@ -109,6 +109,25 @@
             restorable="true">
       </view>
    </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.embl.cca.dviewer.actions.PHACommand"
+            description="Run the PHA algorithm on the currently selected plotting system."
+            id="org.embl.cca.dviewer.phaCommand"
+            name="PHA Conmand">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.dawnsci.plotting.api.plottingAction">
+      <plotting_action
+            action_type="TOOLBAR"
+            command_id="org.embl.cca.dviewer.phaCommand"
+            id="org.embl.cca.dviewer.plotting_action1"
+            label="PHA"
+            plot_type="IMAGE">
+      </plotting_action>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
