@@ -14,6 +14,12 @@
             id="org.embl.cca.dviewer.rcp.preference.root"
             name="dViewer">
       </page>
+      <page
+            category="org.edna.workbench.editors.preferencePage"
+            class="org.embl.cca.dviewer.ui.editors.preference.PHAPreferencePage"
+            id="org.embl.cca.dviewer.rcp.preference.pha"
+            name="PHA">
+      </page>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
@@ -117,16 +123,6 @@
             id="org.embl.cca.dviewer.phaCommand"
             name="PHA Conmand">
       </command>
-   </extension>
-   <extension
-         point="org.eclipse.dawnsci.plotting.api.plottingAction">
-      <plotting_action
-            action_type="TOOLBAR"
-            command_id="org.embl.cca.dviewer.phaCommand"
-            id="org.embl.cca.dviewer.plotting_action1"
-            label="PHA"
-            plot_type="IMAGE">
-      </plotting_action>
    </extension>
 <!--
    <extension

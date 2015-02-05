@@ -27,7 +27,7 @@ public class PHA {
 	public static final String featureShortName = PHA.class.getSimpleName();
 	public static final String featureFullName = "Point Highlighting Alghorithm";
 	public static final String featureIdentifierName = featureShortName.toLowerCase();
-	public static final int radiusDefault = 8;
+	public static final int radiusDefault = 2;
 
 	protected int radius;
 	protected DoubleDataset kernelSet;

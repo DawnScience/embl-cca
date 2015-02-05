@@ -69,6 +69,8 @@ public class EditorPreferenceInitializer extends AbstractPreferenceInitializer {
 		DownsamplingType.setDefault(String.valueOf(DownsampleType.MEAN.getIndex()));
 		ApplyPha.setDefault(false);
 		PhaRadius.setDefault(PHA.radiusDefault);
+		
+		DViewerActivator.getLocalPreferenceStore().setDefault(DViewerEditorConstants.PREFERENCE_VALID_VALUE_MIN, 0d);
 //		EditorPreferenceHelper.setStoreDefaultValues(store);
 
 //		//Better adjust current values if they are invalid

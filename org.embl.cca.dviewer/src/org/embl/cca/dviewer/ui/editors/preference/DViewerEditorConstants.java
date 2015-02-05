@@ -28,9 +28,10 @@ public class DViewerEditorConstants {
 	public final static int SHOW_EACH_NTH_IMAGE_MAX = 100;
 	public final static int SHOW_EACH_NTH_IMAGE_MIN = 1; //Reasonable, should not be changed
 
-	public static final String PREFERENCE_DOWNSAMPLING_TYPE = "prefDownsamplingType";
-	public static final String PREFERENCE_APPLY_PHA = "prefApplyPha";
-	public static final String PREFERENCE_PHA_RADIUS = "prefPhaRadius";
+	public static final String PREFERENCE_DOWNSAMPLING_TYPE = "org.embl.cca.dviewer.ui.prefDownsamplingType";
+	public static final String PREFERENCE_APPLY_PHA = "org.embl.cca.dviewer.ui.prefApplyPha";
+	public static final String PREFERENCE_PHA_RADIUS = "org.embl.cca.dviewer.ui.prefPhaRadius";
+	public static final String PREFERENCE_VALID_VALUE_MIN = "org.embl.cca.dviewer.ui.validValueLower";
 
 	public final static String[] getSortedDownsampleTypeNames() {
 		final String dTypeNames[] = new String[DownsampleType.values().length];
