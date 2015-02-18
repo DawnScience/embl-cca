@@ -282,7 +282,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 	}
 
 	@Override
-	protected ITrace createProfile(	IImageTrace  image, 
+	protected Collection<? extends ITrace> createProfile(	IImageTrace  image, 
 						            IRegion      region, 
 						            IROI         rbs, 
 						            boolean      tryUpdate,
@@ -323,7 +323,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			registerTraces(region, plotted);
 			
 		}
-		return trace;
+		return Arrays.asList(trace);
 	}
 
 	@Override
