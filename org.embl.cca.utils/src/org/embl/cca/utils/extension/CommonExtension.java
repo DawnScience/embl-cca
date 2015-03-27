@@ -7,6 +7,9 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.basic.MPartSashContainerElement;
+import org.eclipse.e4.ui.workbench.modeling.EModelService;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -25,8 +28,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.part.ViewPart;
 
 public class CommonExtension {
 	/**
@@ -185,11 +186,21 @@ public class CommonExtension {
 		final boolean detached = viewPart.getSite().getShell().getText().isEmpty(); //bit of hack
 		if( detach && !detached ) {
 			if( page instanceof org.eclipse.ui.internal.WorkbenchPage ) {
-				final IViewReference ref = page.findViewReference(viewId);
-				((org.eclipse.ui.internal.WorkbenchPage)page).detachView(ref);
+				detachPart(viewPart);
+//				final IViewReference ref = page.findViewReference(viewId);
+//				((org.eclipse.ui.internal.WorkbenchPage)page).detachView(ref);
 			}
 		}
 		return viewPart;
+	}
+	
+	private static void detachPart(IViewPart viewPart) {
+		EModelService s = (EModelService) viewPart.getSite().getService(EModelService.class);
+		MPartSashContainerElement p = (MPart) viewPart.getSite().getService(MPart.class);
+		if (p.getCurSharedRef() != null) {
+			p = p.getCurSharedRef();
+		}
+		s.detach(p, 100, 100, 300, 300);
 	}
 
 	/**
