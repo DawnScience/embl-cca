@@ -19,12 +19,12 @@ package org.embl.cca.utils.ui.view.filenavigator;
 import java.io.File;
 import java.nio.file.Path;
 
-import org.dawb.common.services.IFileIconService;
 import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.views.ImageMonitorView;
 import org.dawb.common.util.list.ListenerList;
+import org.eclipse.dawnsci.plotting.api.image.IFileIconService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;

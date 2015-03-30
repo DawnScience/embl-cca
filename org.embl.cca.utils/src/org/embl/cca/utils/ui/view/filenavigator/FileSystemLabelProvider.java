@@ -19,8 +19,8 @@ package org.embl.cca.utils.ui.view.filenavigator;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.dawb.common.services.IFileIconService;
 import org.dawb.common.services.ServiceManager;
+import org.eclipse.dawnsci.plotting.api.image.IFileIconService;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.viewers.ITableColorProvider;
