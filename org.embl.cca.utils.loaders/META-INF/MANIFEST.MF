@@ -4,7 +4,7 @@ Bundle-Name: C
 Bundle-SymbolicName: org.embl.cca.utils.loaders
 Bundle-Version: 1.1.0
 Bundle-Vendor: EMBL
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: loaders.pilatus
 Bundle-NativeCode: 
  lib/linux-x86/libjPilatusLoader.so ; osname=Linux; processor=x86,
