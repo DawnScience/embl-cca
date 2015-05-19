@@ -147,6 +147,7 @@ public class PSFTool extends AbstractToolPage {
         psfRadiusSelected();
 		psfStateSelected();
 //        traceListener.traceUpdated(new TraceEvent(image)); //Emulating the updating of trace
+		super.createControl(parent);
 	}
 
 	protected void savePSFSettings() {
