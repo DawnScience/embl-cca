@@ -124,6 +124,15 @@
             name="PHA Conmand">
       </command>
    </extension>
+   <extension
+         point="org.eclipse.dawnsci.plotting.api.plottingFilter">
+      <plottingFilter
+            filter="org.embl.cca.dviewer.actions.PHAFilter"
+            id="org.embl.cca.dviewer.actions.pHAFilter"
+            label="PHA"
+            ui="org.embl.cca.dviewer.actions.PHAConfiguration">
+      </plottingFilter>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
