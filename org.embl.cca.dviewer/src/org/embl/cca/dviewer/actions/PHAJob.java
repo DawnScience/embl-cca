@@ -20,12 +20,14 @@ public class PHAJob extends Job {
 	private IDataset orig;
 	private IDataset trans;
 	private ExecutionEvent event;
+	private PHAFilter filter;
 
 	public PHAJob(String name) {
 		super(name);
 		setPriority(Job.INTERACTIVE);
 		setUser(true);
 		setSystem(false);
+		this.filter = new PHAFilter();
 	}
 
 	@Override
@@ -52,28 +54,17 @@ public class PHAJob extends Job {
 		} else {
 			this.orig = image.getData();
 					
-			int radius = DViewerActivator.getLocalPreferenceStore().getInt(DViewerEditorConstants.PREFERENCE_PHA_RADIUS);
+			Object[] oa;
 			try {
-				radius = Integer.getInteger("org.dawnsci.plotting.pha.radius");
-			} catch (NullPointerException ne) {
-				// leave radius as is.
+				oa = filter.filter(orig, null);
+				this.trans = (IDataset)oa[0];
+				return trans;
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				return orig;
 			}
-			if (radius<1) radius = 2;
 			
-			double lower = DViewerActivator.getLocalPreferenceStore().getDouble(DViewerEditorConstants.PREFERENCE_VALID_VALUE_MIN);
-			try {
-				lower = Integer.getInteger("org.dawnsci.plotting.pha.validValueMin");
-			} catch (NullPointerException ne) {
-				// leave radius as is.
-			}
-			if (lower<0) lower = 0d;
-
-			
-			final PHA       pha  = new PHA(radius, lower); // TODO preference
-			final Rectangle rect = PHA.getDataSetRectangle(orig);
-			
-			this.trans = pha.applyPHA(orig, rect, monitor); // TODO monitor
-			return trans;
 		}
 	}
 	
