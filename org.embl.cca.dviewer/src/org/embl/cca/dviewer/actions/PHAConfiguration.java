@@ -1,11 +1,11 @@
 package org.embl.cca.dviewer.actions;
 
-import org.dawnsci.common.widgets.decorator.BoundsDecorator;
-import org.dawnsci.common.widgets.decorator.FloatDecorator;
-import org.dawnsci.common.widgets.decorator.IntegerDecorator;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.filter.FilterConfiguration;
 import org.eclipse.dawnsci.plotting.api.filter.IPlottingFilter;
+import org.eclipse.richbeans.widgets.decorator.BoundsDecorator;
+import org.eclipse.richbeans.widgets.decorator.FloatDecorator;
+import org.eclipse.richbeans.widgets.decorator.IntegerDecorator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;

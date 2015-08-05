@@ -21,9 +21,9 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dawnsci.common.widgets.content.IFilterExtensionProvider;
 import org.eclipse.jface.fieldassist.IContentProposal;
 import org.eclipse.jface.fieldassist.IContentProposalProvider;
+import org.eclipse.richbeans.widgets.content.IFilterExtensionProvider;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.file.FileLoader;
 
