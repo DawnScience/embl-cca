@@ -79,9 +79,9 @@ public class PHAJob extends Job {
 				          
 		if (image == null) {
 			
-			IPlottingSystem system = context instanceof IPlottingSystem
-					               ? (IPlottingSystem)context
-					               : (IPlottingSystem)EclipseUtils.getPage().getActivePart().getAdapter(IPlottingSystem.class);
+			IPlottingSystem<?> system = context instanceof IPlottingSystem
+					               ? (IPlottingSystem<?>)context
+					               : (IPlottingSystem<?>)EclipseUtils.getPage().getActivePart().getAdapter(IPlottingSystem.class);
 			
 		    image = (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
 		}

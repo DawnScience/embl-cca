@@ -50,14 +50,14 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 	protected double qScale;
 	protected MouseMotionListener hairMouseMotionListener; 
 
-	protected IPlottingSystem plotSystem; //From Abstract
+	protected IPlottingSystem<?> plotSystem; //From Abstract
 
 	protected IRegion xHair, yHair;
 
 	public double xValues [] = new double[1];
 	public double yValues [] = new double[1];
 
-	public InfoPixelTool(IPlottingSystem system, double qScale) {
+	public InfoPixelTool(IPlottingSystem<?> system, double qScale) {
 		this.plotSystem = system;
 		this.qScale = qScale;
 		hairMouseMotionListener = new MouseMotionListener.Stub() {
@@ -82,15 +82,15 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 		};
 	}
 
-	public InfoPixelTool(IPlottingSystem system) {
+	public InfoPixelTool(IPlottingSystem<?> system) {
 		this( system, qScaleDefault );
 	}
 
-	public void setPlottingSystem(IPlottingSystem system) {
+	public void setPlottingSystem(IPlottingSystem<?> system) {
 		this.plotSystem = system;
 	}
 
-	public IPlottingSystem getPlottingSystem() {
+	public IPlottingSystem<?> getPlottingSystem() {
 		return plotSystem;
 	}
 

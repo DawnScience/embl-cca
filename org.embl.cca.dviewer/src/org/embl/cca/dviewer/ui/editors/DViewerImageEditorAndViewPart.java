@@ -149,7 +149,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		}
 	};
 
-	protected final IPlottingSystem plottingSystem;
+	protected final IPlottingSystem<Composite> plottingSystem;
 	protected final PlotType defaultPlotType;
 //	/**
 //	 * Required for createPlotSeparateAxes, which is required if this class
@@ -289,7 +289,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		this.createPHAPlotJob = new CreatePHAPlotJob();
 		this.mousePos = new Point2DD(0, 0);
 		this.dirty = false;
-		final IPlottingSystem pS;
+		final IPlottingSystem<Composite> pS;
 		try {
 			pS = PlottingFactory.createPlottingSystem();
 		} catch (final Exception e) {
@@ -549,7 +549,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		}
 	}
 
-	public IPlottingSystem getPlottingSystem() {
+	public IPlottingSystem<Composite> getPlottingSystem() {
 		return plottingSystem;
 	}
 

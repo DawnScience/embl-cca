@@ -24,7 +24,7 @@ public class PHAConfiguration implements FilterConfiguration {
 	}
 
 	@Override
-	public void init(IPlottingSystem system, IPlottingFilter filter) {
+	public void init(IPlottingSystem<?> system, IPlottingFilter filter) {
 		// TODO Auto-generated method stub
 
 	}

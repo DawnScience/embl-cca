@@ -105,7 +105,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 	
 	
 	private final class FittingJob extends Job {
-		//IPlottingSystem plottingSystem;
+		//IPlottingSystem<Composite> plottingSystem;
 		public FittingJob() {
 			super("Fit peaks");
 			setPriority(Job.INTERACTIVE);
@@ -276,7 +276,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 	}
 	@Override
-	protected void configurePlottingSystem(IPlottingSystem plotter) {
+	protected void configurePlottingSystem(IPlottingSystem<?> plotter) {
 		plotter.getSelectedXAxis().setTitle("Pixel");
 		plotter.getSelectedYAxis().setTitle("Intensity");
 	}

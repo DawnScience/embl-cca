@@ -33,7 +33,7 @@ public class AnnotationWrapperEmbl extends AnnotationWrapper implements IAnnotat
 	 * @return
 	 * @throws Exception 
 	 */
-	public static final IAnnotation replaceCreateAnnotation(final IPlottingSystem system, final String name) throws Exception {
+	public static final IAnnotation replaceCreateAnnotation(final IPlottingSystem<?> system, final String name) throws Exception {
 		
 		if (system.getAnnotation(name)!=null) {
 			system.removeAnnotation(system.getAnnotation(name));
