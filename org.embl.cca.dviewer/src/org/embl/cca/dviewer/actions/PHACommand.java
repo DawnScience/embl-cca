@@ -8,7 +8,7 @@ import org.eclipse.core.commands.IHandler;
 /**
  * Command exposed by this plugin to allow the PHA to be added to any plot.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class PHACommand extends AbstractHandler implements IHandler {
