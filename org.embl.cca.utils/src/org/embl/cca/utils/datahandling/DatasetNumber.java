@@ -121,7 +121,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 */
 	public static Number getMaxValidNumber(Dataset set) {
 		try {
-			IMetadata metadata = (IMetadata)set.getMetadata();
+			IMetadata metadata = set.getMetadata();
 			if( metadata == null )
 				throw new RuntimeException("Metadata is not available for dataset: " + set.getName());
 			String value = metadata.getMetaValue("Count_cutoff").toString().split("counts")[0];

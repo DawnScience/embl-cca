@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
@@ -132,8 +133,8 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			for (ILineTrace selectedTrace : selectedTraces) {
 				
 				// We peak fit only the first of the data sets plotted for now.
-				Dataset x  = (Dataset)selectedTrace.getXData();
-				Dataset y  = (Dataset)selectedTrace.getYData();
+				Dataset x  = DatasetUtils.convertToDataset(selectedTrace.getXData());
+				Dataset y  = DatasetUtils.convertToDataset(selectedTrace.getYData());
 	
 				try {
 					final FittedFunctions bean = FittingUtils.getFittedPeaks(new FittedPeaksInfo(x, y, new ProgressMonitorWrapper(monitor), getPlottingSystem(), selectedTrace,10));
@@ -299,7 +300,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		if (!region.isVisible()) return null;
 
 		if (monitor.isCanceled()) return null;
-		Dataset[] profileData = ROIProfile.line((Dataset)image.getData(), (Dataset)image.getMask(), bounds, 1d, true);
+		Dataset[] profileData = ROIProfile.line(DatasetUtils.convertToDataset(image.getData()), DatasetUtils.convertToDataset(image.getMask()), bounds, 1d, true);
         if (profileData==null) return null;
 
 		if (monitor.isCanceled()) return null;
@@ -348,7 +349,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 			if (!region.isVisible())    continue;
 			if (!region.isUserRegion()) continue;
 			
-			Dataset[] profileData = ROIProfile.line((Dataset)slice.getData(), (Dataset)image.getMask(), (LinearROI)region.getROI(), 1d, false);
+			Dataset[] profileData = ROIProfile.line(DatasetUtils.convertToDataset(slice.getData()), DatasetUtils.convertToDataset(image.getMask()), (LinearROI)region.getROI(), 1d, false);
 			final Dataset intensity = profileData[0];
 			intensity.setName(region.getName().replace(' ', '_'));
 			slice.appendData(intensity);

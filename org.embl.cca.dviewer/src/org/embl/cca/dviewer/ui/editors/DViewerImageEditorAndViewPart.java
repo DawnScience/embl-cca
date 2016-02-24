@@ -517,7 +517,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	@Override //from ISaveablePart
 	public void doSaveAs() {
 		do {
-			saveAs((Dataset)imageTrace.getData(), false, 0, 0);
+			saveAs(imageTrace.getData(), false, 0, 0);
 		} while( false );
 	}
 
@@ -584,7 +584,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	}
 
 	
-	protected void saveAs(Dataset ds, boolean autoscale, double min, double max) {
+	protected void saveAs(IDataset ds, boolean autoscale, double min, double max) {
 		final Shell shell = getSite().getWorkbenchWindow().getShell();
 		Assert.isNotNull(shell, "Environment error: can not find shell");
 		if( saveAsDialog == null ) {
@@ -642,7 +642,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	public void doSaveAsScaled() {
 		do {
 //			System.out.println("IT.Min and IT.max=" + imageTrace.getMin().doubleValue() + ", " + imageTrace.getMax().doubleValue());
-			saveAs((Dataset)imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
+			saveAs(imageTrace.getData(), true, imageTrace.getMin().doubleValue(), imageTrace.getMax().doubleValue());
 		} while( false );
 	}
 
@@ -1646,7 +1646,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		final Point2DD mouseAxisPos = getMouseAxisPos();
 		final StringBuilder result = new StringBuilder("x:").append(statusXPosFormat.format(mouseAxisPos.x)).append(STATUS_FIELD_SEPARATOR).append("y:").append(statusYPosFormat.format(mouseAxisPos.y));
 		if (imageTrace!=null) {
-			final Dataset dataSet = (Dataset)imageTrace.getData();
+			final IDataset dataSet = imageTrace.getData();
 			try {
 				//Copied from InfoPixelTool, because much faster than calculating all kind of stuff
 				result.append(STATUS_FIELD_SEPARATOR).append("value:").append(statusDataFormat.format(dataSet.getDouble((int)Math.floor(mousePos.y), (int)Math.floor(mousePos.x))));

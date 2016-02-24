@@ -24,6 +24,7 @@ import org.eclipse.dawnsci.analysis.api.diffraction.DiffractionCrystalEnvironmen
 import org.eclipse.dawnsci.analysis.api.metadata.IDiffractionMetadata;
 import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetUtils;
 import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.region.IROIListener;
@@ -309,7 +310,7 @@ public class InfoPixelTool /*extends AbstractToolPage*/ implements IROIListener,
 			IDiffractionMetadata dmeta = null;
 			Dataset set = null;
 			if (imageTrace!=null) {
-				set = (Dataset)imageTrace.getData();
+				set = DatasetUtils.convertToDataset(imageTrace.getData());
 				final IMetadata      meta = set.getMetadata();
 				if (meta instanceof IDiffractionMetadata) {
 	

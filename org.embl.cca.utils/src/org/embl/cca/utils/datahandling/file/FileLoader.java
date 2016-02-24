@@ -15,12 +15,14 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.diffraction.DiffractionCrystalEnvironment;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.metadata.IDiffractionMetadata;
 import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetUtils;
 import org.eclipse.swt.SWT;
 import org.embl.cca.utils.datahandling.AbstractDatasetAndFileDescriptor;
 import org.embl.cca.utils.datahandling.DatasetNumber;
@@ -429,14 +431,14 @@ public class FileLoader {
 		DatasetTypeSeparatedUtils.splitRemoveSet(set, summedSet, summedBadMask, summedNotMeasuredMask, maxValidNumber, badNumber, notMeasuredValue);
 	}
 
-	protected void add(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void add(IDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetadata metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = 0;
 		if( loadedFileAndMetadatas.size() == 0 ) {
-			resultSet = set;
+			resultSet = DatasetUtils.convertToDataset(set);
 			fAM.setMetadata(metadata != null ? metadata.clone() : null);
-			DatasetTypeSeparatedUtils.splitJoinIntoSelf(set, maxValidNumber, badNumber, notMeasuredValue);
+			DatasetTypeSeparatedUtils.splitJoinIntoSelf(resultSet, maxValidNumber, badNumber, notMeasuredValue);
 		} else {
 			IMetadata resultMetadata = resultSet.getMetadata();
 			if( (resultMetadata == null && metadata != null) || (resultMetadata != null && metadata == null)
@@ -445,13 +447,13 @@ public class FileLoader {
 			localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
 			if( localIndex < 0 )
 				localIndex = -(localIndex + 1);
-			addSplitImage(set, maxValidNumber, badNumber, notMeasuredValue);
+			addSplitImage(DatasetUtils.convertToDataset(set), maxValidNumber, badNumber, notMeasuredValue);
 		}
 		loadedFileAndMetadatas.add( localIndex, fAM );
 		resultSetNeedsUpdate = true;
 	}
 
-	protected void remove(Dataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
+	protected void remove(IDataset set, FileWithTag imageFile, Number maxValidNumber, Number badNumber, Number notMeasuredValue) {
 		IMetadata metadata = set.getMetadata();
 		FileAndMetadata fAM = new FileAndMetadata(imageFile, metadata);
 		int localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
@@ -461,7 +463,7 @@ public class FileLoader {
 		if( loadedFileAndMetadatas.size() == 0 ) {
 			clearLoaded();
 		} else {
-			removeSplitImage(set, maxValidNumber, badNumber, notMeasuredValue);
+			removeSplitImage(DatasetUtils.convertToDataset(set), maxValidNumber, badNumber, notMeasuredValue);
 			resultSetNeedsUpdate = true;
 		}
 	}
@@ -470,7 +472,7 @@ public class FileLoader {
 		final String filePath = imageFile.getAbsolutePathWithoutProtocol();
 		try {
 			ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
-			Dataset set = (Dataset)service.getDataset(filePath, null);
+			Dataset set = DatasetUtils.convertToDataset(service.getDataset(filePath, null));
 			if( set == null )
 				throw new IOException("The loader returned null dataset for file: " + imageFile.getAbsolutePath()); //should the loader throw an exception?
 			return set;

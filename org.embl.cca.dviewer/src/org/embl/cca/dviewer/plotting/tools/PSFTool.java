@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetUtils;
 import org.eclipse.dawnsci.plotting.api.tool.AbstractToolPage;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ITrace;
@@ -305,7 +306,7 @@ public class PSFTool extends AbstractToolPage {
 						if (isAborting())
 							break;
 						if( originalSetJob == null ) {
-							originalSetJob = (Dataset)imageJob.getData();
+							originalSetJob = DatasetUtils.convertToDataset(imageJob.getData());
 							psfSetJob = null;
 						}
 						long t0 = System.nanoTime();
