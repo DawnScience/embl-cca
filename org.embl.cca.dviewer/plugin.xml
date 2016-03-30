@@ -76,6 +76,8 @@
             name="dViewer">
       </introPageRegister>
    </extension>
+   <!--remove DViewer from the welcome list of perspective -->
+  <!--
    <extension
          point="org.eclipse.ui.intro.configExtension">
       <configExtension
@@ -83,6 +85,7 @@
             content="intro/introContribution.xml">
       </configExtension>
    </extension>
+   -->
 <!--
    <extension
          point="org.eclipse.ui.views">
