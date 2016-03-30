@@ -1,8 +1,13 @@
-# Ignores that are common to all Eclipse plugin projects
-/@dot
-/@dot.log
-/bin
-/build.xml
-/javaCompiler...args
+### Temporary files ###
+*.bak
+*.swp
+*.tmp
+*.*~
 
-# Ignores that are specific to this Eclipse project
+### Java ###
+*.class
+hs_err_pid*
+
+### Build output ###
+/bin
+/classes/
