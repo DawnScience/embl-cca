@@ -4,9 +4,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.dawb.common.services.ServiceManager;
 import org.dawnsci.plotting.system.PlottingSystemActivator;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.dawnsci.plotting.api.histogram.IPaletteService;
 import org.eclipse.dawnsci.plotting.api.preferences.PlottingConstants;
 import org.eclipse.dawnsci.plotting.api.preferences.ToolbarConfigurationConstants;
 import org.eclipse.jface.action.Action;
@@ -253,7 +256,13 @@ public class DViewerStartup implements IStartup {
 	}
 
 	protected void setDefaultPreferences() {
-		final String defaultColourScheme = "Film Negative";
+		String defaultColourScheme;
+		try {
+			IPaletteService pservice = (IPaletteService)ServiceManager.getService(IPaletteService.class);
+			defaultColourScheme = pservice.getColorSchemes().iterator().next();
+		} catch (final Exception e) {
+			defaultColourScheme = StringUtils.EMPTY_STRING;
+		}
 		final String defaultPollServerDirectory = StringUtils.EMPTY_STRING;
 		//getLocalPreferenceStore for Toolbar*
 //		final IPreferenceStore dviewerPS = DViewerActivator.getLocalPreferenceStore();
@@ -368,6 +377,7 @@ public class DViewerStartup implements IStartup {
 			public void run() {
 				CommonExtension.getCurrentPage().addPartListener(fileViewPartListener);
 				final IViewReference fileViewRef = CommonExtension.findViewRef(FileView.ID, false);
+				Assert.isNotNull(fileViewRef, "Could not find " + FileView.ID + " view!");
 				fileViewPartListener.partOpened(fileViewRef);
 			}
 		});
