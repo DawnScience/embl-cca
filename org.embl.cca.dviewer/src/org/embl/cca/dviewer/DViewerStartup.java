@@ -110,7 +110,7 @@ public class DViewerStartup implements IStartup {
 				}
 				menuManager.updateAll(true);
 			}
-			final IMenuService menuService = (IMenuService)PlatformUI.getWorkbench().getService(IMenuService.class);
+			final IMenuService menuService = CommonExtension.getService(IMenuService.class);
 			if( hide )
 				menuService.addContributionFactory(dViewerContribution);
 			else
@@ -245,7 +245,7 @@ public class DViewerStartup implements IStartup {
 	protected void setDefaultPreferences() {
 		String defaultColourScheme;
 		try {
-			IPaletteService pservice = (IPaletteService)PlatformUI.getWorkbench().getService(IPaletteService.class);
+			IPaletteService pservice = CommonExtension.getService(IPaletteService.class);
 			defaultColourScheme = pservice.getColorSchemes().iterator().next();
 		} catch (final Exception e) {
 			defaultColourScheme = StringUtils.EMPTY_STRING;
