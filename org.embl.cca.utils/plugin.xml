@@ -78,12 +78,22 @@
                label="Collapse All"
                style="push">
          </command>
+         <separator
+               name="org.embl.cca.utils.ui.view.filenavigator.separator3"
+               visible="true">
+         </separator>
+         <command
+           	   commandId="org.embl.cca.utils.ui.view.filenavigator.handler.openImageMonitorHandler"
+               label="Open folder in image monitor"
+               tooltip="View images in folder and monitor directory for more as they appear"
+               style="push">
+         </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
             locationURI="toolbar:org.embl.cca.utils.ui.view.filenavigator.FileView">
          <separator
-               name="org.embl.cca.utils.ui.view.filenavigator.separator3"
+               name="org.embl.cca.utils.ui.view.filenavigator.separator4"
                visible="true">
          </separator>
          <command
@@ -98,6 +108,20 @@
                label="Refresh"
                style="push"
                tooltip="Refresh file tree">
+         </command>
+         <separator
+               name="org.embl.cca.utils.ui.view.filenavigator.separator5"
+               visible="true">
+         </separator>
+         <command
+               commandId="org.dawnsci.conversion.convertWizard"
+               icon="icons/convert.png"
+               label="Convert..."
+               style="push"
+               tooltip="Convert data to other formats">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
          </command>
       </menuContribution>
       <menuContribution
@@ -137,7 +161,13 @@
             id="org.embl.cca.utils.ui.view.filenavigator.handler.showFileNavigatorPreferences"
             name="Show preferences">
       </command>
+      <command
+            defaultHandler="org.dawb.common.ui.actions.OpenImageMonitorHandler"
+            id="org.embl.cca.utils.ui.view.filenavigator.handler.openImageMonitorHandler"
+            name="Open in File Explorer">
+      </command>
    </extension>
+<!--
    <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
@@ -152,5 +182,5 @@
          </action>
       </objectContribution>
    </extension>
-
+-->
 </plugin>

@@ -1,115 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
 <plugin>
-   <extension point="org.eclipse.ui.startup"
-         id="org.eclipse.ui.startup"
-         name="dViewer startup">
-         <startup class="org.embl.cca.dviewer.DViewerStartup"/>
+
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="org.embl.cca.dviewer.DViewerStartup">
+      </startup>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
+            name="dViewer"
             category="org.edna.workbench.editors.preferencePage"
             class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferencePage"
-            id="org.embl.cca.dviewer.rcp.preference.root"
-            name="dViewer">
+            id="org.embl.cca.dviewer.rcp.preference.root">
       </page>
       <page
+            name="PHA"
             category="org.edna.workbench.editors.preferencePage"
             class="org.embl.cca.dviewer.ui.editors.preference.PHAPreferencePage"
-            id="org.embl.cca.dviewer.rcp.preference.pha"
-            name="PHA">
+            id="org.embl.cca.dviewer.rcp.preference.pha">
       </page>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
-       <initializer
-             class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer">
-       </initializer>
+      <initializer
+            class="org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer">
+      </initializer>
    </extension>
    <extension
          point="org.eclipse.dawnsci.plotting.api.toolPage">
-      <!-- Fix to http://jira.diamond.ac.uk/browse/DAWNSCI-604
       <plotting_tool_page
-            class="org.embl.cca.dviewer.plotting.tools.PSFTool"
-            icon="icons/psf.png"
-            id="org.embl.cca.dviewer.plotting.tools.psfTool"
-            label="PHA"
-            tooltip="A tool for highlighting spots of images.">
-      </plotting_tool_page>
-      -->
-      <plotting_tool_page
+            label="Diffraction Line Profile"
+            icon="icons/plot-tool-line-profile.png"
             category="org.dawnsci.plotting.tools.category.Science"
             class="org.embl.cca.dviewer.plotting.tools.DiffractionLineProfileTool"
-            icon="icons/plot-tool-line-profile.png"
-            id="org.embl.cca.dviewer.plotting.tools.diffractionLineProfile"
-            label="Diffraction Line Profile">
+            id="org.embl.cca.dviewer.plotting.tools.diffractionLineProfile">
       </plotting_tool_page>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
-       <editor
+      <editor
+            default="false"
+            name="dViewer Image Editor"
+            extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker, raw, png, jpg, jpeg"
+            icon="icons/dViewer-16x16-icon.png"
             class="org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart"
-             default="false"
-             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker, raw, png, jpg, jpeg"
-             icon="icons/dViewer-16x16-icon.png"
-             id="org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart"
-             name="dViewer Image Editor">
-       </editor>
-    </extension>
+            id="org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart">
+      </editor>
+   </extension>
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
-            class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective"
+            name="dViewer"
             icon="icons/dViewer-16x16-icon.png"
-            id="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective"
-            name="dViewer">
+            class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective"
+            id="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective">
       </perspective>
    </extension>
    <extension
          point="org.dawnsci.introRegister">
       <introPageRegister
-            description="Opens the dViewer perspective"
+            name="dViewer"
             icon="icons/dViewer-3Col-Splash.png"
-            id="org.embl.cca.dviewer.intro.DViewerPerspective"
+            description="Opens the dViewer perspective"
             class="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspectiveLaunch"
-            name="dViewer">
+            id="org.embl.cca.dviewer.intro.DViewerPerspective">
       </introPageRegister>
    </extension>
-   <!--remove DViewer from the welcome list of perspective -->
-  <!--
-   <extension
-         point="org.eclipse.ui.intro.configExtension">
-      <configExtension
-            configId="org.dawnsci.intro.universalConfig"
-            content="intro/introContribution.xml">
-      </configExtension>
-   </extension>
-   -->
-<!--
    <extension
          point="org.eclipse.ui.views">
-      <view
-            category="org.dawb.workbench.ui.beta.views.category"
-            class="org.embl.cca.dviewer.ui.views.DViewerView"
-            icon="icons/dViewer-16x16-icon.png"
-            id="org.embl.cca.dviewer.ui.views.dViewerView"
-            name="dViewer"
-            restorable="true">
-      </view>
-   </extension>
--->
-   <extension
-         point="org.eclipse.ui.views">
-      <view
+      <e4view
+            name="dViewer Controls"
+            icon="icons/dViewer-controls-16x16-icon.png"
             category="org.dawb.workbench.ui.beta.views.category"
             class="org.embl.cca.dviewer.ui.views.DViewerControlsView"
-            icon="icons/dViewer-controls-16x16-icon.png"
-            id="org.embl.cca.dviewer.ui.views.DViewerControlsView"
-            name="dViewer Controls"
-            restorable="true">
-      </view>
+            restorable="true"
+            id="org.embl.cca.dviewer.ui.views.DViewerControlsView">
+      </e4view>
       <view
+            allowMultiple="false"
             category="org.dawb.workbench.ui.beta.views.category"
             class="org.embl.cca.dviewer.ui.views.DViewerImageView"
             icon="icons/dViewer-view-16x16-icon.png"
@@ -122,38 +92,19 @@
          point="org.eclipse.ui.commands">
       <command
             defaultHandler="org.embl.cca.dviewer.actions.PHACommand"
+            name="PHA Conmand"
             description="Run the PHA algorithm on the currently selected plotting system."
-            id="org.embl.cca.dviewer.phaCommand"
-            name="PHA Conmand">
+            id="org.embl.cca.dviewer.phaCommand">
       </command>
    </extension>
    <extension
          point="org.eclipse.dawnsci.plotting.api.plottingFilter">
       <plottingFilter
-            filter="org.embl.cca.dviewer.actions.PHAFilter"
-            id="org.embl.cca.dviewer.actions.pHAFilter"
             label="PHA"
-            ui="org.embl.cca.dviewer.actions.PHAConfiguration">
+            filter="org.embl.cca.dviewer.actions.PHAFilter"
+            ui="org.embl.cca.dviewer.actions.PHAConfiguration"
+            id="org.embl.cca.dviewer.actions.pHAFilter">
       </plottingFilter>
    </extension>
-<!--
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.embl.cca.dviewer.rcp.perspectives.DViewerPerspective">
-         <hiddenMenuItem
-               id="org.eclipse.ui.run">
-         </hiddenMenuItem>
-         <hiddenMenuItem
-               id="navigate">
-         </hiddenMenuItem>
-         <hiddenMenuItem
-               id="project">
-         </hiddenMenuItem>
-         <hiddenMenuItem
-               id="org.eclipse.search.menu">
-         </hiddenMenuItem>
-      </perspectiveExtension>
-   </extension>
--->
+
 </plugin>
