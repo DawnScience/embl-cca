@@ -7,12 +7,17 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.e4.ui.model.application.ui.MUIElement;
+import org.eclipse.e4.ui.model.application.ui.advanced.MPlaceholder;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.e4.ui.model.application.ui.basic.MPartSashContainerElement;
+import org.eclipse.e4.ui.model.application.ui.basic.MWindow;
 import org.eclipse.e4.ui.workbench.modeling.EModelService;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.ExpandBar;
@@ -25,11 +30,16 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 public class CommonExtension {
+	public final static boolean debugMode = Boolean.getBoolean("DEBUG");
+
+	public static Rectangle DETACH_RECTANGLE_DEFAULT = new Rectangle(100, 100, 300, 300);
+
 	/**
 	 * Creates and returns a new instance of the executable extension 
 	 * identified by the class attribute of the first applicable configuration
@@ -38,7 +48,7 @@ public class CommonExtension {
 	 * <p>
 	 * The specified class is instantiated using its 0-argument public constructor.
 	 * <p>
-	 * @see IConfigurationElement.createExecutableExtension
+	 * @see IConfigurationElement#createExecutableExtension
 	 * 
 	 * @param extensionPointId
 	 * The string specifying the identified extension point.
@@ -175,32 +185,10 @@ public class CommonExtension {
 	 * @param viewId
 	 *            the id of the view extension to use
 	 * @param detach true if the view has to be detached
-	 * @return the shown view
-	 * @exception PartInitException
-	 *                if the view could not be initialized
+	 * @return the shown view, or <code>null</code> if it could not be initialized
 	 */
-	@SuppressWarnings("restriction")
-	public static IViewPart openView(final String viewId, final boolean detach) throws PartInitException {
-		final IWorkbenchPage page = getActivePage();
-		final IViewPart viewPart = page.showView(viewId);
-		final boolean detached = viewPart.getSite().getShell().getText().isEmpty(); //bit of hack
-		if( detach && !detached ) {
-			if( page instanceof org.eclipse.ui.internal.WorkbenchPage ) {
-				detachPart(viewPart);
-//				final IViewReference ref = page.findViewReference(viewId);
-//				((org.eclipse.ui.internal.WorkbenchPage)page).detachView(ref);
-			}
-		}
-		return viewPart;
-	}
-	
-	private static void detachPart(IViewPart viewPart) {
-		EModelService s = (EModelService) viewPart.getSite().getService(EModelService.class);
-		MPartSashContainerElement p = (MPart) viewPart.getSite().getService(MPart.class);
-		if (p.getCurSharedRef() != null) {
-			p = p.getCurSharedRef();
-		}
-		s.detach(p, 100, 100, 300, 300);
+	public static IViewPart openViewWithErrorDialog(final String viewId, final boolean detach) {
+		return openViewWithErrorDialog(viewId, detach, DETACH_RECTANGLE_DEFAULT);
 	}
 
 	/**
@@ -212,11 +200,12 @@ public class CommonExtension {
 	 * @param viewId
 	 *            the id of the view extension to use
 	 * @param detach true if the view has to be detached
+	 * @param rectangle the rectangle of detached window
 	 * @return the shown view, or <code>null</code> if it could not be initialized
 	 */
-	public static IViewPart openViewWithErrorDialog(final String viewId, final boolean detach) {
+	public static IViewPart openViewWithErrorDialog(final String viewId, final boolean detach, final Rectangle rectangle) {
 		try {
-			return openView(viewId, detach);
+			return openView(viewId, detach, rectangle);
 		} catch (final PartInitException e) {
 			final Shell shell = getActiveShell();
 			Assert.isNotNull(shell, "Environment error: can not find shell");
@@ -225,6 +214,477 @@ public class CommonExtension {
 				.append(viewId).append("\".\n\n").append(e.getMessage()).toString());
 			return null;
 		}
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is given focus.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @return the shown view
+	 * @exception PartInitException
+	 *                if the view could not be initialized
+	 */
+	public static IViewPart openView(final String viewId, final boolean detach) throws PartInitException {
+		return openView(viewId, detach, DETACH_RECTANGLE_DEFAULT);
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is given focus.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @param rectangle the rectangle of detached window
+	 * @return the shown view
+	 * @exception PartInitException
+	 *                if the view could not be initialized
+	 */
+	public static IViewPart openView(final String viewId, final boolean detach, final Rectangle rectangle) throws PartInitException {
+		final IWorkbenchPage page = getActivePage();
+		final IViewPart viewPart = page.showView(viewId);
+		final boolean detached = isDetached(viewPart);
+		if( detach && !detached ) {
+			detachViewPart(viewPart, rectangle);
+		}
+		return viewPart;
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is closed firstly.
+	 * If detach is true, the shown view is detached.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @return the shown view, or <code>null</code> if it could not be initialized
+	 */
+	public static IViewPart reopenViewWithErrorDialog(final String viewId, final boolean detach) {
+		return reopenViewWithErrorDialog(viewId, detach, CommonExtension.getRectangle(viewId));
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is closed firstly.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @param rectangle the rectangle of detached window
+	 * @return the shown view, or <code>null</code> if it could not be initialized
+	 */
+	public static IViewPart reopenViewWithErrorDialog(final String viewId, final boolean detach, final Rectangle rectangle) {
+		try {
+			return reopenView(viewId, detach, rectangle);
+		} catch (final PartInitException e) {
+			final Shell shell = getActiveShell();
+			Assert.isNotNull(shell, "Environment error: can not find shell");
+			MessageDialog.openError(shell,
+					"View Opening Error", new StringBuilder("Could not open the view: \"")
+				.append(viewId).append("\".\n\n").append(e.getMessage()).toString());
+			return null;
+		}
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is closed firstly.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @return the shown view
+	 * @exception PartInitException
+	 *                if the view could not be initialized
+	 */
+	public static IViewPart reopenView(final String viewId, final boolean detach) throws PartInitException {
+		return reopenView(viewId, detach, CommonExtension.getRectangle(viewId));
+	}
+
+	/**
+	 * Shows the view identified by the given view id in this page and gives it
+	 * focus. If there is a view identified by the given view id (and with no
+	 * secondary id) already open in this page, it is closed firstly.
+	 * If detach is true, the shown view is detached if not detached already.
+	 * 
+	 * @param viewId
+	 *            the id of the view extension to use
+	 * @param detach true if the view has to be detached
+	 * @param rectangle the rectangle of detached window
+	 * @return the shown view
+	 * @exception PartInitException
+	 *                if the view could not be initialized
+	 */
+	public static IViewPart reopenView(final String viewId, final boolean detach, final Rectangle rectangle) throws PartInitException {
+		CommonExtension.closePart(viewId, true);
+		final IWorkbenchPage page = getActivePage();
+		final IViewPart viewPart = page.showView(viewId);
+		final boolean detached = isDetached(viewPart);
+		if( detach && !detached ) {
+			detachViewPart(viewPart, rectangle);
+		}
+		return viewPart;
+	}
+
+	/**
+	 * Finds and closes the part with the given id.
+	 * @param partId the id of the part to close, must not be <code>null</code>
+	 * @param force if the part should be removed from the model regardless of its
+	 *            {@link #REMOVE_ON_HIDE_TAG} tag
+	 * @return the part for the specified id, or <code>null</code> if no such part could be found
+	 * @see EPartService#hidePart
+	 */
+	public static void closePart(final String partId, final boolean force) {
+		final EPartService partService = getService(EPartService.class);
+		partService.hidePart(getPart(partId), force);
+	}
+
+	/**
+	 * Finds and returns the first window containing the given element.
+	 * @param mUIElement the element to search for, must not be <code>null</code>
+	 * @return the window for the specified element, or <code>null</code> if the part is not in a window
+	 */
+	public static MUIElement findContainerWindow(final MUIElement mUIElement) {
+		final EModelService modelService = getService(EModelService.class);
+		MUIElement mContainerWindow = mUIElement;
+		while( mContainerWindow != null && !(mContainerWindow instanceof MWindow) ) {
+			mContainerWindow = modelService.getContainer(mContainerWindow);
+		}
+		return mContainerWindow;
+	}
+
+	/**
+	 * Finds and returns the first window containing the element with the given id.
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 * @return the window for the part of specified id, or <code>null</code> if the part is not in a window
+	 */
+	public static MUIElement findContainerWindow(final String partId) {
+		return findContainerWindow(getPartholder(partId));
+	}
+
+	/**
+	 * Returns if the given workbench part is detached (E3) using E4 API.
+	 * <p>
+	 * This field determines whether or not the given workbench part is detached.
+	 * </p>
+	 * @param workbenchPart the part to search for, must not be <code>null</code>
+	 * @return true if the specified workbench part is detached, else false.
+	 * @see #isDetached(String)
+	 * @see #detachWorkbenchPart(IWorkbenchPart)
+	 */
+	@Deprecated
+	public static boolean isDetached(final IWorkbenchPart workbenchPart) {
+		//http://eclipsesource.com/blogs/2010/06/23/tip-how-to-detect-that-a-view-was-detached/
+		//return viewPart.getSite().getShell().getText().isEmpty(); //E3 style
+		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		return isDetached(workbenchId);
+	}
+
+	/**
+	 * Returns if the part with given id is detached.
+	 * <p>
+	 * This field determines whether or not the part with given id is detached.
+	 * </p>
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 * @return true if the workbench part with specified id is detached, else false.
+	 * @see #detachWorkbenchPart(IWorkbenchPart)
+	 */
+	public static boolean isDetached(final String partId) {
+		//https://dev.eclipse.org/mhonarc/lists/e4-dev/msg07352.html
+		final EModelService modelService = getService(EModelService.class);
+		final MUIElement mUIElement = getPartholder(partId);
+		final MUIElement mContainingWindow = findContainerWindow(mUIElement);
+//		return !(modelService.getContainer(mContainingWindow) instanceof MApplication); //Alternative condition
+		return modelService.getTopLevelWindowFor(mUIElement) != mContainingWindow;
+	}
+
+	public static boolean isMaxScreened(final String partId) {
+		final Shell shell = getShell(partId);
+		return shell.getMaximized();
+	}
+
+	/**
+	 * Sets the max screen state of shell of part identified by the given id.
+	 * The shell of part is the real window containing the part as well.
+	 * 
+	 * @param partId
+	 *            the id of the part to use
+	 */
+	public static void setMaxScreened(final String partId) {
+		final Shell shell = getShell(partId);
+		shell.setMaximized(true);
+	}
+
+	/**
+	 * Sets the min screen state of shell of part identified by the given id.
+	 * The shell of part is the real window containing the part as well.
+	 * 
+	 * @param partId
+	 *            the id of the part to use
+	 */
+	public static void setMinScreened(final String partId) {
+		final Shell shell = getShell(partId);
+		shell.setMinimized(true);
+	}
+
+	/**
+	 * Returns if the given workbench part is visible (E3) using E4 API.
+	 * <p>
+	 * This field determines whether or not the given workbench part is visible.
+	 * </p>
+	 * @param workbenchPart the part to search for, must not be <code>null</code>
+	 * @return true if the specified workbench part is visible, else false.
+	 * @see #isVisible(String)
+	 */
+	@Deprecated
+	public static boolean isVisible(final IWorkbenchPart workbenchPart) {
+		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		return isVisible(workbenchId);
+	}
+
+	/**
+	 * Returns if the part with given id is visible.
+	 * <p>
+	 * This field determines whether or not the part with given id is visible.
+	 * </p>
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 * @return true if the part with specified id is visible, else false.
+	 */
+	public static boolean isVisible(final String partId) {
+		final EPartService partService = getService(EPartService.class);
+		return partService.isPartVisible(getPart(partId));
+	}
+
+	/**
+	 * Gets the service for the given class. For example:
+	 * getService(EModelService.class)
+	 * @param clazz the clazz of required service
+	 * @return clazz type of found service, or null if not found
+	 */
+	public static <T> T getService(final Class<T> clazz) {
+		return PlatformUI.getWorkbench().getService(clazz);
+	}
+
+	/**
+	 * Finds and returns the partholder for the part with given id.
+	 * The partholder is the part itself if not shared between perspectives
+	 * (i.e. as views), else the placeholder of the shared part.
+	 * This method helps detaching methods and hopefully others.
+	 * @param partId the id of part to search for, must not be <code>null</code>
+	 * @return the partholder for the part with specified id, or <code>null</code> if there is no partholder
+	 */
+	public static MUIElement getPartholder(final String partId) { 
+		final MPart mPart = getPart(partId);
+		if( mPart != null ) {
+			final MPlaceholder mPlaceholder = getPlaceholder(mPart);
+			if( mPlaceholder != null )
+				return mPlaceholder;
+		}
+		return mPart;
+	}
+
+	/**
+	 * Gets the placeholder for the given part.
+	 * Note that only(?) views can have placeholders which are shared
+	 * between perspectives.
+	 * @param part the part having its placeholder, must not be <code>null</code>
+	 * @return the placeholder for the specified part, or <code>null</code> if there is no placeholder
+	 * @see MUIElement#getCurSharedRef()
+	 */
+	public static MPlaceholder getPlaceholder(final MPart part) {
+		return part.getCurSharedRef();
+	}
+
+	/**
+	 * Finds and returns the partholder for the given workbench part (E3) using E4 API.
+	 * @param workbenchPart the workbench part to search for, must not be <code>null</code>
+	 * @return the partholder for the specified workbench part, or <code>null</code> if there is no partholder
+	 * @see #getPartholder(String)
+	 */
+	@Deprecated
+	public static MUIElement getPartholder(final IWorkbenchPart workbenchPart) { 
+		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		return getPartholder(workbenchId);
+	}
+
+	/**
+	 * Finds and returns the placeholder for the view with given id.
+	 * @param viewId the id of view part to search for, must not be <code>null</code>
+	 * @return the placeholder for the view part with specified id, or <code>null</code> if there is no placeholder
+	 */
+	public static MPlaceholder getPlaceholder(final String viewId) {
+		final MPart mPart = getPart(viewId);
+		if( mPart != null )
+			return getPlaceholder(mPart);
+		return null;
+	}
+
+	/**
+	 * Finds and returns the placeholder for the given view part (E3) using E4 API.
+	 * @param viewPart the view part to search for, must not be <code>null</code>
+	 * @return the placeholder for the specified view part, or <code>null</code> if there is no placeholder
+	 */
+	@Deprecated
+	public static MPlaceholder getPlaceholder(final IViewPart viewPart) { 
+		final String viewId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(viewPart).getId();
+		return getPlaceholder(viewId);
+	}
+
+	/**
+	 * Finds and returns a part with the given id.
+	 * @param partId
+	 *            the id of the part to search for, must not be <code>null</code>
+	 * @return the part with the specified id, or <code>null</code> if no such part could be found
+	 */
+	public static MPart getPart(final String partId) {
+		final EPartService partService = getService(EPartService.class);
+		return partService.findPart(partId);
+	}
+
+	/**
+	 * Finds and returns a part for the given editor part (E3) using E4 API.
+	 * @param editorPart the editor part to search for, must not be <code>null</code>
+	 * @return the part for the specified editor part, or <code>null</code> if no such part could be found
+	 */
+	@Deprecated
+	public static MPart getPart(final IEditorPart editorPart) { 
+		final String editorId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(editorPart).getId();
+		return getPart(editorId);
+	}
+
+	/**
+	 * Finds and returns the rectangle for the part with the given id.
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 * @return the rectangle for the part with the specified id, or <code>null</code> if no such part could be found
+	 */
+	public static Rectangle getRectangle(final String partId) {
+		final MWindow mContainingWindow = (MWindow)findContainerWindow(getPartholder(partId));
+		return new Rectangle(mContainingWindow.getX(), mContainingWindow.getY(), mContainingWindow.getWidth(), mContainingWindow.getHeight());
+	}
+
+	/**
+	 * Detaches the given view part (E3) using E4 API.
+	 * Origin at https://tomsondev.bestsolution.at/2012/07/13/so-you-used-internal-api/
+	 * @param viewPart the view part to be detached
+	 */
+	@Deprecated 
+	public static void detachViewPart(final IViewPart viewPart) {
+		detachViewPart(viewPart, DETACH_RECTANGLE_DEFAULT);
+	}
+
+	/**
+	 * Detaches the given view part (E3) using E4 API.
+	 * Origin at https://tomsondev.bestsolution.at/2012/07/13/so-you-used-internal-api/
+	 * @param viewPart the view part to be detached
+	 * @param rectangle the rectangle of detached window
+	 */
+	@Deprecated 
+	public static void detachViewPart(final IViewPart viewPart, final Rectangle rectangle) {
+		final EModelService modelService = getService(EModelService.class);
+		modelService.detach(getPlaceholder(viewPart), rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+	}
+
+	/**
+	 * Brings to top the part with the given id.
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 */
+	public static void bringToTop(final String partId) {
+		final EModelService modelService = getService(EModelService.class);
+		modelService.bringToTop(getPlaceholder(partId));
+	}
+
+	/**
+	 * Brings to top the given view part (E3) using E4 API.
+	 * @param viewPart the view part to be detached
+	 */
+	@Deprecated
+	public static void bringToTopViewPart(final IViewPart viewPart) {
+		final EModelService modelService = getService(EModelService.class);
+		modelService.bringToTop(getPlaceholder(viewPart));
+	}
+
+	/**
+	 * Detaches the given editor part (E3) using E4 API.
+	 * @param editorPart the editor part to be detached
+	 */
+	@Deprecated
+	public static void detachEditorPart(final IEditorPart editorPart) {
+		detachEditorPart(editorPart, DETACH_RECTANGLE_DEFAULT);
+	}
+
+	/**
+	 * Detaches the given editor part (E3) using E4 API.
+	 * @param editorPart the editor part to be detached
+	 * @param rectangle the rectangle of detached window
+	 */
+	@Deprecated
+	public static void detachEditorPart(final IEditorPart editorPart, final Rectangle rectangle) {
+		final EModelService modelService = getService(EModelService.class);
+		modelService.detach(getPart(editorPart), rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+	}
+
+	/**
+	 * Brings to top the given editor part (E3) using E4 API.
+	 * @param editorPart the editor part to be detached
+	 */
+	@Deprecated
+	public static void bringToTopEditorPart(final IEditorPart editorPart) {
+		final EModelService modelService = getService(EModelService.class);
+		modelService.bringToTop(getPart(editorPart));
+	}
+
+	/**
+	 * Detaches the given workbench part (E3) using E4 API.
+	 * @param workbenchPart the workbench part to be detached
+	 */
+	@Deprecated
+	public static void detachWorkbenchPart(final IWorkbenchPart workbenchPart) {
+		detachWorkbenchPart(workbenchPart, DETACH_RECTANGLE_DEFAULT);
+	}
+	/**
+	 * Detaches the given workbench part (E3) using E4 API.
+	 * @param workbenchPart the workbench part to be detached
+	 * @param rectangle the rectangle of detached window
+	 */
+	@Deprecated
+	public static void detachWorkbenchPart(final IWorkbenchPart workbenchPart, final Rectangle rectangle) {
+		final EModelService modelService = getService(EModelService.class);
+		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		modelService.detach((MPartSashContainerElement)getPartholder(workbenchId), rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+	}
+
+	/**
+	 * Brings to top the given workbench part (E3) using E4 API.
+	 * @param workbenchPart the workbench part to be detached
+	 */
+	@Deprecated
+	public static void bringToTopWorkbenchPart(final IWorkbenchPart workbenchPart) {
+		final EModelService modelService = getService(EModelService.class);
+		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		modelService.bringToTop(getPartholder(workbenchId));
+	}
+
+	/**
+	 * Brings to top the part with the given id.
+	 * @param partId the id of the part to search for, must not be <code>null</code>
+	 */
+	public static void setFocus(final String partId) {
+		final MPart mPart = getPart(partId);
+		final EPartService partService = getService(EPartService.class);
+		partService.activate(mPart, true);
 	}
 
 	/**
@@ -315,6 +775,22 @@ public class CommonExtension {
 		final IWorkbenchWindow[] windows = getWorkbenchWindows();
 		if (windows==null) return null;
 		return windows[0].getActivePage();
+	}
+
+	/**
+	 * Gets the active part of active page. If the Eclipse model returns null,
+	 * then the active part known by this workaround is returned.
+	 * @return the active part of active page, or null if there is
+	 * no workbench window or active page or active part
+	 */
+	public static IWorkbenchPart getActivePart() {
+		IWorkbenchPart activePart = null;
+		final IWorkbenchPage page = getActivePage();
+		if( page != null )
+			activePart = page.getActivePart();
+		if( activePart == null )
+			activePart = EclipseBug362561Workaround.getActivePart();
+		return activePart;
 	}
 
 	/**
