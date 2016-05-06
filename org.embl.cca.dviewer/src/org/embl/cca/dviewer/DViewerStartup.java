@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.dawb.common.services.ServiceManager;
 import org.dawnsci.plotting.system.PlottingSystemActivator;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
@@ -28,7 +27,6 @@ import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchCommandConstants;
@@ -48,10 +46,10 @@ import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.dviewer.ui.editors.IDViewerControllable;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
-import org.embl.cca.dviewer.ui.views.DViewerControlsView;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
+import org.embl.cca.utils.datahandling.StringAndObject;
 import org.embl.cca.utils.datahandling.text.StringUtils;
 import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.extension.EclipseBug362561Workaround;
@@ -217,17 +215,6 @@ public class DViewerStartup implements IStartup {
 		return getClass().getName().split("\\." + getClass().getSimpleName())[0];
 	}
 
-	public class StringAndObject { //TODO could be generic in utils
-		public IPreferenceStore preferenceStore;
-		public String string;
-		public Object object;
-		StringAndObject(final IPreferenceStore preferenceStore, final String string, final Object object) {
-			this.preferenceStore = preferenceStore;
-			this.string = string;
-			this.object = object;
-		}
-	}
-
 	protected void setToDefault(final StringAndObject propertyDefault) {
 		setToDefault(propertyDefault.preferenceStore, propertyDefault.string, propertyDefault.object);
 	}
@@ -258,7 +245,7 @@ public class DViewerStartup implements IStartup {
 	protected void setDefaultPreferences() {
 		String defaultColourScheme;
 		try {
-			IPaletteService pservice = (IPaletteService)ServiceManager.getService(IPaletteService.class);
+			IPaletteService pservice = (IPaletteService)PlatformUI.getWorkbench().getService(IPaletteService.class);
 			defaultColourScheme = pservice.getColorSchemes().iterator().next();
 		} catch (final Exception e) {
 			defaultColourScheme = StringUtils.EMPTY_STRING;
@@ -272,7 +259,7 @@ public class DViewerStartup implements IStartup {
 		 /* getAnalysisRCPPreferenceStore for PlottingConstants.PLOT_VIEW_PLOT2D_COLOURMAP,
 		  * probably used outside of DAWN.
 		  */
-		final IPreferenceStore rpcPS = PlottingSystemActivator.getAnalysisRCPPreferenceStore();
+//		final IPreferenceStore rpcPS = PlottingSystemActivator.getAnalysisRCPPreferenceStore();
 		final StringAndObject[] propertyDefaults = {
 			new StringAndObject(localPS, ToolbarConfigurationConstants.CONFIG.getId(), false),
 			new StringAndObject(localPS, ToolbarConfigurationConstants.ANNOTATION.getId(), false),
@@ -395,7 +382,7 @@ public class DViewerStartup implements IStartup {
 			//final String logSettingsRelPath = JavaSystem.getProperty(dViewerLogSettingsProperty);
 			logger.debug("Starting " + getPackageName());
 	
-			PlatformUI.getWorkbench().addWorkbenchListener( new IWorkbenchListener() {
+			PlatformUI.getWorkbench().addWorkbenchListener(new IWorkbenchListener() {
 				public boolean preShutdown( final IWorkbench workbench, final boolean forced ) {
 					removeOpenFileSupport();
 					stopConnectionManager();
