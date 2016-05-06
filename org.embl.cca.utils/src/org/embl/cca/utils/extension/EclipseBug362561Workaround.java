@@ -10,6 +10,7 @@ import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PerspectiveAdapter;
 import org.embl.cca.utils.threading.CommonThreading;
@@ -21,6 +22,10 @@ import org.embl.cca.utils.threading.CommonThreading;
  * <p>
  * {@link https://bugs.eclipse.org/bugs/show_bug.cgi?id=362561}
  * </p>
+ * Another workaround is implemented here, because easy to do it here.
+ * In Eclipse 4.x the getActivePart() returns null for Eclipse 3.x views,
+ * which is nonsense. Here the activated part is listened and stored.
+ * 
  * @author Gábor Náray
  *
  */
@@ -38,9 +43,20 @@ public class EclipseBug362561Workaround {
 	protected static final int Bug362561TimerPeriod = 500;
 	protected static Timer timer = new Timer("Bug362561 Workaround Startup", true);
 
+	protected static IWorkbenchPart activePart = null;
+
+	/**
+	 * Gets the active part known by this workaround.
+	 * @return the active part known by this workaround
+	 */
+	public final static IWorkbenchPart getActivePart() {
+		return activePart;
+	}
+
 	protected final static IPartListener2 bug362561PartListener = new PartAdapter() {
 		@Override
 		public void partActivated(IWorkbenchPartReference partRef) {
+			activePart = partRef.getPart(false);
 			if(bug362561WorkaroundState.equals(Bug362561WorkaroundState.PART_ACTIVIATION_WATCH)) {
 				bug362561WorkaroundState = Bug362561WorkaroundState.PERSPECTIVE_ACTIVATION_WATCH;
 				CommonThreading.execUIAsynced(new Runnable() {
@@ -113,13 +129,13 @@ public class EclipseBug362561Workaround {
 
 	public EclipseBug362561Workaround() {
 		new FirstPageCreatedPollingNotifier(startupWorkaroundForBug362561, Bug362561TimerPeriod);
-
 	}
 
 	protected static void deactivateWorkaroundForBug362561() {
 		bug362561WatchedPage.removePartListener(bug362561PartListener);
 		bug362561WatchedPage = null;
 		bug362561WorkaroundState = Bug362561WorkaroundState.INACTIVE;
+		activePart = null;
 	}
 
 	protected static void activateWorkaroundForBug362561(final IWorkbenchPage page) {
