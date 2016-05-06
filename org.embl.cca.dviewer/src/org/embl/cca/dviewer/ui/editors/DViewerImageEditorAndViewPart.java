@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.menu.MenuAction;
 import org.dawb.common.ui.util.GridUtils;
@@ -38,7 +37,6 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.IDatasetMathsService;
 import org.eclipse.dawnsci.analysis.api.io.IFileSaver;
 import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.PlottingFactory;
@@ -78,11 +76,11 @@ import org.eclipse.ui.ISaveablePart;
 import org.eclipse.ui.IShowEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartConstants;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.WorkbenchPart;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.embl.cca.dviewer.DViewerActivator;
@@ -529,9 +527,12 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	}
 
 	@Override //from WorkbenchPart
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
+	public <T> T getAdapter(final Class<T> clazz) {
 		if (IToolPageSystem.class.equals(clazz) || IPlottingSystem.class.equals(clazz)) { //Mandatory for tools
-			return getPlottingSystem();
+			//IPlottingSystem and IToolPageSystem are assumed to be implemented
+			//at the same time, as done in AbstractPlottingSystem.
+			//Thus the following cast is correct.
+			return clazz.cast(getPlottingSystem());
 //		} else if (clazz == Page.class) {
 //			return import org.dawb.workbench.ui.views.PlotDataPage.getPageFor(this); //Mandatory for PlotDataPage, PlotDataView
 //		} else if (clazz == ISliceSystem.class) {
@@ -624,7 +625,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 					.append("', because an error occured.\nThe error message: "), e, this);
 				if( e instanceof IllegalArgumentException) {
 					logger.info(sb.toString());
-					final boolean ovr = MessageDialog.open(MessageDialog.ERROR, shell,
+					/*final boolean ovr = */MessageDialog.open(MessageDialog.ERROR, shell,
 						"File Saving Error", sb.toString(), MessageDialog.NONE );
 //					MessageDialog.openError(shell, "File Saving Error", sb.toString()); //shorter, but no user response
 					//TODO recover if chosen so
@@ -871,7 +872,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		if (wrapper != null)
 			wrapper.update(true);
 
-		((AbstractPlottingSystem)plottingSystem).addPropertyChangeListener(new IPropertyChangeListener() {
+		((AbstractPlottingSystem<?>)plottingSystem).addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				if (IPlottingSystem.RESCALE_ID.equals(event.getProperty())) {
@@ -1146,7 +1147,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		final DimsDataList dimsDataList;
 		final IDatasetMathsService service;
 		try {
-			service = (IDatasetMathsService)ServiceManager.getService(IDatasetMathsService.class);
+			service = CommonExtension.getService(IDatasetMathsService.class);
 			dimsDataList = new DimsDataList(data.getShape());
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
@@ -1255,15 +1256,18 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 	protected void onDViewerViewSelected() {
 		System.out.println("dViewer View Selected (" + openDViewerViewAction.isChecked() + ")!");
 		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
-		CommonExtension.setViewShellState(DViewerImageView.ID, IWorkbenchPage.STATE_MAXIMIZED);
+		CommonExtension.bringToTop(DViewerImageView.ID);
+		CommonExtension.setMaxScreened(DViewerImageView.ID);
 	}
 
 	protected void onDViewerControlsSelected() {
 		System.out.println("dViewer Controls Selected (" + openDViewerControlsAction.isChecked() + ")!");
-//		Shell dvc = new Shell(CommonExtension.getShell(DViewerImageView.ID), SWT.ON_TOP);
-//		dvc.setActive();
-		CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
-
+		if( CommonExtension.isDetached(DViewerImageView.ID) && CommonExtension.isMaxScreened(DViewerImageView.ID) && CommonExtension.isVisible(DViewerControlsView.ID)) {
+			CommonExtension.reopenViewWithErrorDialog(DViewerControlsView.ID, true);
+		} else
+			CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
+		CommonExtension.bringToTop(DViewerControlsView.ID);
+		CommonExtension.setFocus(DViewerControlsView.ID);
 	}
 
 	@Override //from IDViewerImageControllable
