@@ -111,34 +111,39 @@ public class SpinnerSlider extends Composite {
 		//Setting monospace font to avoid different lengths
 		slider.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
 		addListener(SWT.Dispose, new Listener() {
-		     public void handleEvent(Event e) {
-		    	 logger.debug("DEBUG: spinnerslider disposed!");
-		    	 widgetDisposed(e);
-		     }
+			public void handleEvent(Event e) {
+				if( CommonExtension.debugMode )
+					logger.debug("DEBUG: spinnerslider disposed!");
+				widgetDisposed(e);
+			}
 		});
 		slider.addListener(SWT.Selection, new Listener() {
-		     public void handleEvent(Event e) {
-		    	 logger.debug("DEBUG: slider selected!");
-		    	 widgetSelected(e);
-		     }
+			public void handleEvent(Event e) {
+				if( CommonExtension.debugMode )
+					logger.debug("DEBUG: slider selected!");
+				widgetSelected(e);
+			}
 		});
 		spinner.addListener(SWT.Selection, new Listener() {
-		     public void handleEvent(Event e) {
-		    	 logger.debug("DEBUG: spinner selected!");
-		    	 widgetSelected(e);
-		     }
+			public void handleEvent(Event e) {
+				if( CommonExtension.debugMode )
+					logger.debug("DEBUG: spinner selected!");
+				widgetSelected(e);
+			}
 		});
 		spinner.addListener(SWT.Modify, new Listener() {
-		     public void handleEvent(Event e) {
-		    	 logger.debug("DEBUG: spinner modified!");
-		    	 widgetModified(e);
-		     }
+			public void handleEvent(Event e) {
+				if( CommonExtension.debugMode )
+					logger.debug("DEBUG: spinner modified!");
+				widgetModified(e);
+			}
 		});
 		spinner.addListener(SWT.Verify, new Listener() {
-		     public void handleEvent(Event e) {
-		    	 logger.debug("DEBUG: spinner verify! " + e.text);
-		    	 widgetVerify(e);
-		     }
+			public void handleEvent(Event e) {
+				if( CommonExtension.debugMode )
+					logger.debug("DEBUG: spinner verify! " + e.text);
+				widgetVerify(e);
+			}
 		});
 		layout = new GridLayout(getChildren().length, false);
 		layout.marginHeight = 1;
@@ -162,12 +167,14 @@ public class SpinnerSlider extends Composite {
 	}
 
 	protected void widgetVerify(Event e) {
-		logger.debug("GRRR: widgetVerify: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
+		if( CommonExtension.debugMode )
+			logger.debug("GRRR: widgetVerify: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
 		if( ignoreEvents )
 			return;
 		try {
 			ignoreEvents = true;
-			logger.debug("GRRR: widgetVerify: " + e.widget.toString() + ", notifying listeners");
+			if( CommonExtension.debugMode )
+				logger.debug("GRRR: widgetVerify: " + e.widget.toString() + ", notifying listeners");
 			notifyListeners(SWT.Verify, new Event());
 		} finally {
 			ignoreEvents = false;
@@ -175,7 +182,8 @@ public class SpinnerSlider extends Composite {
 	}
 
 	protected void widgetSelected(Event e) {
-		logger.debug("GRRR: widgetSelected: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
+		if( CommonExtension.debugMode )
+			logger.debug("GRRR: widgetSelected: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
 		if( ignoreEvents )
 			return;
 		try {
@@ -184,7 +192,8 @@ public class SpinnerSlider extends Composite {
 			if( e.widget instanceof Slider ) {
 				Slider slider = (Slider)e.widget;
 				int v = convertSliderValue2SpinnerValue(slider.getSelection());
-				logger.debug("GRRR: widgetSelected=slider, spinner.setSelection(" + v + ")");
+				if( CommonExtension.debugMode )
+					logger.debug("GRRR: widgetSelected=slider, spinner.setSelection(" + v + ")");
 				spinner.setSelection(v);
 			} else if( e.widget instanceof Spinner ) {
 //				getParent().changed(new Control[] {this});
@@ -193,10 +202,12 @@ public class SpinnerSlider extends Composite {
 //				getParent().layout();
 //				Spinner spinner = (Spinner)e.widget;
 //				int v = convertSpinnerValue2SliderValue(spinner.getSelection());
-//				logger.debug("GRRR: widgetSelected=spinner, slider.setSelection(" + v + ")");
+//				if( CommonExtension.debugMode )
+//					logger.debug("GRRR: widgetSelected=spinner, slider.setSelection(" + v + ")");
 //				slider.setSelection(v);
 			}
-			logger.debug("GRRR: widgetSelected: " + e.widget.toString() + ", notifying listeners");
+			if( CommonExtension.debugMode )
+				logger.debug("GRRR: widgetSelected: " + e.widget.toString() + ", notifying listeners");
 			notifyListeners(SWT.Selection, new Event());
 		} finally {
 			ignoreEvents = false;
@@ -204,7 +215,8 @@ public class SpinnerSlider extends Composite {
 	}
 
 	protected void widgetModified(Event e) {
-		logger.debug("GRRR: widgetModified: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
+		if( CommonExtension.debugMode )
+			logger.debug("GRRR: widgetModified: " + e.widget.toString() + ", event=" + e.toString() + ", event.text=" + e.text);
 		boolean prevIgnoreEvents = ignoreEvents;
 		try {
 			ignoreEvents = true;
@@ -212,7 +224,8 @@ public class SpinnerSlider extends Composite {
 			if( e.widget instanceof Slider ) {
 //				Slider slider = (Slider)e.widget;
 //				int v = convertSliderValue2SpinnerValue(slider.getSelection());
-//				logger.debug("GRRR: widgetSelected=slider, spinner.setSelection(" + v + ")");
+//				if( CommonExtension.debugMode )
+//					logger.debug("GRRR: widgetSelected=slider, spinner.setSelection(" + v + ")");
 //				spinner.setSelection(v);
 			} else if( e.widget instanceof Spinner ) {
 				String currentValue = spinner.getText();
@@ -222,16 +235,19 @@ public class SpinnerSlider extends Composite {
 //				getParent().layout(true, true);
 //				getParent().pack();
 //				getParent().layout();
-				logger.debug("GRRR: widgetModified=spinner, prevValue=" + prevSpinnerValue + ", currentValue=" + currentValue + ", ignoring=" + prevIgnoreEvents);
+				if( CommonExtension.debugMode )
+					logger.debug("GRRR: widgetModified=spinner, prevValue=" + prevSpinnerValue + ", currentValue=" + currentValue + ", ignoring=" + prevIgnoreEvents);
 				prevSpinnerValue = currentValue;
 				if( prevIgnoreEvents )
 					return;
 				Spinner spinner = (Spinner)e.widget;
 				int v = convertSpinnerValue2SliderValue(spinner.getSelection());
-				logger.debug("GRRR: widgetModified=spinner, slider.setSelection(" + v + ")");
+				if( CommonExtension.debugMode )
+					logger.debug("GRRR: widgetModified=spinner, slider.setSelection(" + v + ")");
 				slider.setSelection(v);
 			}
-			logger.debug("GRRR: widgetModified: " + e.widget.toString() + ", notifying listeners");
+			if( CommonExtension.debugMode )
+				logger.debug("GRRR: widgetModified: " + e.widget.toString() + ", notifying listeners");
 			notifyListeners(SWT.Modify, new Event());
 		} finally {
 			ignoreEvents = prevIgnoreEvents;
@@ -274,7 +290,8 @@ public class SpinnerSlider extends Composite {
 	protected Point computeSizeByParts(Point labelSize, Point spinnerSize, Point sliderSize) {
 		int width = labelSize.x + spinnerSize.x + sliderSize.x + layout.horizontalSpacing * (layout.numColumns - 1);
 		int height = Math.max(Math.max(labelSize.y, spinnerSize.y), sliderSize.y);
-//		System.out.println("SpinnerSlider.computeSize: labelSize=" + labelSize + ", spinnerSize=" + spinnerSize + ", sliderSize=" + sliderSize + ", width=" + width + ", height=" + height);
+//		if( CommonExtension.debugMode )
+//			System.out.println("SpinnerSlider.computeSize: labelSize=" + labelSize + ", spinnerSize=" + spinnerSize + ", sliderSize=" + sliderSize + ", width=" + width + ", height=" + height);
 		//Here calculating trim
 		Rectangle trim = computeTrim(0, 0, width, height);
 		return new Point(trim.width, trim.height);
@@ -361,7 +378,8 @@ public class SpinnerSlider extends Composite {
 
 	public void setValues(final String title, final Number valueSelection, final int sliderIndexMinimum, final int sliderIndexMaximum,
 		int preferredDigits, final Number valueIncrement, final Number valuePageIncrement, final int indexIncrement, final int indexPageIncrement, final IndexAndValueConverter converter) {
-		System.out.println("GRRR: setValues: title=" + title + ", valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum);
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setValues: title=" + title + ", valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum);
 		if (sliderIndexMaximum < sliderIndexMinimum)
 			throw new RuntimeException("Maximum is less than minimum: " + sliderIndexMaximum + " < " + sliderIndexMinimum);
 		if (preferredDigits < 0)
@@ -395,15 +413,19 @@ public class SpinnerSlider extends Composite {
 		label.setText(title + ":");
 //		int pageIncrement = thumb;
 		spinner.setDigits( preferredDigits ); //Must do this before using convertValue2SpinnerValue() 
-		System.out.println("GRRR: spinner.setValues: valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum);
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: spinner.setValues: valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum);
 		spinner.setValues( convertValue2SpinnerValue(valueSelection), convertSliderValue2SpinnerValue( sliderIndexMinimum ), convertSliderValue2SpinnerValue( sliderIndexMaximum ),
 			preferredDigits, (int)Math.round(valueIncrement.doubleValue() * Math.pow(10, preferredDigits)), (int)Math.round(valuePageIncrement.doubleValue() * Math.pow(10, preferredDigits)) );
 		spinner.setToolTipText(title);
-		System.out.println("GRRR: setValues: spinner[.getSelection=" + spinner.getSelection() + ", .getMinimum=" + spinner.getMinimum() + ", .getMaximum=" + spinner.getMaximum() + ", .getText=" + spinner.getText());
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setValues: spinner[.getSelection=" + spinner.getSelection() + ", .getMinimum=" + spinner.getMinimum() + ", .getMaximum=" + spinner.getMaximum() + ", .getText=" + spinner.getText());
 		final int thumb = indexPageIncrement;
-		System.out.println("GRRR: slider.setValues: valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum + ", thumb=" + thumb);
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: slider.setValues: valueSelection=" + valueSelection + ", sliderIndexMinimum=" + sliderIndexMinimum + ", sliderIndexMaximum=" + sliderIndexMaximum + ", thumb=" + thumb);
 		slider.setValues( convertValue2SliderValue(valueSelection), sliderIndexMinimum, sliderIndexMaximum + thumb, thumb, indexIncrement, indexPageIncrement );
-		System.out.println("DEBUG: slider.maximum=" + slider.getMaximum());
+		if( CommonExtension.debugMode )
+			System.out.println("DEBUG: slider.maximum=" + slider.getMaximum());
 		slider.setToolTipText(title);
 //		this.title = title;
 //		this.valueSelection = valueSelection;
@@ -440,7 +462,8 @@ public class SpinnerSlider extends Composite {
 			double logbase = Math.pow(valueMax.doubleValue() - valueMinus1, 1.0 / (sliderIndexMaximum - sliderIndexMinimum));
 			@Override
 			public Double index2Value(int i) { //i=sliderIndexMinimum,...,sliderIndexMaximum
-				System.out.println("DEBUG: index2Value.ori: logbase=" + logbase + ", linearRate=" + linearRate + ", valueMinus1=" + valueMinus1 + ", i=" + i);
+				if( CommonExtension.debugMode )
+					System.out.println("DEBUG: index2Value.ori: logbase=" + logbase + ", linearRate=" + linearRate + ", valueMinus1=" + valueMinus1 + ", i=" + i);
 				if( linear )
 					return (i - sliderIndexMinimum) * linearRate + valueMin.doubleValue();
 				else
@@ -450,7 +473,8 @@ public class SpinnerSlider extends Composite {
 			@Override
 			public int value2index(Number real) {
 				double dbl = Math.log(real.doubleValue() - valueMinus1) / Math.log(logbase) + sliderIndexMinimum;
-				System.out.println("DEBUG: value2index.ori: logbase=" + logbase + ", linearRate=" + linearRate + ", valueMinus1=" + valueMinus1 + ", real=" + real + ", sliderIndex=" + dbl);
+				if( CommonExtension.debugMode )
+					System.out.println("DEBUG: value2index.ori: logbase=" + logbase + ", linearRate=" + linearRate + ", valueMinus1=" + valueMinus1 + ", real=" + real + ", sliderIndex=" + dbl);
 				if( linear )
 					return (int) ((real.doubleValue() - valueMin.doubleValue()) / linearRate + sliderIndexMinimum);
 				else
@@ -480,30 +504,36 @@ public class SpinnerSlider extends Composite {
 			double logbase4v2i = Math.pow(valueMax.doubleValue() - valueMinus1, 1.0 / (sliderIndexMaximumCurrent - sliderIndexMinimumCurrent));
 			@Override
 			public Double index2Value(int i) { //i=sliderIndexMinimumCurrent,...,sliderIndexMaximumCurrent
-				System.out.println("DEBUG: index2Value: logbase4i2v=" + logbase4i2v + ", valueMinus1=" + valueMinus1 + ", i=" + i);
+				if( CommonExtension.debugMode )
+					System.out.println("DEBUG: index2Value: logbase4i2v=" + logbase4i2v + ", valueMinus1=" + valueMinus1 + ", i=" + i);
 				return Math.pow(logbase4i2v, i - sliderIndexMinimumCurrent) + valueMinus1;
 			}
 
 			@Override
 			public int value2index(Number real) {
 				double dbl = Math.log(real.doubleValue() - valueMinus1) / Math.log(logbase4v2i) + sliderIndexMinimumCurrent;
-				System.out.println("DEBUG: value2index: logbase4v2i=" + logbase4v2i + ", valueMinus1=" + valueMinus1 + ", real=" + real + ", sliderIndex=" + dbl);
+				if( CommonExtension.debugMode )
+					System.out.println("DEBUG: value2index: logbase4v2i=" + logbase4v2i + ", valueMinus1=" + valueMinus1 + ", real=" + real + ", sliderIndex=" + dbl);
 				return (int) (Math.log(real.doubleValue() - valueMinus1) / Math.log(logbase4v2i) + sliderIndexMinimumCurrent);
 			}
 		};
 //		int preferredDigits = SpinnerSlider.checkAndAdjustDigits(spinner.getDigits(), sliderIndexMaximum, converterNew);
 		converter = converterNew;
 		int prevSel = spinner.getSelection();
-		System.out.println("GRRR: setMinMax: prevSel=" + prevSel + ", slider.getSelection=" + slider.getSelection() ); 
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setMinMax: prevSel=" + prevSel + ", slider.getSelection=" + slider.getSelection() ); 
 		//Setting minimum or maximum fires Modify event (and thus setting slider's selection value) only if the current value (selection) must be adjusted, i.e. it changes.
-		System.out.println("GRRR: setMinMax/setMinimum: sliderIndexMinimumCurrent=" + sliderIndexMinimumCurrent + "->" + convertSliderValue2SpinnerValue( sliderIndexMinimumCurrent ));
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setMinMax/setMinimum: sliderIndexMinimumCurrent=" + sliderIndexMinimumCurrent + "->" + convertSliderValue2SpinnerValue( sliderIndexMinimumCurrent ));
 		spinner.setMinimum(convertSliderValue2SpinnerValue( sliderIndexMinimumCurrent ));
-		System.out.println("GRRR: setMinMax/setMaximum: sliderIndexMaximumCurrent=" + sliderIndexMaximumCurrent + "->" + convertSliderValue2SpinnerValue( sliderIndexMaximumCurrent ));
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setMinMax/setMaximum: sliderIndexMaximumCurrent=" + sliderIndexMaximumCurrent + "->" + convertSliderValue2SpinnerValue( sliderIndexMaximumCurrent ));
 		spinner.setMaximum(convertSliderValue2SpinnerValue( sliderIndexMaximumCurrent ));
 		//We have to manually adjust the value (selection) if it did not change (which also means it remained in the minimum maximum range).
 		if( prevSel == spinner.getSelection() ) {
 			int slvl = convertSpinnerValue2SliderValue(prevSel);
-			System.out.println("GRRR: setMinMax: slvl=" + slvl ); 
+			if( CommonExtension.debugMode )
+				System.out.println("GRRR: setMinMax: slvl=" + slvl ); 
 			slider.setSelection(slvl);
 //			slider.setSelection(convertSpinnerValue2SliderValue(prevSel));
 			//And since slider does not know about Modify event, we have to emulate slider selection and notify the spinner
@@ -547,9 +577,11 @@ public class SpinnerSlider extends Composite {
 	}
 
 	protected void setSpinnerSelection( int value ) {
-		System.out.println("GRRR: setSpinnerSelection: spinner.setSelection=" + value);
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setSpinnerSelection: spinner.setSelection=" + value);
 		spinner.setSelection(value);
-		System.out.println("GRRR: setSpinnerSelection: spinner[.getSelection=" + spinner.getSelection() + ", .getMinimum=" + spinner.getMinimum() + ", .getMaximum=" + spinner.getMaximum() + ", .getText=" + spinner.getText());
+		if( CommonExtension.debugMode )
+			System.out.println("GRRR: setSpinnerSelection: spinner[.getSelection=" + spinner.getSelection() + ", .getMinimum=" + spinner.getMinimum() + ", .getMaximum=" + spinner.getMaximum() + ", .getText=" + spinner.getText());
 //		Event event = new Event();
 //		event.widget = spinner;
 //		event.display = getDisplay();

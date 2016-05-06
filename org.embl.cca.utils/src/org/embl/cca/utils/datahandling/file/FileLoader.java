@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
 
-import org.dawb.common.services.ServiceManager;
 import org.dawb.common.util.list.ListenerList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -29,6 +28,7 @@ import org.embl.cca.utils.datahandling.DatasetNumber;
 import org.embl.cca.utils.datahandling.DatasetTypeSeparatedUtils;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileWithTag;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -459,7 +459,7 @@ public class FileLoader {
 		int localIndex = Collections.binarySearch(loadedFileAndMetadatas, fAM, fileAndMetaIndexComparator);
 		if( localIndex < 0 )
 			throw new RuntimeException("Can not remove the file from this container because could not found it: " + imageFile.getAbsolutePath());
-		FileAndMetadata qwe = loadedFileAndMetadatas.remove( localIndex );
+		/*FileAndMetadata qwe = */loadedFileAndMetadatas.remove( localIndex );
 		if( loadedFileAndMetadatas.size() == 0 ) {
 			clearLoaded();
 		} else {
@@ -471,7 +471,7 @@ public class FileLoader {
 	protected Dataset loadFileInternal(final FileWithTag imageFile) throws IOException {
 		final String filePath = imageFile.getAbsolutePathWithoutProtocol();
 		try {
-			ILoaderService service = (ILoaderService)ServiceManager.getService(ILoaderService.class);
+			ILoaderService service = CommonExtension.getService(ILoaderService.class);
 			Dataset set = DatasetUtils.convertToDataset(service.getDataset(filePath, null));
 			if( set == null )
 				throw new IOException("The loader returned null dataset for file: " + imageFile.getAbsolutePath()); //should the loader throw an exception?

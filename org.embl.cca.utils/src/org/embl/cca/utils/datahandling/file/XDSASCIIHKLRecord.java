@@ -1,7 +1,6 @@
 package org.embl.cca.utils.datahandling.file;
 
 import org.embl.cca.utils.general.Util;
-import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
 
 public class XDSASCIIHKLRecord {
 	protected final int h;

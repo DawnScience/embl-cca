@@ -289,13 +289,11 @@ public class SaveToFileAction extends AbstractHandler implements IEditorActionDe
 	@Override
 	public void run(IAction action) {
 		// TODO Auto-generated method stub
-		int a = 0;
 	}
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		// TODO Auto-generated method stub
-		int a = 0;
 	}
 
 	@Override
@@ -307,7 +305,6 @@ public class SaveToFileAction extends AbstractHandler implements IEditorActionDe
 	@Override
 	public void setActiveEditor(IAction action, IEditorPart targetEditor) {
 		// TODO Auto-generated method stub
-		int a = 0;
 	}
 
 }

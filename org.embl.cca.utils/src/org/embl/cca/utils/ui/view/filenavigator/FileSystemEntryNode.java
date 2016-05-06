@@ -242,16 +242,16 @@ public class FileSystemEntryNode extends TreeNode implements IAdaptable {
 	 * Platform's adapter manager is consulted).
 	 */
 	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if (File.class.equals(adapter)) //For compatibility with older stuff
-			return getFile().toFile();
-		else if(EFile.class.equals(adapter)) //In case a newer stuff wants it
-			return getFile();
+	public <T> T getAdapter(final Class<T> clazz) {
+		if (File.class.equals(clazz)) //For compatibility with older stuff
+			return clazz.cast(getFile().toFile());
+		else if(EFile.class.equals(clazz)) //In case a newer stuff wants it
+			return clazz.cast(getFile());
 		/**
 		 * This implementation of the method declared by <code>IAdaptable</code>
 		 * passes the request along to the platform's adapter manager; roughly
 		 * <code>Platform.getAdapterManager().getAdapter(this, adapter)</code>.
 		 */
-		return Platform.getAdapterManager().getAdapter(this, adapter);
+		return Platform.getAdapterManager().getAdapter(this, clazz);
 	}
 }

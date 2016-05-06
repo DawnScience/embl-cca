@@ -556,11 +556,11 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	}
 
 	@Override //from WorkbenchPart
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
+	public <T> T getAdapter(final Class<T> clazz) {
 		if (clazz == DViewerControlsPage.class) {
-			return DViewerControlsPage.getPageFor((IDViewerControllable)classRole);
+			return clazz.cast(DViewerControlsPage.getPageFor((IDViewerControllable)classRole));
 		} else if (clazz == IDViewerControlsPageAdaptable.class) {
-			return new IDViewerControlsPageAdaptable() {};
+			return clazz.cast(new IDViewerControlsPageAdaptable() {});
 		}
 		return getActivePart().getAdapter(clazz);
 	}

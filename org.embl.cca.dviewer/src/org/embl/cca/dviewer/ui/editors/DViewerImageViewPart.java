@@ -275,7 +275,7 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 	}
 
 	@Override //from IViewPart/IWorkbenchPart/IAdaptable
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+	public <T> T getAdapter(final Class<T> adapter) {
 		return innerViewPart.getAdapter(adapter);
 	}
 
@@ -384,9 +384,8 @@ public class DViewerImageViewPart extends ViewPart implements IViewPartHost, ITi
 		return innerViewPart.getPartProperty(key);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override //from IEditorPart/IWorkbenchPart3
-	public Map getPartProperties() {
+	public Map<String,String> getPartProperties() {
 		return innerViewPart.getPartProperties();
 	}
 

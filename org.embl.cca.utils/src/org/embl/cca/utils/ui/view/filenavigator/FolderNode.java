@@ -28,6 +28,7 @@ import org.embl.cca.utils.ImageConstants;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FileWithTag;
 import org.embl.cca.utils.datahandling.file.FileLoader;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.ui.widget.support.treeviewer.TreeNode;
 
 public class FolderNode extends FileSystemEntryNode {
@@ -99,7 +100,8 @@ public class FolderNode extends FileSystemEntryNode {
 
 	@Override
 	protected TreeNodeState createChildren(final List<TreeNode> children) {
-		System.out.println("! " + this.getClass().getName() + ": createChildren called, this: " + toString());
+		if( CommonExtension.debugMode )
+			System.out.println("! " + this.getClass().getName() + ": createChildren called, this: " + toString());
 		final FileWithTag[] kids = getFileArray();
 		if( kids == null ) {
 			if (getFile().exists() && getFile().isDirectory())
@@ -109,7 +111,8 @@ public class FolderNode extends FileSystemEntryNode {
 		for (final FileWithTag file : kids) {
 			children.add(FileSystemContentProvider.createNode(getContentProvider(), this, file));
 		}
-		System.out.println("! " + this.getClass().getName() + ": createChildren ready, " + toString() + ", children adding: " + children.toString());
+		if( CommonExtension.debugMode )
+			System.out.println("! " + this.getClass().getName() + ": createChildren ready, " + toString() + ", children adding: " + children.toString());
 		return TreeNodeState.TREENODE_FILLED;
 	}
 

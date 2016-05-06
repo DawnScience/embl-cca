@@ -67,9 +67,9 @@ public class DViewerControlsPage extends Page implements IAdaptable {
 	}
 
 	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if (adapter == String.class) {
-			return DViewerControlsPageAsString;
+	public <T> T getAdapter(final Class<T> clazz) {
+		if (clazz == String.class) {
+			return clazz.cast(DViewerControlsPageAsString);
 		}
 		return null;
 	}

@@ -19,7 +19,6 @@ package org.embl.cca.utils.ui.view.filenavigator;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.dawb.common.services.ServiceManager;
 import org.eclipse.dawnsci.plotting.api.image.IFileIconService;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.FontRegistry;
@@ -36,6 +35,7 @@ import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.file.VirtualCollectionFile;
 import org.embl.cca.utils.datahandling.text.StringUtils;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.Util;
 import org.embl.cca.utils.ui.view.filenavigator.preference.FileNavigatorPreferenceConstants;
 import org.embl.cca.utils.ui.widget.support.treeviewer.TreeLabelProvider;
@@ -75,7 +75,7 @@ public class FileSystemLabelProvider extends TreeLabelProvider
 		System.arraycopy(new int[] { 250, 110, 70, 100, 150, 200 }, 0, widths, 0, widths.length);
 		dateFormat  = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 		try {
-			service = (IFileIconService)ServiceManager.getService(IFileIconService.class);
+			service = CommonExtension.getService(IFileIconService.class);
 		} catch (final Exception e) { //Exceptioning code should not force Exception
 			if( e instanceof RuntimeException )
 				throw (RuntimeException)e;

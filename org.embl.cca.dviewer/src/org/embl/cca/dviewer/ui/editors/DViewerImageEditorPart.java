@@ -270,7 +270,7 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart/IAdaptable
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
+	public <T> T getAdapter(final Class<T> clazz) {
 		return innerEditorPart.getAdapter(clazz);
 	}
 
@@ -394,9 +394,8 @@ public class DViewerImageEditorPart extends EditorPart implements IEditorPartHos
 		return innerEditorPart.getPartProperty(key);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override //from IEditorPart/IWorkbenchPart3
-	public Map getPartProperties() {
+	public Map<String,String> getPartProperties() {
 		return innerEditorPart.getPartProperties();
 	}
 

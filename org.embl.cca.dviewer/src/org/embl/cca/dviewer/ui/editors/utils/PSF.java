@@ -21,6 +21,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LongDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.ShortDataset;
 import org.eclipse.swt.graphics.Rectangle;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
 import org.embl.cca.utils.sorting.ArrayAndIndexBI;
 import org.embl.cca.utils.sorting.ArrayAndIndexDI;
@@ -194,6 +195,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(ByteDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final byte[] imageValues = dataSet.getData();
@@ -209,7 +211,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -219,16 +222,20 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
 		ArrayAndIndexBI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -260,8 +267,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}
@@ -274,6 +283,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(ShortDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final short[] imageValues = dataSet.getData();
@@ -289,7 +299,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -299,16 +310,20 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
 		ArrayAndIndexSI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -340,8 +355,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}
@@ -354,6 +371,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(IntegerDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final int[] imageValues = dataSet.getData();
@@ -369,7 +387,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -379,15 +398,19 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
 		ArrayAndIndexII result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		int topFrom = result.getIndex();
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
@@ -420,8 +443,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}
@@ -434,6 +459,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(LongDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final long[] imageValues = dataSet.getData();
@@ -449,7 +475,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -459,16 +486,20 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
 		ArrayAndIndexLI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -500,8 +531,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}
@@ -514,6 +547,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(FloatDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final float[] imageValues = dataSet.getData();
@@ -529,7 +563,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -539,8 +574,10 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
@@ -548,8 +585,10 @@ public class PSF {
 		ArrayAndIndexFI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -581,8 +620,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}
@@ -595,6 +636,7 @@ public class PSF {
 	 * @return The points to apply PSF for
 	 */
 	protected Point[] getPSFPoints(DoubleDataset dataSet, Rectangle rect) {
+		long t0 = 0, t1 = 0, t2 = 0, t3 = 0;
 		final Rectangle imageRect = new Rectangle(0, 0, dataSet.getShape()[1], dataSet.getShape()[0]);
 		final Rectangle constrained = imageRect.intersection(rect);
 		final double[] imageValues = dataSet.getData();
@@ -610,7 +652,8 @@ public class PSF {
 		int jMax = constrained.y + constrained.height;
 		int d = 0;
 		int s = constrained.y * imageRect.width + constrained.x;
-		long t0 = System.nanoTime();
+		if( CommonExtension.debugMode )
+			t0 = System.nanoTime();
 		//Copying data of selected rectangle
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
@@ -620,16 +663,20 @@ public class PSF {
 			s = sj + imageRect.width;
 		}
 
-		long t1 = System.nanoTime();
-		//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		if( CommonExtension.debugMode ) {
+			t1 = System.nanoTime();
+			logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		}
 		int topAmount = getTopAmountGoal( rectData.length ); //The top topAmountGoal of points will be PSF-ed
 //		int topFrom = rectData.length - topAmount;
 //		sortedData = QuickSort.sortTop( rectData, topFrom );
 		ArrayAndIndexDI result = QuickSort.sortFromValue( rectData, minValueHere );
 		sortedData = result.getArray();
 		int topFrom = result.getIndex();
-		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		if( CommonExtension.debugMode ) {
+			t2 = System.nanoTime();
+			logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		}
 		topFromValue = sortedData[ topFrom ]; 
 		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
 		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
@@ -661,8 +708,10 @@ public class PSF {
 				}
 			}
 		}
-		long t3 = System.nanoTime();
-		//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		if( CommonExtension.debugMode ) {
+			t3 = System.nanoTime();
+			logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		}
 		Arrays.sort( psfPoints );
 		return psfPoints;
 	}

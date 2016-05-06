@@ -1,6 +1,5 @@
 package org.embl.cca.utils.ui.view.nexusfileviewer;
 
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -9,10 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.ViewPart;
-import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.ui.widget.SpinnerSlider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The NexusFileView is a view extension for DAWN, it can display peaks from nexus file.
@@ -21,8 +17,6 @@ import org.slf4j.LoggerFactory;
  * 
 */
 public class NexusFileView extends ViewPart {
-	private static final Logger logger = LoggerFactory
-			.getLogger(NexusFileView.class);
 
 	Group composite;
 	Group displayWhatGroup;
@@ -38,7 +32,7 @@ public class NexusFileView extends ViewPart {
 	}
 
 	public void createPartControl(final Composite parent) {
-		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+//		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		parent.setLayout(new GridLayout(1, false));
 
 //		final Composite top = new Composite(parent, SWT.NONE);

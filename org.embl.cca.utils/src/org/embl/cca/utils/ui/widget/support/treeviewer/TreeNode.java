@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.graphics.Image;
+import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.Disposable;
 import org.embl.cca.utils.general.Util;
 
@@ -109,7 +110,8 @@ public abstract class TreeNode implements Disposable {
 		protected IStatus run(final IProgressMonitor monitor) {
 			monitor.beginTask("Getting children", IProgressMonitor.UNKNOWN);
 			final List<TreeNode> resultChildren = new ArrayList<TreeNode>();
-			System.out.println("! FolderListerJob: before createChildren, this: " + TreeNode.this.toString());
+			if( CommonExtension.debugMode )
+				System.out.println("! FolderListerJob: before createChildren, this: " + TreeNode.this.toString());
 			final TreeNodeState result = createChildren(resultChildren);
 			final TreeNode[] previousChildren;
 			synchronized (fChildrenLock) {
@@ -118,7 +120,8 @@ public abstract class TreeNode implements Disposable {
 				childrenValid = true;
 				state = result;
 			}
-			System.out.println("! FolderListerJob: after createChildren, this: " + TreeNode.this.toString());
+			if( CommonExtension.debugMode )
+				System.out.println("! FolderListerJob: after createChildren, this: " + TreeNode.this.toString());
 			listenerManager.fireChildrenReady(TreeNode.this, result, previousChildren);
 			return Status.OK_STATUS;
 		}
@@ -160,7 +163,8 @@ public abstract class TreeNode implements Disposable {
 	 *         parent nodes.
 	 */
 	public TreeNode getParent() {
-//		System.out.println(this.getClass().getName() + ": getParent called, this: " + toString());
+//		if( CommonExtension.debugMode )
+//			System.out.println(this.getClass().getName() + ": getParent called, this: " + toString());
 		return parent;
 	}
 
@@ -185,7 +189,8 @@ public abstract class TreeNode implements Disposable {
 	 *         otherwise.
 	 */
 	public boolean hasChildren() {
-//		System.out.println(this.getClass().getName() + ": hasChildren called, this: " + toString());
+//		if( CommonExtension.debugMode )
+//			System.out.println(this.getClass().getName() + ": hasChildren called, this: " + toString());
 		synchronized (fChildrenLock) {
 			return isChildrenValid() ? listChildren.length > 0 : canHaveChildren();
 		}
@@ -205,7 +210,8 @@ public abstract class TreeNode implements Disposable {
 	 *         There should be no <code>null</code> children in the array.
 	 */
 	public TreeNode[] getChildren() {
-//		System.out.println(this.getClass().getName() + ": getChildren(tv) called, this: " + toString());
+//		if( CommonExtension.debugMode )
+//			System.out.println(this.getClass().getName() + ": getChildren(tv) called, this: " + toString());
 		synchronized (fChildrenLock) {
 //			final boolean refreshRequested = tcp.getRefreshRequest(this);
 			final boolean initChildren = listChildren == null;
@@ -213,9 +219,11 @@ public abstract class TreeNode implements Disposable {
 				listChildren = new TreeNode[0];
 			if( initChildren || !childrenValid ) {
 				if( canHaveChildren() ) {
-					System.out.println("! " + this.getClass().getName() + ": FolderListerJob.rescheduling, this: " + TreeNode.this.toString());
+					if( CommonExtension.debugMode )
+						System.out.println("! " + this.getClass().getName() + ": FolderListerJob.rescheduling, this: " + TreeNode.this.toString());
 //					new Exception("rescheduling stack:").printStackTrace();
-//					System.out.println(ExceptionUtils.makeErrorMessage(new StringBuilder("HALLO"), new Exception("info"), this));
+//					if( CommonExtension.debugMode )
+//						System.out.println(ExceptionUtils.makeErrorMessage(new StringBuilder("HALLO"), new Exception("info"), this));
 					childrenListerJob.reschedule();
 				} else if( !childrenValid )
 					childrenValid = true;
@@ -278,8 +286,10 @@ public abstract class TreeNode implements Disposable {
 
 	/* subclasses should override this method */
 	public boolean canHaveChildren() {
-		final TreeLabelProvider tlp = (TreeLabelProvider)tcp.getTreeViewer().getLabelProvider();
-		System.out.println("! " + this.getClass().getName() + ".canHaveChildren called for " + tlp.getColumnText(this, 0)); //.getName()
+//		if( CommonExtension.debugMode ) {
+//			final TreeLabelProvider tlp = (TreeLabelProvider)tcp.getTreeViewer().getLabelProvider();
+//			System.out.println("! " + this.getClass().getName() + ".canHaveChildren called for " + tlp.getColumnText(this, 0)); //.getName()
+//		}
 		return false;
 	}
 

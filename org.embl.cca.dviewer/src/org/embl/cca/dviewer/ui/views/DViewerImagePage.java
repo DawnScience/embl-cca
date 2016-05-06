@@ -103,11 +103,11 @@ public class DViewerImagePage extends Page implements IAdaptable {
 	}
 
 	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if (String.class.equals(adapter)) {
-			return viewer.getTitle();
+	public <T> T getAdapter(final Class<T> clazz) {
+		if (String.class.equals(clazz)) {
+			return clazz.cast(viewer.getTitle());
 		}
-		return viewer.getAdapter(adapter);
+		return viewer.getAdapter(clazz);
 	}
 
 }

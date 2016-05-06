@@ -8,8 +8,6 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 //import uk.ac.diamond.sda.navigator.views.FileView;
 
@@ -17,7 +15,7 @@ public class FileView extends ViewPart {
 
 	public static final String ID = "uk.ac.diamond.sda.navigator.views.FileView";
 	
-    private static final Logger logger = LoggerFactory.getLogger(FileView.class);
+//    private static final Logger logger = LoggerFactory.getLogger(FileView.class);
 
     protected Explorer explorer;
 

@@ -78,24 +78,23 @@ public class FileEditorInput implements IEditorInput/*, IPersistableElement*/ {
 		this.file = file;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public Object getAdapter(Class adapter) {
-		if (IWorkbenchAdapter.class.equals(adapter))
-			return workbenchAdapter;
+	public <T> T getAdapter(Class<T> clazz) {
+		if (IWorkbenchAdapter.class.equals(clazz))
+			return clazz.cast(workbenchAdapter);
 		//For compatibility, trying to match simpler classes first
-		if( adapter.isAssignableFrom(File.class) || String.class.isAssignableFrom(adapter) ) { //adapter <= File || String
+		if( clazz.isAssignableFrom(File.class) || String.class.isAssignableFrom(clazz) ) { //adapter <= File || String
 			File resultFile = file;
 			//For File or String, a file with common filename must be returned
 			if( file instanceof VirtualCollectionFile )
 				resultFile = ((VirtualCollectionFile)file).getFirstFileOfAll();
-			if( String.class.isAssignableFrom(adapter) )
-				return new String(resultFile.getAbsolutePath());
-			return resultFile.getAbsoluteFile();
+			if( String.class.isAssignableFrom(clazz) )
+				return clazz.cast(new String(resultFile.getAbsolutePath()));
+			return clazz.cast(resultFile.getAbsoluteFile());
 		}
-		if( adapter.isAssignableFrom(VirtualCollectionFile.class) && file instanceof VirtualCollectionFile ) //adapter <= VirtualCollectionFile
-			return file.getAbsoluteFile();
-		return Platform.getAdapterManager().getAdapter(this, adapter);
+		if( clazz.isAssignableFrom(VirtualCollectionFile.class) && file instanceof VirtualCollectionFile ) //adapter <= VirtualCollectionFile
+			return clazz.cast(file.getAbsoluteFile());
+		return Platform.getAdapterManager().getAdapter(this, clazz);
 	}
 
 	@Override

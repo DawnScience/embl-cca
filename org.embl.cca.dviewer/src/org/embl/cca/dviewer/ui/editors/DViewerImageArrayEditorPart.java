@@ -288,9 +288,9 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart/IAdaptable
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class clazz) {
+	public <T> T getAdapter(final Class<T> clazz) {
 		if (DViewerImagePage.class.equals(clazz)) {
-			return DViewerImagePage.getPageFor(this);
+			return clazz.cast(DViewerImagePage.getPageFor(this));
 		}
 		return innerEditorPart.getAdapter(clazz);
 	}
@@ -422,9 +422,8 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 		return innerEditorPart.getPartProperty(key);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override //from IEditorPart/IWorkbenchPart3
-	public Map getPartProperties() {
+	public Map<String,String> getPartProperties() {
 		return innerEditorPart.getPartProperties();
 	}
 

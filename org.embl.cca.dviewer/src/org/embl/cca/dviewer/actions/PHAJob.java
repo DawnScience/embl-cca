@@ -9,11 +9,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
-import org.embl.cca.dviewer.DViewerActivator;
-import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
-import org.embl.cca.dviewer.ui.editors.utils.PHA;
 
 public class PHAJob extends Job {
 

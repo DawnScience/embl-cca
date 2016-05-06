@@ -33,7 +33,6 @@ public class EditorPreferenceInitializer extends AbstractPreferenceInitializer {
 				@Override
 				public boolean isValid(final Object value) {
 					try {
-						final String string = (String)value;
 						final int v = Integer.valueOf((String)value);
 						return v>=0 && v<DownsampleType.values().length;
 					} catch( final NumberFormatException | ClassCastException e ) {

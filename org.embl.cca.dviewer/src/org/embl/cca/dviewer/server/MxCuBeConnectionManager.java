@@ -3,7 +3,6 @@ package org.embl.cca.dviewer.server;
 import java.io.File;
 import java.io.IOException;
 
-import org.dawb.common.ui.util.EclipseUtils;
 import org.eclipse.core.runtime.Assert;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;

@@ -19,12 +19,10 @@ package org.embl.cca.utils.ui.view.filenavigator;
 import java.io.File;
 import java.nio.file.Path;
 
-import org.dawb.common.services.ServiceManager;
 import org.dawb.common.ui.menu.CheckableActionGroup;
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.views.ImageMonitorView;
 import org.dawb.common.util.list.ListenerList;
-import org.eclipse.dawnsci.plotting.api.image.IFileIconService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
@@ -292,10 +290,9 @@ public class FileView extends ViewPart implements IFileView, IFileSystemContentP
 		getSite().setSelectionProvider(tree);
 
 		try {
-			final IFileIconService service = (IFileIconService) ServiceManager
-					.getService(IFileIconService.class);
-//			final Image icon = service //TODO Check how this works on windows (probably shows the root icon wrongly, because we need folder icon
-//					.getIconForFile(isWindowsOS() ? new File(
+//			final IFileIconService service = CommonExtension.getService(IFileIconService.class);
+//			final Image icon =  //TODO Check how this works on windows (probably shows the root icon wrongly, because we need folder icon
+//					service.getIconForFile(isWindowsOS() ? new File(
 //							"C:/Windows/") : new File("/"));
 //			final Image icon = service.getIconForFile(findFileWithTag.listRoots()[0]);
 //			fileLabel.setImage(icon);
