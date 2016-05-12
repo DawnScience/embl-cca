@@ -266,6 +266,8 @@ public class DViewerController {
 		}
 		phaRadiusUI = new SpinnerSlider(mainControlsContainer, SWT.HORIZONTAL | SWT.WRAP);
 
+		if( DViewerStartup.getUseHKL() ) {
+		//H, K, L controls
 		final Composite hklControlsContainer = new Composite(parentComposite, SWT.NONE);
 //		hklControlsContainer.setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_DARK_GREEN));
 		hklControlsContainer.setLayout(createRowLayout());
@@ -276,6 +278,7 @@ public class DViewerController {
 		kRangeMaxUI = new SpinnerSlider(hklControlsContainer, SWT.HORIZONTAL | SWT.WRAP);
 		lRangeMinUI = new SpinnerSlider(hklControlsContainer, SWT.HORIZONTAL | SWT.WRAP);
 		lRangeMaxUI = new SpinnerSlider(hklControlsContainer, SWT.HORIZONTAL | SWT.WRAP);
+		}
 	}
 
 	public void initializeImageSelectorUI() {
@@ -378,7 +381,7 @@ public class DViewerController {
 				controllable.getPhaRadiusMin(), controllable.getPhaRadiusSup() - 1, 0, 1, 10, 1, 10);
 		controllable.setPhaRadius(somethingChangeListener, phaRadiusUI.getSelectionAsInteger());
 
-		if( DViewerStartup.useHKL ) {
+		if( DViewerStartup.getUseHKL() ) {
 		//H, K, L controls
 		final String hFeatureShortName = "H";
 		final String kFeatureShortName = "K";
