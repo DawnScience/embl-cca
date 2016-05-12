@@ -240,21 +240,6 @@ public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPa
 	@Override //from IEditorPart/IWorkbenchPart
 	public void createPartControl(final Composite parent) {
 		innerEditorPart.createPartControl(parent);
-		partCreatedAndActivatedListener = new PartAdapter() {
-			@Override
-			public void partActivated(final IWorkbenchPartReference partRef) {
-				if( DViewerImageArrayEditorPart.this.equals(partRef.getPart(false))) {
-					getSite().getPage().removePartListener(partCreatedAndActivatedListener);
-					CommonThreading.execUIAsynced(new Runnable() {
-						@Override
-						public void run() {
-							requestDViewerView();
-						}
-					});
-				}
-			}
-		};
-		getSite().getPage().addPartListener(partCreatedAndActivatedListener);
 	}
 
 	@Override //from IEditorPart/IWorkbenchPart

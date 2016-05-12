@@ -84,6 +84,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.WorkbenchPart;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.embl.cca.dviewer.DViewerActivator;
+import org.embl.cca.dviewer.DViewerStartup;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
 import org.embl.cca.dviewer.ui.editors.utils.PHA;
@@ -754,7 +755,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 			openDViewerViewAction = new Action(dViewerViewFeatureName, IAction.AS_PUSH_BUTTON ) {
 				@Override
 				public void run() {
-					onDViewerViewSelected();
+					requestDViewerView();
 				}
 			};
 			openDViewerViewAction.setId(getClass().getName() + "." + dViewerViewFeatureIdentifierName);
@@ -772,7 +773,7 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		openDViewerControlsAction = new Action(dViewerControlsFeatureName, IAction.AS_PUSH_BUTTON ) {
 			@Override
 			public void run() {
-				onDViewerControlsSelected();
+				requestDViewerControls();
 			}
 		};
 		openDViewerControlsAction.setId(getClass().getName() + "." + dViewerControlsFeatureIdentifierName);
@@ -1253,23 +1254,6 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		} //else see onPhaPlotIsCancelled
 	}
 
-	protected void onDViewerViewSelected() {
-		System.out.println("dViewer View Selected (" + openDViewerViewAction.isChecked() + ")!");
-		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
-		CommonExtension.bringToTop(DViewerImageView.ID);
-		CommonExtension.setMaxScreened(DViewerImageView.ID);
-	}
-
-	protected void onDViewerControlsSelected() {
-		System.out.println("dViewer Controls Selected (" + openDViewerControlsAction.isChecked() + ")!");
-		if( CommonExtension.isDetached(DViewerImageView.ID) && CommonExtension.isMaxScreened(DViewerImageView.ID) && CommonExtension.isVisible(DViewerControlsView.ID)) {
-			CommonExtension.reopenViewWithErrorDialog(DViewerControlsView.ID, true);
-		} else
-			CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
-		CommonExtension.bringToTop(DViewerControlsView.ID);
-		CommonExtension.setFocus(DViewerControlsView.ID);
-	}
-
 	@Override //from IDViewerImageControllable
 	public DownsampleType getDownsampleType() {
 		return imageTrace != null ? imageTrace.getDownsampleType() : null;
@@ -1666,12 +1650,12 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 
 	@Override
 	public void requestDViewerView() {
-		onDViewerViewSelected();
+		DViewerStartup.requestDViewerView();
 	}
 
 	@Override
 	public void requestDViewerControls() {
-		onDViewerControlsSelected();
+		DViewerStartup.requestDViewerControls();
 	}
 
 }
