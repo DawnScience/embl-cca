@@ -2,7 +2,9 @@ package org.embl.cca.dviewer;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.dawnsci.plotting.system.PlottingSystemActivator;
 import org.eclipse.core.runtime.Assert;
@@ -21,6 +23,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.IPartListener2;
@@ -46,8 +49,10 @@ import org.embl.cca.dviewer.server.MxCuBeConnectionManager;
 import org.embl.cca.dviewer.ui.editors.DViewerImageArrayEditorPart;
 import org.embl.cca.dviewer.ui.editors.IDViewerControllable;
 import org.embl.cca.dviewer.ui.editors.preference.EditorPreferenceInitializer;
+import org.embl.cca.dviewer.ui.views.DViewerControlsView;
+import org.embl.cca.dviewer.ui.views.DViewerImageView;
 import org.embl.cca.utils.datahandling.EFile;
-import org.embl.cca.utils.datahandling.FilePathEditorInput;
+import org.embl.cca.utils.datahandling.FileEditorInput;
 import org.embl.cca.utils.datahandling.JavaSystem;
 import org.embl.cca.utils.datahandling.StringAndObject;
 import org.embl.cca.utils.datahandling.text.StringUtils;
@@ -55,6 +60,8 @@ import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.extension.EclipseBug362561Workaround;
 import org.embl.cca.utils.extension.FirstPageCreatedPollingNotifier;
 import org.embl.cca.utils.extension.IFirstPageCreatedListener;
+import org.embl.cca.utils.extension.PartAdapter;
+import org.embl.cca.utils.extension.PartStateWatcher;
 import org.embl.cca.utils.server.MxCuBeMessageAndEventTranslator;
 import org.embl.cca.utils.threading.CommonThreading;
 import org.embl.cca.utils.ui.view.filenavigator.FileView;
@@ -71,16 +78,20 @@ public class DViewerStartup implements IStartup {
 	public final static String dViewerImagePortProperty = "dViewerImagePort";
 	public final static String dViewerLogSettingsProperty = "dViewerLogSettings";
 	//Variables set by command line arguments
-	public static File openFile = null;
-	public static boolean useHKL = false;
+	protected static boolean commandLineProcessed = false;
+	protected static File openFile = null;
+	protected static boolean useHKL = false;
+
+	public final static PartStateWatcher partActivationWatcher = new PartStateWatcher();
 
 	protected final static HashSet<String> requiredMenus = new HashSet<String>(Arrays.asList(new String[] {"file", "edit", "window", "help"}));
-	protected final IAction resetPreferencesAction = new Action("Reset Preferences") {
+	protected final static IAction resetPreferencesAction = new Action("Reset Preferences") {
 		public void run() {
 			resetPreferences();
 		}
 	};
-	protected final AbstractContributionFactory dViewerContribution = new AbstractContributionFactory(
+
+	protected final static AbstractContributionFactory dViewerContribution = new AbstractContributionFactory(
 			"menu:window?after=" + StringUtils.getLastOfSplitString(
 				IWorkbenchCommandConstants.WINDOW_PREFERENCES, "\\."), DViewerActivator.PLUGIN_ID) {
 		@Override
@@ -90,7 +101,11 @@ public class DViewerStartup implements IStartup {
 		}
 	};
 
-	protected final IPerspectiveListener perspectiveListener = new IPerspectiveListener() {
+	protected static String getPackageName() {
+		return DViewerStartup.class.getName().split("\\." + DViewerStartup.class.getSimpleName())[0];
+	}
+
+	protected final static IPerspectiveListener perspectiveListener = new IPerspectiveListener() {
 		@Override
 		public void perspectiveChanged(final IWorkbenchPage page,
 				final IPerspectiveDescriptor perspective, final String changeId) {
@@ -118,13 +133,87 @@ public class DViewerStartup implements IStartup {
 		}
 	};
 
-	protected final IFirstPageCreatedListener openFileIfSpecified = new IFirstPageCreatedListener() {
+	public static void requestDViewerView() {
+		CommonExtension.openViewWithErrorDialog(DViewerImageView.ID, true);
+		CommonExtension.bringToTop(DViewerImageView.ID);
+		CommonExtension.setMaxScreened(DViewerImageView.ID);
+	}
+
+	public static void requestDViewerControls() {
+		if( CommonExtension.isDetached(DViewerImageView.ID) && CommonExtension.isMaxScreened(DViewerImageView.ID) && CommonExtension.isVisible(DViewerControlsView.ID)) {
+			CommonExtension.reopenViewWithErrorDialog(DViewerControlsView.ID, true);
+		} else
+			CommonExtension.openViewWithErrorDialog(DViewerControlsView.ID, true);
+		CommonExtension.bringToTop(DViewerControlsView.ID);
+		CommonExtension.setFocus(DViewerControlsView.ID);
+	}
+
+	/**
+	 * This listener looks for DViewerImageArrayEditorPart editor parts,
+	 * which are opened and right now activated. When the activation happens,
+	 * this listener automatically requests the DViewerView in order to see
+	 * the maximized view "copy" of the activated editor part.
+	 * Since Eclipse 4 this feature could be obsoleted, because it can
+	 * finally detach editor parts, not only view parts.
+	 */
+	protected final static IPartListener2 partOpenedAndActivatedListener = new PartAdapter() {
+		protected final Set<IWorkbenchPartReference> existingParts = initExistingParts();
+		protected final Set<IWorkbenchPartReference> openedBeforeActivatedParts = Collections.synchronizedSet(new HashSet<IWorkbenchPartReference>());
+		protected Set<IWorkbenchPartReference> initExistingParts() {
+			final Set<IWorkbenchPartReference> existingPartRefs = Collections.synchronizedSet(new HashSet<IWorkbenchPartReference>());
+			//Filling existing parts
+			for( final IEditorReference editorReference : CommonExtension.getActivePage().getEditorReferences() ) {
+				existingPartRefs.add(editorReference);
+			}
+			return existingPartRefs;
+		}
+		@Override
+		public void partOpened(final IWorkbenchPartReference partRef) {
+			if( !existingParts.contains(partRef) ) {
+				existingParts.add(partRef);
+				openedBeforeActivatedParts.add(partRef);
+			}
+		}
+		@Override
+		public void partClosed(final IWorkbenchPartReference partRef) {
+//			final IWorkbenchPart workbenchPart = partRef.getPart(false);
+//			if( workbenchPart == null )
+//				return;
+			openedBeforeActivatedParts.remove(partRef);
+			existingParts.remove(partRef);
+			final IWorkbenchPage currentPage = CommonExtension.getCurrentPage();
+			final IEditorPart editorPart = currentPage.getActiveEditor();
+			if( partRef.getPart(false) instanceof DViewerImageView && editorPart != null ) {
+				CommonThreading.execUISynced(new Runnable() {
+					@Override
+					public void run() {
+						currentPage.activate(editorPart);
+					}
+				});
+			}
+		}
+		@Override
+		public void partActivated(final IWorkbenchPartReference partRef) {
+			if( partRef.getPart(false) instanceof DViewerImageArrayEditorPart
+					&& openedBeforeActivatedParts.contains(partRef) ) {
+				openedBeforeActivatedParts.remove(partRef);
+				CommonThreading.execUIAsynced(new Runnable() {
+					@Override
+					public void run() {
+						requestDViewerView();
+					}
+				});
+			}
+		}
+	};
+
+	protected final static IFirstPageCreatedListener openFileIfSpecified = new IFirstPageCreatedListener() {
 		@Override
 		public void firstPageCreated(final IWorkbenchPage page) {
-			if( openFile != null && openFile.exists() ) {
-				final FilePathEditorInput fPEI = new FilePathEditorInput(openFile.getAbsolutePath(), null, openFile.getName());
+			if( getOpenFile() != null && getOpenFile().exists() ) {
+				final FileEditorInput fEI = new FileEditorInput(getOpenFile().getAbsoluteFile());
 				try {
-					CommonExtension.openEditor(fPEI, DViewerImageArrayEditorPart.ID, false, true);
+					CommonExtension.openEditor(fEI, DViewerImageArrayEditorPart.ID, false, true);
 				} catch (final PartInitException e) {
 					e.printStackTrace();
 				}
@@ -132,7 +221,7 @@ public class DViewerStartup implements IStartup {
 		}
 	};
 
-	protected final IOpenFileListener openFileListener = new IOpenFileListener() {
+	protected final static IOpenFileListener openFileListener = new IOpenFileListener() {
 		@Override
 		public boolean openFile(final EFile file) {
 			//IOpenFileListener
@@ -152,38 +241,32 @@ public class DViewerStartup implements IStartup {
 		}
 	};
 
-	protected final IPartListener2 fileViewPartListener = new IPartListener2() {
-		@Override
-		public void partVisible(IWorkbenchPartReference partRef) {
-		}
+	protected final static IPartListener2 fileViewPartListener = new PartAdapter() {
 		@Override
 		public void partOpened(IWorkbenchPartReference partRef) {
 			if( partRef.getId().equals(FileView.ID) )
 				((FileView)partRef.getPart(false)).addOpenFileListener(openFileListener);
 		}
 		@Override
-		public void partInputChanged(IWorkbenchPartReference partRef) {
-		}
-		@Override
-		public void partHidden(IWorkbenchPartReference partRef) {
-		}
-		@Override
-		public void partDeactivated(IWorkbenchPartReference partRef) {
-		}
-		@Override
 		public void partClosed(IWorkbenchPartReference partRef) {
 			if( partRef.getId().equals(FileView.ID) )
 				((FileView)partRef.getPart(false)).removeOpenFileListener(openFileListener);
 		}
-		@Override
-		public void partBroughtToTop(IWorkbenchPartReference partRef) {
-		}
-		@Override
-		public void partActivated(IWorkbenchPartReference partRef) {
-		}
 	};
 
-	protected void processCommandLineArguments() {
+	public static boolean getUseHKL() {
+		processCommandLineArguments();
+		return useHKL;
+	}
+
+	public static File getOpenFile() {
+		processCommandLineArguments();
+		return openFile;
+	}
+
+	protected static void processCommandLineArguments() {
+		if( commandLineProcessed )
+			return;
 		final String[] args = Platform.getCommandLineArgs();
 		for (int i = 0; i < args.length; i++) {
 //			if (args[i].equals("-mydir")) {
@@ -203,23 +286,20 @@ public class DViewerStartup implements IStartup {
 				useHKL = true;
 			}
 		}
+		commandLineProcessed = true;
 	}
 
-	public void resetPreferences() {
+	public static void resetPreferences() {
 		EditorPreferenceInitializer.DownsamplingType.resetValue();
 		EditorPreferenceInitializer.ApplyPha.resetValue();
 		EditorPreferenceInitializer.PhaRadius.resetValue();
 	}
 
-	protected String getPackageName() {
-		return getClass().getName().split("\\." + getClass().getSimpleName())[0];
-	}
-
-	protected void setToDefault(final StringAndObject propertyDefault) {
+	protected static void setToDefault(final StringAndObject propertyDefault) {
 		setToDefault(propertyDefault.preferenceStore, propertyDefault.string, propertyDefault.object);
 	}
 
-	protected void setToDefault(final IPreferenceStore preferenceStore, final String name, final Object value) {
+	protected static void setToDefault(final IPreferenceStore preferenceStore, final String name, final Object value) {
 		//Since setDefault does not fire event, it must be set AFTER the value
 		if( value instanceof String ) {
 			preferenceStore.setValue(name, (String)value); //To fire event
@@ -242,7 +322,7 @@ public class DViewerStartup implements IStartup {
 		}
 	}
 
-	protected void setDefaultPreferences() {
+	public static void setDefaultPreferences() {
 		String defaultColourScheme;
 		try {
 			IPaletteService pservice = CommonExtension.getService(IPaletteService.class);
@@ -283,11 +363,10 @@ public class DViewerStartup implements IStartup {
 		});
 	}
 
-
 	/**
 	 * Starts the connection manager.
 	 */
-	protected void startConnectionManager() {
+	protected static void startConnectionManager() {
 		final DViewerActivator dViewerActivator = DViewerActivator.getDefault();
 		if( dViewerActivator.getConnectionManager() != null )
 			return;
@@ -315,7 +394,7 @@ public class DViewerStartup implements IStartup {
 				CommonThreading.execUISynced(new Runnable() {
 					@Override
 					public void run() {
-						MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "dViewer startup error", "Can not start socket listener on port " + finalPort + "\n" + msgEnd + "\n" + e.getMessage());
+						MessageDialog.openError(CommonExtension.getActiveShell(), "dViewer startup error", "Can not start socket listener on port " + finalPort + "\n" + msgEnd + "\n" + e.getMessage());
 					}
 				});
 			}
@@ -325,7 +404,7 @@ public class DViewerStartup implements IStartup {
 	/**
 	 * Stops the connection manager.
 	 */
-	protected void stopConnectionManager() {
+	protected static void stopConnectionManager() {
 		final DViewerActivator dViewerActivator = DViewerActivator.getDefault();
 		if( dViewerActivator.getConnectionManager() != null ) {
 			dViewerActivator.getConnectionManager().dispose();
@@ -333,7 +412,7 @@ public class DViewerStartup implements IStartup {
 		}
 	}
 
-	public void addPerspectiveSupport() {
+	protected static void addPerspectiveSupport() {
 		CommonThreading.execUISynced(new Runnable() {
 			@Override
 			public void run() {
@@ -348,17 +427,30 @@ public class DViewerStartup implements IStartup {
 				   workbench, only using it.
 				   The consequence: we call the event handler manually.
 				 */
-				perspectiveListener.perspectiveActivated(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getPerspective());
+				final IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				perspectiveListener.perspectiveActivated(activePage, activePage.getPerspective());
 			}
 		});
 	}
 
-	public void removePerspectiveSupport() {
+	protected static void removePerspectiveSupport() {
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().removePerspectiveListener(perspectiveListener);
 	}
 
-	public void addOpenFileSupport() {
+	protected static void addAutoViewRequestSupport() {
+		CommonThreading.execUISynced(new Runnable() {
+			@Override
+			public void run() {
+				CommonExtension.getCurrentPage().addPartListener(partOpenedAndActivatedListener);
+			}
+		});
+	}
+
+	protected static void removeAutoViewRequestSupport() {
+		CommonExtension.getCurrentPage().removePartListener(partOpenedAndActivatedListener);
+	}
+
+	protected static void addOpenFileSupport() {
 		CommonThreading.execUISynced(new Runnable() {
 			@Override
 			public void run() {
@@ -370,8 +462,21 @@ public class DViewerStartup implements IStartup {
 		});
 	}
 
-	public void removeOpenFileSupport() {
+	protected static void removeOpenFileSupport() {
 		CommonExtension.getCurrentPage().removePartListener(fileViewPartListener);
+	}
+
+	protected static void addPartActivationWatcherSupport() {
+		CommonThreading.execUISynced(new Runnable() {
+			@Override
+			public void run() {
+				partActivationWatcher.init();
+			}
+		});
+	}
+
+	protected static void removePartActivationWatcherSupport() {
+		partActivationWatcher.dispose();
 	}
 
 	@Override
@@ -384,6 +489,8 @@ public class DViewerStartup implements IStartup {
 	
 			PlatformUI.getWorkbench().addWorkbenchListener(new IWorkbenchListener() {
 				public boolean preShutdown( final IWorkbench workbench, final boolean forced ) {
+					removeAutoViewRequestSupport();
+					removePartActivationWatcherSupport();
 					removeOpenFileSupport();
 					stopConnectionManager();
 					removePerspectiveSupport();
@@ -414,6 +521,8 @@ public class DViewerStartup implements IStartup {
 			new EclipseBug362561Workaround();
 			addOpenFileSupport();
 		}
+		addPartActivationWatcherSupport(); //Required even in DAWN
+		addAutoViewRequestSupport(); //Required even in DAWN
 		logger.debug("Started " + getPackageName());
 	}
 
