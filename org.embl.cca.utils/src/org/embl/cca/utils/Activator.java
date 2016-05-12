@@ -1,5 +1,7 @@
 package org.embl.cca.utils;
 
+import java.io.File;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -30,7 +32,7 @@ public class Activator extends AbstractUIPlugin {
 	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
 	 * )
 	 */
-	public void start(BundleContext context) throws Exception {
+	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
 	}
@@ -42,7 +44,7 @@ public class Activator extends AbstractUIPlugin {
 	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
 	 * )
 	 */
-	public void stop(BundleContext context) throws Exception {
+	public void stop(final BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
 	}
@@ -69,11 +71,27 @@ public class Activator extends AbstractUIPlugin {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
+	public static Image getImage(final Object element) {
+		return getImageDescriptor(element).createImage();
+	}
+
+	public static ImageDescriptor getImageDescriptor(final Object element) {
+		if( element instanceof File ) {
+			if (((File) element).isDirectory()) {
+				return getImageDescriptor(ImageConstants.IMG_FOLDER);
+			} else {
+				return getImageDescriptor(ImageConstants.IMG_FILE);
+			}
+		} else
+			return null;
+	}
+
 	@Override
-	protected void initializeImageRegistry(ImageRegistry reg) {
+	protected void initializeImageRegistry(final ImageRegistry reg) {
 		super.initializeImageRegistry(reg);
 		for (final String imgPath : ImageConstants.IMAGES) {
 			reg.put(imgPath, imageDescriptorFromPlugin(PLUGIN_ID, imgPath));
 		}
 	}
+
 }
