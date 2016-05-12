@@ -1,19 +1,40 @@
 package org.embl.cca.dviewer.ui.views;
 
+import org.apache.commons.collections4.Predicate;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.util.Util;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IPage;
 import org.eclipse.ui.part.MessagePage;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.PageBookView;
+import org.embl.cca.dviewer.DViewerStartup;
 import org.embl.cca.dviewer.ui.editors.IDViewerControlsPageAdaptable;
+import org.embl.cca.utils.Activator;
+import org.embl.cca.utils.threading.CommonThreading;
 
 public class DViewerControlsView extends PageBookView {
 
 	public static final String ID = "org.embl.cca.dviewer.ui.views.DViewerControlsView";
+	/**
+	 * The memento that was used to persist the state of this view.
+	 * May be <code>null</code>.
+	 */
+	private IMemento fMemento;
+	IWorkbenchPart dViewerImageViewLastKnownContributingPart = null;
+	protected static final String DViewerControlsSettings = "dViewerControlsSettings";
+	protected static final String DViewerControlsKey1 = "dViewerControlsKey1";
+
+
+	public DViewerControlsView() {
+		super();
+	}
 
 	//Bugfix: detached view displays nothing when part is changed, it seems layout solves the issue
 	final ControlListener detachedViewBugfixControlListener = new ControlListener() {
@@ -45,9 +66,7 @@ public class DViewerControlsView extends PageBookView {
 
 	@Override
 	protected boolean isImportant(final IWorkbenchPart part) {
-		final Object isAdaptable = part.getAdapter(IDViewerControlsPageAdaptable.class);
-		final boolean result = isAdaptable != null;
-		return result;
+		return part.getAdapter(IDViewerControlsPageAdaptable.class) != null;
 	}
 
 	@Override
@@ -56,6 +75,13 @@ public class DViewerControlsView extends PageBookView {
 		if( page == null )
 			return null;
 		initPage(page);
+		final IDialogSettings settings = Activator.getDefault().getDialogSettings();
+		IDialogSettings section = settings.getSection(DViewerControlsSettings);
+		if (section != null) {
+		    //TODO Load stuff by section.get(key) pairs
+//	        section.get(DViewerControlsKey1);
+	    }
+		
 		page.createControl(getPageBook());
 //		page.getControl().setBackground(org.eclipse.swt.widgets.Display.getCurrent().getSystemColor(org.eclipse.swt.SWT.COLOR_GREEN));
 		return new PageRec(part, page);
@@ -68,22 +94,35 @@ public class DViewerControlsView extends PageBookView {
 
 	@Override
 	protected IWorkbenchPart getBootstrapPart() {
-		final IWorkbenchPage page = getSite().getPage();
-		if(page != null) {
-			// check whether the active part is important to us
-			final IWorkbenchPart activePart = page.getActivePart();
-			return isImportant(activePart) ? activePart : null;
-		}
-		return null;
+		return DViewerStartup.partActivationWatcher.findLastMatchingActivatedPart(
+				new Predicate<IWorkbenchPart>() {
+					@Override
+					public boolean evaluate(final IWorkbenchPart workbenchPart) {
+						return isImportant(workbenchPart);
+					}
+				});
 	}
 
 	@Override
 	public void partActivated(final IWorkbenchPart part) {
-		//If part is important PageBookView, it is probably DViewerImageView,
-		//and then the page for that part must be recreated. It can be forced
-		//by closing that part in this PageBookView.
-		if( isImportant(part) && part instanceof PageBookView ) {
-			partClosed(part);
+		//If the activated part is DViewerImageView, then the current page
+		//might be outdated as created for a part different than the part of
+		//DViewerImageView's current page. In this case the current page
+		//must be updated, after activation is completed (DViewerImageView
+		//mainly), thus updating is done UISynced.
+		if( part instanceof DViewerImageView) {
+			CommonThreading.execUISynced(new Runnable() {
+				@Override
+				public void run() {
+					final DViewerImageView dViewerImageView = (DViewerImageView)part;
+					final IWorkbenchPart dVIVCPart = dViewerImageView.getCurrentContributingPart();
+					if( !Util.equals(dVIVCPart, dViewerImageViewLastKnownContributingPart) ) {
+						dViewerImageViewLastKnownContributingPart = dVIVCPart;
+						DViewerControlsView.this.partClosed(dViewerImageView);
+						DViewerControlsView.this.partActivated(dViewerImageView);
+					}
+				}
+			});
 		}
 		super.partActivated(part);
 		String title = (String)getAdapter(String.class);
@@ -93,16 +132,28 @@ public class DViewerControlsView extends PageBookView {
 	}
 
 	@Override
-	protected Object getViewAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
+	public void partClosed(final IWorkbenchPart part) {
+		final IDialogSettings settings = Activator.getDefault().getDialogSettings();
+		IDialogSettings section = settings.getSection(DViewerControlsSettings);
+	    if (section == null) { // if it doesn't exist, create it
+	        section = settings.addNewSection(DViewerControlsSettings);
+	    }
+	    //TODO Save stuff by section.put(key, value) pairs
+//	    section.put(DViewerControlsKey1, "test");
+	    super.partClosed(part);
+	}
+
+	@Override
+	protected <T> T getViewAdapter(final Class<T> adapter) {
 		return super.getViewAdapter(adapter);
 	}
 
 	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if (adapter == DViewerControlsView.class) {
-			return this;
+	public <T> T getAdapter(final Class<T> clazz) {
+		if (clazz == DViewerControlsView.class) {
+			return clazz.cast(this);
 		}
-		return super.getAdapter(adapter);
+		return super.getAdapter(clazz);
 	}
 
 	@Override
@@ -111,4 +162,37 @@ public class DViewerControlsView extends PageBookView {
 			getPageBook().removeControlListener(detachedViewBugfixControlListener);
 		super.dispose();
 	}
+
+	/**
+	 * Returns the memento that contains the persisted state of
+	 * the view.  May be <code>null</code>.
+	 * @return the current {@link IMemento}
+	 */
+	protected IMemento getMemento() {
+		return fMemento;
+	}
+
+	/** 
+	 * Sets the memento that contains the persisted state of the 
+	 * view.
+	 * @param memento the new {@link IMemento}
+	 */
+	protected void setMemento(IMemento memento) {
+		fMemento = memento;
+	}
+
+    @Override
+	public void init(final IViewSite site, final IMemento memento) throws PartInitException {
+		super.init(site, memento);
+		//see http://blog.eclipse-tips.com/2009/08/remember-state.html
+		//store the memento to be used when this view is created.
+		setMemento(memento);
+    }
+
+
+    @Override
+	public void saveState(IMemento memento) {
+    	super.saveState(memento);
+    	//Currently there is no state in this class to save
+    }
 }
