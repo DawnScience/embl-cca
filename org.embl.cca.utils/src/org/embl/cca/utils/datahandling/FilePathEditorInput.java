@@ -1,5 +1,5 @@
 /*-
- * Copyright 2012 Diamond Light Source Ltd.
+ * Copyright 2012 Diamond Light Source Ltd. and EMBL
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.embl.cca.utils.datahandling;
 
 import java.io.File;
@@ -22,92 +21,94 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
+import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.general.Util;
 
-public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*/ {
+/**
+ * This class is based on org.embl.cca.utils.datahandling.FileEditorInput.
+ */
+public class FilePathEditorInput implements IEditorInput, IPersistableElement {
 
-	/**
-	 * The workbench adapter which simply provides the label.
-	 *
-	 * @since 3.3
-	 */
-	protected static class WorkbenchAdapter implements IWorkbenchAdapter {
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getChildren(java.lang.Object)
-		 */
+	protected final class WorkbenchAdapter implements IWorkbenchAdapter {
 		@Override
-		public Object[] getChildren(Object o) {
-			return null;
+		public Object[] getChildren(final Object o) {
+			return new Object[0];
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getImageDescriptor(java.lang.Object)
-		 */
 		@Override
-		public ImageDescriptor getImageDescriptor(Object object) {
-			return null;
+		public ImageDescriptor getImageDescriptor(final Object object) {
+			return FilePathEditorInput.this.getImageDescriptor();
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getLabel(java.lang.Object)
-		 */
 		@Override
-		public String getLabel(Object o) {
-			return ((FilePathEditorInput) o).getName();
+		public String getLabel(final Object o) {
+			return FilePathEditorInput.this.getName();
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getParent(java.lang.Object)
-		 */
 		@Override
-		public Object getParent(Object o) {
-			return null;
+		public Object getParent(final Object o) {
+			return FilePathEditorInput.this.getFile().getParent();
 		}
 	}
 
+	/**
+	 * Can not be null.
+	 */
 	protected String filePath;
-	protected String equalityID;
+	/**
+	 * Can be null.
+	 */
+	protected String equalityId;
+	/**
+	 * Can be null.
+	 */
 	protected String name;
-	protected WorkbenchAdapter workbenchAdapter = new WorkbenchAdapter();
+	protected final WorkbenchAdapter workbenchAdapter = new WorkbenchAdapter();
 
 	/**
 	 * @param filePath
 	 */
-	public FilePathEditorInput(String filePath) {
+	public FilePathEditorInput(final String filePath) {
 		this(filePath, null);
 	}
 
 	/**
 	 * @param filePath
-	 * @param equalityID
+	 * @param equalityId
 	 */
-	public FilePathEditorInput(String filePath, String equalityID) {
-		this(filePath, equalityID, filePath);
+	public FilePathEditorInput(final String filePath, final String equalityId) {
+		this(filePath, equalityId, filePath);
 	}
 
 	/**
 	 * @param filePath
-	 * @param equalityID
+	 * @param equalityId
 	 * @param name
 	 */
-	public FilePathEditorInput(String filePath, String equalityID, String name) {
+	public FilePathEditorInput(final String filePath, final String equalityId, final String name) {
 		Assert.isNotNull(filePath);
 		this.filePath = filePath;
-		this.equalityID = equalityID;
+		this.equalityId = equalityId;
 		this.name = name;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public int hashCode() {
+		return Util.hashCode(new Object[] {filePath, equalityId, name});
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
 		if( this == obj )
 			return true;
 		if (obj instanceof FilePathEditorInput) {
 			FilePathEditorInput other = (FilePathEditorInput)obj;
-			if( equalityID != null && other.equalityID != null )
-				return equalityID.equals(other.equalityID);
-			if( equalityID == null && other.equalityID == null )
+			if( equalityId != null && other.equalityId != null )
+				return equalityId.equals(other.equalityId);
+			if( equalityId == null && other.equalityId == null )
 				return filePath.equals(other.filePath);
 			return false;
 		}
@@ -115,32 +116,31 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 	}
 
 	@Override
-	public int hashCode() {
-		return Util.hashCode(new Object[] {filePath, equalityID, name});
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
-		if(IWorkbenchAdapter.class.equals(adapter))
-			return workbenchAdapter;
-		if(adapter.isAssignableFrom(File.class)) { //adapter <= File
-			return new File(filePath);
-		}
-		if(String.class.isAssignableFrom(adapter))
-			return new String(filePath);
-		return Platform.getAdapterManager().getAdapter(this, adapter);
-	}
-
-	@Override
 	public boolean exists() {
-//		return fileStore.fetchInfo().exists();
-		return true;
+		return getFile().exists();
+	}
+
+	@Override
+	public String getFactoryId() {
+		return FilePathEditorInputFactory.getFactoryId();
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	/**
+	 * This method is for convenience. It returns the File corresponding
+	 * to filePath.
+	 * @return the File corresponding to filePath
+	 */
+	public File getFile() {
+		return new File(filePath);
 	}
 
 	@Override
 	public ImageDescriptor getImageDescriptor() {
-		return null;
+		return Activator.getImageDescriptor(getFile());
 	}
 
 	@Override
@@ -148,16 +148,16 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
-	public String getEqualityID() {
-		return equalityID;
+	public String getEqualityId() {
+		return equalityId;
 	}
 
-	public boolean equalityIDEquals(String equalityID) {
-		return this.equalityID != null && this.equalityID.equals(equalityID);
+	public boolean equalityIdEquals(final String equalityId) {
+		return this.equalityId != null && this.equalityId.equals(equalityId);
 	}
 
 	@Override
@@ -167,19 +167,29 @@ public class FilePathEditorInput implements IEditorInput/*, IPersistableElement*
 
 	@Override
 	public IPersistableElement getPersistable() {
-		return null;
-//		return this;
+		return this;
 	}
 
-//	@Override
-//	public void saveState(IMemento memento) {
-////		FileStoreEditorInputFactory.saveState(memento, this);
-//	}
-//
-//	@Override
-//	public String getFactoryId() {
-////		return FileStoreEditorInputFactory.ID;
-//		return null;
-//	}
+	@Override
+	public void saveState(final IMemento memento) {
+		FilePathEditorInputFactory.saveState(memento, this);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getName() + "(" + filePath + ")";
+	}
+
+	@Override
+	public <T> T getAdapter(final Class<T> clazz) {
+		if(IWorkbenchAdapter.class.equals(clazz))
+			return clazz.cast(workbenchAdapter);
+		if(clazz.isAssignableFrom(File.class)) { //adapter <= File
+			return clazz.cast(new File(filePath));
+		}
+		if(String.class.isAssignableFrom(clazz))
+			return clazz.cast(new String(filePath));
+		return Platform.getAdapterManager().getAdapter(this, clazz);
+	}
 
 }

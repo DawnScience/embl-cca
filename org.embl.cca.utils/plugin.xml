@@ -167,6 +167,17 @@
             name="Open in File Explorer">
       </command>
    </extension>
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="org.embl.cca.utils.datahandling.FileEditorInputFactory"
+            id="org.embl.cca.utils.datahandling.FileEditorInputFactory">
+      </factory>
+      <factory
+            class="org.embl.cca.utils.datahandling.FilePathEditorInputFactory"
+            id="org.embl.cca.utils.datahandling.FilePathEditorInputFactory">
+      </factory>
+   </extension>
 <!--
    <extension
          point="org.eclipse.ui.popupMenus">

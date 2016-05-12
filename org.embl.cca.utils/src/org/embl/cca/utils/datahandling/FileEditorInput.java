@@ -1,5 +1,5 @@
 /*-
- * Copyright 2012 Diamond Light Source Ltd.
+ * Copyright 2012 Diamond Light Source Ltd. and EMBL
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,64 +22,113 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
+import org.embl.cca.utils.Activator;
 import org.embl.cca.utils.datahandling.file.VirtualCollectionFile;
 
-public class FileEditorInput implements IEditorInput/*, IPersistableElement*/ {
+/**
+ * This class is based on org.eclipse.ui.part.FileEditorInput.
+ */
+public class FileEditorInput implements IEditorInput, IPersistableElement {
 
-	/**
-	 * The workbench adapter which simply provides the label.
-	 *
-	 * @since 3.3
-	 */
-	protected static class WorkbenchAdapter implements IWorkbenchAdapter {
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getChildren(java.lang.Object)
-		 */
+	protected final class WorkbenchAdapter implements IWorkbenchAdapter {
 		@Override
-		public Object[] getChildren(Object o) {
-			return null;
+		public Object[] getChildren(final Object o) {
+			return new Object[0];
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getImageDescriptor(java.lang.Object)
-		 */
 		@Override
-		public ImageDescriptor getImageDescriptor(Object object) {
-			return null;
+		public ImageDescriptor getImageDescriptor(final Object object) {
+			return FileEditorInput.this.getImageDescriptor();
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getLabel(java.lang.Object)
-		 */
 		@Override
-		public String getLabel(Object o) {
-			return ((FileEditorInput) o).getName();
+		public String getLabel(final Object o) {
+			return FileEditorInput.this.getName();
 		}
 
-		/*
-		 * @see org.eclipse.ui.model.IWorkbenchAdapter#getParent(java.lang.Object)
-		 */
 		@Override
-		public Object getParent(Object o) {
-			return null;
+		public Object getParent(final Object o) {
+			return FileEditorInput.this.getFile().getParent();
 		}
 	}
 
 	protected File file;
-	protected WorkbenchAdapter workbenchAdapter = new WorkbenchAdapter();
+	protected final WorkbenchAdapter workbenchAdapter = new WorkbenchAdapter();
 
 	/**
 	 * @param file
 	 */
-	public FileEditorInput(File file) {
+	public FileEditorInput(final File file) {
 		Assert.isNotNull(file);
 		this.file = file;
 	}
 
 	@Override
-	public <T> T getAdapter(Class<T> clazz) {
+	public int hashCode() {
+		return file.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof FileEditorInput)) {
+			return false;
+		}
+		FileEditorInput other = (FileEditorInput) obj;
+		return file.equals(other.getFile());
+	}
+
+	@Override
+	public boolean exists() {
+		return file.exists();
+	}
+
+	@Override
+	public String getFactoryId() {
+		return FileEditorInputFactory.getFactoryId();
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	@Override
+	public ImageDescriptor getImageDescriptor() {
+		return Activator.getImageDescriptor(file);
+	}
+
+	@Override
+	public String getName() {
+		return file.getName();
+	}
+
+	@Override
+	public IPersistableElement getPersistable() {
+		return this;
+	}
+
+	@Override
+	public String getToolTipText() {
+		return file.getAbsolutePath();
+	}
+
+	@Override
+	public void saveState(final IMemento memento) {
+		FileEditorInputFactory.saveState(memento, this);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getName() + "(" + getFile().getAbsolutePath() + ")";
+	}
+
+	@Override
+	public <T> T getAdapter(final Class<T> clazz) {
 		if (IWorkbenchAdapter.class.equals(clazz))
 			return clazz.cast(workbenchAdapter);
 		//For compatibility, trying to match simpler classes first
@@ -96,43 +145,5 @@ public class FileEditorInput implements IEditorInput/*, IPersistableElement*/ {
 			return clazz.cast(file.getAbsoluteFile());
 		return Platform.getAdapterManager().getAdapter(this, clazz);
 	}
-
-	@Override
-	public boolean exists() {
-//		return fileStore.fetchInfo().exists();
-		return true;
-	}
-
-	@Override
-	public ImageDescriptor getImageDescriptor() {
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return file.getName();
-	}
-
-	@Override
-	public String getToolTipText() {
-		return file.getName();
-	}
-
-	@Override
-	public IPersistableElement getPersistable() {
-		return null;
-//		return this;
-	}
-
-//	@Override
-//	public void saveState(IMemento memento) {
-////		FileStoreEditorInputFactory.saveState(memento, this);
-//	}
-//
-//	@Override
-//	public String getFactoryId() {
-////		return FileStoreEditorInputFactory.ID;
-//		return null;
-//	}
 
 }
