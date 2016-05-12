@@ -3,6 +3,8 @@ package org.embl.cca.dviewer.ui.editors;
 import java.io.FileNotFoundException;
 import java.util.EnumSet;
 
+import javax.xml.stream.events.Comment;
+
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
@@ -39,11 +41,13 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartConstants;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
 import org.eclipse.ui.part.WorkbenchPart;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.dviewer.ui.views.DViewerControlsPage;
+import org.embl.cca.dviewer.ui.views.DViewerImageView;
 import org.embl.cca.utils.datahandling.EFile;
 import org.embl.cca.utils.datahandling.FilePathEditorInput;
 import org.embl.cca.utils.datahandling.MemoryDatasetEditorInput;
@@ -286,11 +290,11 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 
 		@Override
 		public void fileLoadingFailed(Object source, boolean newFile) { //TODO pass detailed error message and display it
-			final String ERROR_MESSAGE = "An error occured while loading the requested file(s)";
-			ExceptionUtils.logError(logger, ERROR_MESSAGE);
+			final String ERROR_MESSAGE = "An error occured while loading the requested file(s): " + ((FileLoader)source).getCollectionAbsoluteName();
+			ExceptionUtils.logError(logger, ERROR_MESSAGE); int a = 0;
 			if( isRemoted() )
 				return; //Not showing (blocking) dialog when images arrive from remote
-			CommonThreading.execUISynced(new Runnable() {
+			CommonThreading.execUIAsynced(new Runnable() {
 				@Override
 				public void run() {
 					MessageDialog.openError(getSite().getWorkbenchWindow().getShell(),
@@ -318,7 +322,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 	protected void setRemotedByInput() {
 		if( getEditorInput() instanceof FilePathEditorInput ) {
 			final FilePathEditorInput fPEI = (FilePathEditorInput)getEditorInput();
-			if( fPEI.equalityIDEquals(DViewerImageArrayEditorPart.REMOTED_IMAGE)) {
+			if( fPEI.equalityIdEquals(DViewerImageArrayEditorPart.REMOTED_IMAGE)) {
 				remotedImageEditor = true;
 			}
 		}
@@ -811,7 +815,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 				getActiveEditor().init(getEditorSite(), EMPTY_DATASET_INPUT);
 			else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) ) {
 				getActiveView().init(getViewSite());
-				getActiveDViewerSubView().setInput(getEditorInput());
+				getActiveDViewerSubView().setInput(EMPTY_DATASET_INPUT);
 			}
 		} catch (final PartInitException e) {
 			ExceptionUtils.logError(logger, new StringBuilder("Cannot initiate ").append(getClass().getName()).toString(), e, this);
@@ -944,9 +948,24 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		CommonThreading.execUISynced(new Runnable() {
 			@Override
 			public void run() {
-				if( getActiveReusableEditor().getEditorInput().equals(EMPTY_DATASET_INPUT) )
+				final IEditorInput editorInput;
+				if( getActivePart() instanceof IEditorPartHost )
+					editorInput = ((IEditorPartHost)getActivePart()).getEditorInput();
+				else if( getActivePart() instanceof IViewPart )
+					editorInput = ((IViewPartHost)getActivePart()).getEditorInput();
+				else
+					editorInput = null;
+				if( editorInput == null || editorInput.equals(EMPTY_DATASET_INPUT) ) {
 					if( IEditorPartHost.class.isAssignableFrom(classRole.getClass()) )
 						getSite().getPage().closeEditor((IEditorPartHost)classRole, false);
+					else if( IViewPartHost.class.isAssignableFrom(classRole.getClass()) ) {
+						//Have to hardcode a bit, because the IViewPartHost is
+						//in a DViewerImageView PageBook, thus have to use a
+						//hard reference here.
+						getSite().getPage().hideView(getSite().getPage().findView(DViewerImageView.ID));
+//						CommonExtension.closePart(DViewerImageView.ID, true); //Does not work, no active window context
+					}
+				}
 			}
 		});
 	}
