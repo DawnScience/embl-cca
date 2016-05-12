@@ -3,8 +3,6 @@ package org.embl.cca.dviewer.ui.editors;
 import java.io.FileNotFoundException;
 import java.util.EnumSet;
 
-import javax.xml.stream.events.Comment;
-
 import org.dawb.common.ui.util.EclipseUtils;
 import org.dawb.common.ui.util.GridUtils;
 import org.dawnsci.common.widgets.editor.ITitledEditor;
@@ -41,7 +39,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartConstants;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IWorkbenchPartOrientation;
 import org.eclipse.ui.part.WorkbenchPart;
 import org.embl.cca.dviewer.ui.editors.preference.DViewerEditorConstants;
@@ -289,9 +286,9 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		}
 
 		@Override
-		public void fileLoadingFailed(Object source, boolean newFile) { //TODO pass detailed error message and display it
+		public void fileLoadingFailed(Object source, boolean newFile) {
 			final String ERROR_MESSAGE = "An error occured while loading the requested file(s): " + ((FileLoader)source).getCollectionAbsoluteName();
-			ExceptionUtils.logError(logger, ERROR_MESSAGE); int a = 0;
+			ExceptionUtils.logError(logger, ERROR_MESSAGE);
 			if( isRemoted() )
 				return; //Not showing (blocking) dialog when images arrive from remote
 			CommonThreading.execUIAsynced(new Runnable() {
