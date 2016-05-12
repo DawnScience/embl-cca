@@ -34,9 +34,10 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.embl.cca.utils.datahandling.JavaSystem;
 
 public class CommonExtension {
-	public final static boolean debugMode = Boolean.getBoolean("DEBUG");
+	public final static boolean debugMode = JavaSystem.getPropertyAsBoolean("DEBUG");
 
 	public static Rectangle DETACH_RECTANGLE_DEFAULT = new Rectangle(100, 100, 300, 300);
 
