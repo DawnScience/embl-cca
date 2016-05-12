@@ -70,14 +70,15 @@
    </extension>
    <extension
          point="org.eclipse.ui.views">
-      <e4view
+      <view
+            allowMultiple="false"
             name="dViewer Controls"
             icon="icons/dViewer-controls-16x16-icon.png"
             category="org.dawb.workbench.ui.beta.views.category"
             class="org.embl.cca.dviewer.ui.views.DViewerControlsView"
             restorable="true"
             id="org.embl.cca.dviewer.ui.views.DViewerControlsView">
-      </e4view>
+      </view>
       <view
             allowMultiple="false"
             category="org.dawb.workbench.ui.beta.views.category"
