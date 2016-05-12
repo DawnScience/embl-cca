@@ -164,8 +164,7 @@ public class CommonExtension {
 	}
 
 	public static IViewPart findView(final String viewId, final boolean restore) {
-		final IWorkbenchPage page = getActivePage();
-		final IViewReference ref = page.findViewReference(viewId);
+		final IViewReference ref = findViewRef(viewId, restore);
 		if( ref == null )
 			return null;
 		return ref.getView(restore);
@@ -353,6 +352,15 @@ public class CommonExtension {
 	}
 
 	/**
+	 * Finds and returns the id for the given workbench part (E3).
+	 * @param workbenchPart the workbench part to search for, must not be <code>null</code>
+	 * @return the id for the specified workbench part, or <code>NullPointerException</code> if there is no workbench part
+	 */
+	public static String getId(final IWorkbenchPart workbenchPart) {
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+	}
+
+	/**
 	 * Finds and returns the first window containing the given element.
 	 * @param mUIElement the element to search for, must not be <code>null</code>
 	 * @return the window for the specified element, or <code>null</code> if the part is not in a window
@@ -389,7 +397,7 @@ public class CommonExtension {
 	public static boolean isDetached(final IWorkbenchPart workbenchPart) {
 		//http://eclipsesource.com/blogs/2010/06/23/tip-how-to-detect-that-a-view-was-detached/
 		//return viewPart.getSite().getShell().getText().isEmpty(); //E3 style
-		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		final String workbenchId = getId(workbenchPart);
 		return isDetached(workbenchId);
 	}
 
@@ -428,6 +436,11 @@ public class CommonExtension {
 		shell.setMaximized(true);
 	}
 
+	public static boolean isMinScreened(final String partId) {
+		final Shell shell = getShell(partId);
+		return shell.getMinimized();
+	}
+
 	/**
 	 * Sets the min screen state of shell of part identified by the given id.
 	 * The shell of part is the real window containing the part as well.
@@ -451,7 +464,7 @@ public class CommonExtension {
 	 */
 	@Deprecated
 	public static boolean isVisible(final IWorkbenchPart workbenchPart) {
-		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		final String workbenchId = getId(workbenchPart);
 		return isVisible(workbenchId);
 	}
 
@@ -516,7 +529,7 @@ public class CommonExtension {
 	 */
 	@Deprecated
 	public static MUIElement getPartholder(final IWorkbenchPart workbenchPart) { 
-		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		final String workbenchId = getId(workbenchPart);
 		return getPartholder(workbenchId);
 	}
 
@@ -539,7 +552,7 @@ public class CommonExtension {
 	 */
 	@Deprecated
 	public static MPlaceholder getPlaceholder(final IViewPart viewPart) { 
-		final String viewId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(viewPart).getId();
+		final String viewId = getId(viewPart);
 		return getPlaceholder(viewId);
 	}
 
@@ -561,8 +574,19 @@ public class CommonExtension {
 	 */
 	@Deprecated
 	public static MPart getPart(final IEditorPart editorPart) { 
-		final String editorId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(editorPart).getId();
+		final String editorId = getId(editorPart);
 		return getPart(editorId);
+	}
+
+	/**
+	 * Finds and returns a view part with the given id.
+	 * @param viewId
+	 *            the id of the view part to search for, must not be <code>null</code>
+	 * @return the view part with the specified id, or <code>null</code> if no such part could be found
+	 */
+	@Deprecated
+	public static IViewPart getViewPart(final String viewId) {
+		return findView(viewId, false);
 	}
 
 	/**
@@ -662,7 +686,7 @@ public class CommonExtension {
 	@Deprecated
 	public static void detachWorkbenchPart(final IWorkbenchPart workbenchPart, final Rectangle rectangle) {
 		final EModelService modelService = getService(EModelService.class);
-		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		final String workbenchId = getId(workbenchPart);
 		modelService.detach((MPartSashContainerElement)getPartholder(workbenchId), rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 	}
 
@@ -673,7 +697,7 @@ public class CommonExtension {
 	@Deprecated
 	public static void bringToTopWorkbenchPart(final IWorkbenchPart workbenchPart) {
 		final EModelService modelService = getService(EModelService.class);
-		final String workbenchId = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getReference(workbenchPart).getId();
+		final String workbenchId = getId(workbenchPart);
 		modelService.bringToTop(getPartholder(workbenchId));
 	}
 
@@ -811,9 +835,9 @@ public class CommonExtension {
 	 * @return the active shell, or null if there is no active shell
 	 */
 	public static Shell getActiveShell() {
-		final IWorkbench bench = PlatformUI.getWorkbench();
-		if (bench==null) return null;
-		final IWorkbenchWindow window = bench.getActiveWorkbenchWindow();
+		final IWorkbench workbench = PlatformUI.getWorkbench();
+		if (workbench==null) return null;
+		final IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 		if (window==null) return null;
 		return window.getShell();
 	}
