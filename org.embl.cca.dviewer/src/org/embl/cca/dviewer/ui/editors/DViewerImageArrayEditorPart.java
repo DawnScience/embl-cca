@@ -17,18 +17,13 @@ import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.ISaveablePart;
 import org.eclipse.ui.IShowEditorInput;
-import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.embl.cca.dviewer.ui.editors.utils.Point2DD;
 import org.embl.cca.dviewer.ui.views.DViewerImagePage;
 import org.embl.cca.utils.datahandling.EFile;
-import org.embl.cca.utils.extension.PartAdapter;
 import org.embl.cca.utils.general.ISomethingChangeListener;
-//public class DViewerImageArrayEditorAndViewPart extends EditorPart implements
-//ITitledEditor, IReusableEditor, IShowEditorInput, IDViewerControllable, IFileLoaderListener {
-import org.embl.cca.utils.threading.CommonThreading;
 
 public class DViewerImageArrayEditorPart extends EditorPart implements IEditorPartHost, IReusableEditor, ITitledEditor, ISaveablePart,
 	IShowEditorInput, IDViewerControllable, IDViewerControlsPageAdaptable {
