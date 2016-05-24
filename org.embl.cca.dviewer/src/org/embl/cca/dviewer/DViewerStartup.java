@@ -161,9 +161,11 @@ public class DViewerStartup implements IStartup {
 		protected final Set<IWorkbenchPartReference> openedBeforeActivatedParts = Collections.synchronizedSet(new HashSet<IWorkbenchPartReference>());
 		protected Set<IWorkbenchPartReference> initExistingParts() {
 			final Set<IWorkbenchPartReference> existingPartRefs = Collections.synchronizedSet(new HashSet<IWorkbenchPartReference>());
-			//Filling existing parts
-			for( final IEditorReference editorReference : CommonExtension.getActivePage().getEditorReferences() ) {
-				existingPartRefs.add(editorReference);
+			IWorkbenchPage page = CommonExtension.getActivePage();
+			if (page != null) { // Filling existing parts
+				for (final IEditorReference editorReference : page.getEditorReferences()) {
+					existingPartRefs.add(editorReference);
+				}
 			}
 			return existingPartRefs;
 		}
