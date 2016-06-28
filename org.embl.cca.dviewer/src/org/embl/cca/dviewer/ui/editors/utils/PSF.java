@@ -718,7 +718,7 @@ public class PSF {
 
 	public void applyPSF(Dataset imageComponent, Rectangle imageRect) {
 		long t0 = System.nanoTime();
-		switch( imageComponent.getDtype() ) {
+		switch( imageComponent.getDType() ) {
 		case Dataset.INT8:
 			applyPSF((ByteDataset)imageComponent, imageRect);
 			break;
@@ -738,7 +738,7 @@ public class PSF {
 			applyPSF((DoubleDataset)imageComponent, imageRect);
 			break;
 		default:
-			throw new RuntimeException( PSF.featureName + " is not implemented for this image containing values of class " + imageComponent.elementClass().toString() );
+			throw new RuntimeException( PSF.featureName + " is not implemented for this image containing values of class " + imageComponent.getElementClass().toString() );
 		}
 		long t1 = System.nanoTime();
 		System.out.println( "DEBUG: applyPSF took [msec]= " + ( t1 - t0 ) / 1000000 );

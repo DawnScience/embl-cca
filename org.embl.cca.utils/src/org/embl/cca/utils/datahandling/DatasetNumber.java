@@ -47,7 +47,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 * @return the maximum number according to dataset type
 	 */
 	protected Number getMaximumNumber() {
-		switch (set.getDtype()) {
+		switch (set.getDType()) {
 		case Dataset.BOOL:
 			return Integer.valueOf(1); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
 		case Dataset.INT32:
@@ -63,7 +63,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 		case Dataset.FLOAT64:
 			return Double.MAX_VALUE;
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 	}
 
 	/**
@@ -230,7 +230,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      * <code>boolean</code>.
      */
 	public boolean booleanValue() {
-		switch (set.getDtype()) {
+		switch (set.getDType()) {
 		case Dataset.BOOL:
 			return value.intValue() != 0; //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
 		case Dataset.INT32:
@@ -246,7 +246,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 		case Dataset.FLOAT64:
 			return value.doubleValue() != 0;
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 	}
 
     /**
@@ -282,7 +282,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      */
 	@Override
     public int compareTo(DatasetNumber anotherNumber) {
-		int type = AbstractDataset.getBestDType(set.getDtype(), anotherNumber.set.getDtype());
+		int type = AbstractDataset.getBestDType(set.getDType(), anotherNumber.set.getDType());
 		switch (type) {
 			case Dataset.BOOL: {
 				int thisVal = value.intValue(); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
@@ -320,7 +320,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
     }
 
 	static {

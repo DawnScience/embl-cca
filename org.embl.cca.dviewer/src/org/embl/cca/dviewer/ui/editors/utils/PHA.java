@@ -131,7 +131,7 @@ public class PHA {
 		else
 			throw new IllegalArgumentException(new StringBuilder(PSF.featureName)
 				.append(" is not implemented for this image containing values of class ")
-				.append(ds.elementClass().toString()).toString() );
+				.append(ds.getElementClass().toString()).toString() );
 		final long t1 = System.nanoTime();
 		System.out.println( "DEBUG: applyPHA took [msec]= " + ( t1 - t0 ) / 1000000 );
 		return result;

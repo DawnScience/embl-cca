@@ -22,7 +22,7 @@ public class DatasetTypeSeparatedUtils {
 	 */
 	public static void splitJoinIntoSelf(final Dataset set,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
-		final int type = set.getDtype();
+		final int type = set.getDType();
 		//In case of BOOL, maxValidNumber, badNumber and notMeasuredNumber have no sense
 		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
 		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
@@ -99,7 +99,7 @@ public class DatasetTypeSeparatedUtils {
 				break;
 			}
 			default:
-				throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+				throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 		}
 	}
 
@@ -111,7 +111,7 @@ public class DatasetTypeSeparatedUtils {
 	 */
 	public static void splitAddSet(final Dataset set, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
-		final int type = set.getDtype();
+		final int type = set.getDType();
 		//In case of BOOL, maxValidNumber, badNumber and notMeasuredNumber have no sense
 		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
 		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
@@ -241,7 +241,7 @@ public class DatasetTypeSeparatedUtils {
 				break;
 			}
 			default:
-				throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+				throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 		}
 	}
 
@@ -253,7 +253,7 @@ public class DatasetTypeSeparatedUtils {
 	 */
 	public static void splitRemoveSet(final Dataset set, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number maxValidNumber, final Number badNumber, final Number notMeasuredNumber) {
-		final int type = set.getDtype();
+		final int type = set.getDType();
 		//In case of BOOL, maxValidNumber and notMeasuredNumber have no sense
 		final boolean maxValidValueValid = type != Dataset.BOOL && maxValidNumber != null;
 		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
@@ -383,7 +383,7 @@ public class DatasetTypeSeparatedUtils {
 				break;
 			}
 			default:
-				throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+				throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 		}
 	}
 
@@ -396,7 +396,7 @@ public class DatasetTypeSeparatedUtils {
 	 */
 	public static void joinSplittedSets(final Dataset resultSet, final Dataset summedSet, final Dataset summedBadMask, final Dataset summedNotMeasuredMask,
 			final Number badNumber, final Number notMeasuredNumber) {
-		final int type = resultSet.getDtype();
+		final int type = resultSet.getDType();
 		//In case of BOOL, badNumber and notMeasuredNumber have no sense
 		final boolean notMeasuredValueValid = type != Dataset.BOOL && notMeasuredNumber != null;
 		final boolean badValueValid = type != Dataset.BOOL && badNumber != null;
@@ -521,7 +521,7 @@ public class DatasetTypeSeparatedUtils {
 				break;
 			}
 			default:
-				throw new RuntimeException("Not supported dataset type: " + resultSet.getDtype() );
+				throw new RuntimeException("Not supported dataset type: " + resultSet.getDType() );
 		}
 	}
 
