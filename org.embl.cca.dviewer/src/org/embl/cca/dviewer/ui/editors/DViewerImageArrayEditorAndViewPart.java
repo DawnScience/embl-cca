@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
@@ -87,7 +88,7 @@ public class DViewerImageArrayEditorAndViewPart extends WorkbenchPart
 		}
 	};
 
-	public final static Dataset EMPTY_DATASET = new IntegerDataset(new int [] {}, 0, 0);
+	public final static Dataset EMPTY_DATASET = DatasetFactory.zeros(IntegerDataset.class, 0, 0);
 	public  final static MemoryDatasetEditorInput EMPTY_DATASET_INPUT = new MemoryDatasetEditorInput(EMPTY_DATASET);
 
 	protected boolean remotedImageEditor = false;

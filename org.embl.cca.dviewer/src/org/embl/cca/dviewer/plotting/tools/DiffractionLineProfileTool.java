@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
@@ -307,7 +308,7 @@ public class DiffractionLineProfileTool extends ProfileTool {
 		
 		final Dataset intensity = profileData[0];
 		intensity.setName(region.getName());
-		final Dataset indices = IntegerDataset.createRange(0, intensity.getSize(), 1d);
+		final Dataset indices = DatasetFactory.createRange(IntegerDataset.class, 0, intensity.getSize(), 1d);
 		indices.setName("Pixel");
 		
 		final ILineTrace trace = (ILineTrace)profilePlottingSystem.getTrace(region.getName());
