@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 
 import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DTypeUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
@@ -282,7 +283,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      */
 	@Override
     public int compareTo(DatasetNumber anotherNumber) {
-		int type = AbstractDataset.getBestDType(set.getDType(), anotherNumber.set.getDType());
+		int type = DTypeUtils.getBestDType(set.getDType(), anotherNumber.set.getDType());
 		switch (type) {
 			case Dataset.BOOL: {
 				int thisVal = value.intValue(); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
