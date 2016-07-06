@@ -3,14 +3,14 @@ package org.embl.cca.dviewer.ui.editors.utils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.ByteDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
-import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.FloatDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LongDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.ShortDataset;
+import org.eclipse.january.dataset.ByteDataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.DoubleDataset;
+import org.eclipse.january.dataset.FloatDataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.IntegerDataset;
+import org.eclipse.january.dataset.LongDataset;
+import org.eclipse.january.dataset.ShortDataset;
 import org.eclipse.swt.graphics.Rectangle;
 
 /**

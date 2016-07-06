@@ -5,7 +5,7 @@ import java.io.File;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.january.dataset.Dataset;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;

@@ -3,10 +3,10 @@ package org.embl.cca.utils.datahandling;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
-import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DTypeUtils;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.january.dataset.AbstractDataset;
+import org.eclipse.january.dataset.DTypeUtils;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.metadata.IMetadata;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of Dataset

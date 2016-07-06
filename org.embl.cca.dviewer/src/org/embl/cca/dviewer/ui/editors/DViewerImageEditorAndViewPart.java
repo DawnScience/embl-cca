@@ -33,7 +33,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.IDatasetMathsService;
 import org.eclipse.dawnsci.analysis.api.io.IFileSaver;
 import org.eclipse.dawnsci.analysis.api.io.ScanFileHolderException;
@@ -50,6 +49,7 @@ import org.eclipse.dawnsci.plotting.api.trace.ITrace;
 import org.eclipse.dawnsci.slicing.api.system.AxisType;
 import org.eclipse.dawnsci.slicing.api.system.DimsData;
 import org.eclipse.dawnsci.slicing.api.system.DimsDataList;
+import org.eclipse.january.dataset.IDataset;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
@@ -101,8 +101,6 @@ import org.embl.cca.utils.extension.CommonExtension;
 import org.embl.cca.utils.general.ISomethingChangeListener;
 import org.embl.cca.utils.general.SomethingChangeEvent;
 import org.embl.cca.utils.threading.CommonThreading;
-import org.embl.cca.utils.ui.nebula.AnnotationEmbl.CursorLineStyleEmbl;
-import org.embl.cca.utils.ui.nebula.AnnotationWrapperEmbl;
 import org.embl.cca.utils.ui.widget.SaveFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1154,10 +1152,10 @@ public class DViewerImageEditorAndViewPart extends WorkbenchPart
 		for (int i = 0; i < dimsDataList.size(); i++) {
 			final DimsData dimsData = dimsDataList.getDimsData(i);
 			if (dimsData.getPlotAxis() == AxisType.X) {
-				x = service.createRange(data.getShape()[i], IDatasetMathsService.INT);
+				x = service.createRange(data.getShape()[i], Integer.class);
 			}
 			if (dimsData.getPlotAxis() == AxisType.Y) {
-				y = service.createRange(data.getShape()[i], IDatasetMathsService.INT);
+				y = service.createRange(data.getShape()[i], Integer.class);
 			}
 		}
 		//According to SliceUtils.plotSlice, swapping x,y for {create|update}Plot2D

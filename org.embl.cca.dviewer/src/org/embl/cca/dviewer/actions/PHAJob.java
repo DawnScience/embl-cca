@@ -6,9 +6,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
+import org.eclipse.january.dataset.IDataset;
 import org.eclipse.swt.widgets.Display;
 
 public class PHAJob extends Job {
