@@ -1,14 +1,10 @@
 package org.embl.cca.utils.datahandling;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
-import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.january.dataset.DTypeUtils;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.metadata.IMetadata;
 
 public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
-	protected static Method fromDoubleToNumberPrivateStringMethod = null; //For hacking private method of Dataset
 
 	/**
 	 * 
@@ -47,7 +43,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 * @return the maximum number according to dataset type
 	 */
 	protected Number getMaximumNumber() {
-		switch (set.getDtype()) {
+		switch (set.getDType()) {
 		case Dataset.BOOL:
 			return Integer.valueOf(1); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
 		case Dataset.INT32:
@@ -63,7 +59,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 		case Dataset.FLOAT64:
 			return Double.MAX_VALUE;
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 	}
 
 	/**
@@ -92,18 +88,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 	 * @return the type converted number
 	 */
 	public static Number fromDoubleToNumber(Dataset set, double x) {
-		final String error = "fromDoubleToNumber(set=" + set + ", x=" + x + ") error";
-		try {
-			return (Number)fromDoubleToNumberPrivateStringMethod.invoke(set, x);
-		} catch (SecurityException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		} catch (IllegalArgumentException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		} catch (IllegalAccessException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		} catch (InvocationTargetException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		}
+		return DTypeUtils.fromDoubleToBiggestNumber(x, set.getDType());
 	}
 
 	/**
@@ -230,7 +215,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      * <code>boolean</code>.
      */
 	public boolean booleanValue() {
-		switch (set.getDtype()) {
+		switch (set.getDType()) {
 		case Dataset.BOOL:
 			return value.intValue() != 0; //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
 		case Dataset.INT32:
@@ -246,7 +231,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 		case Dataset.FLOAT64:
 			return value.doubleValue() != 0;
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
 	}
 
     /**
@@ -282,7 +267,7 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
      */
 	@Override
     public int compareTo(DatasetNumber anotherNumber) {
-		int type = AbstractDataset.getBestDType(set.getDtype(), anotherNumber.set.getDtype());
+		int type = DTypeUtils.getBestDType(set.getDType(), anotherNumber.set.getDType());
 		switch (type) {
 			case Dataset.BOOL: {
 				int thisVal = value.intValue(); //Hacking, since Boolean is not Number, and using Integer similarly to Dataset.fromDoubleToNumber
@@ -320,19 +305,6 @@ public class DatasetNumber extends Number  implements Comparable<DatasetNumber>{
 				return (thisVal<anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
 			}
 		}
-		throw new RuntimeException("Not supported dataset type: " + set.getDtype() );
+		throw new RuntimeException("Not supported dataset type: " + set.getDType() );
     }
-
-	static {
-		final String error = "overridePrivate() error";
-		try {
-			fromDoubleToNumberPrivateStringMethod = AbstractDataset.class.getDeclaredMethod("fromDoubleToNumber", new Class[] { double.class });
-		} catch (SecurityException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		} catch (NoSuchMethodException e) {
-		    throw new RuntimeException(error + ", " + e.getMessage());
-		}
-		fromDoubleToNumberPrivateStringMethod.setAccessible(true);
-	}
-
 }

@@ -3,13 +3,14 @@ package org.embl.cca.dviewer.ui.editors.utils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.ByteDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.FloatDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LongDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.ShortDataset;
+import org.eclipse.january.dataset.ByteDataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.DoubleDataset;
+import org.eclipse.january.dataset.FloatDataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.IntegerDataset;
+import org.eclipse.january.dataset.LongDataset;
+import org.eclipse.january.dataset.ShortDataset;
 import org.eclipse.swt.graphics.Rectangle;
 
 /**
@@ -85,7 +86,7 @@ public class PHA {
 	public static DoubleDataset calculateGaussKernel(final int radius) {
 		Assert.isLegal(radius>0);
 		final int kernelLength = getKernelLength(radius);
-		final DoubleDataset kernelSet = new DoubleDataset(kernelLength, kernelLength);
+		final DoubleDataset kernelSet = DatasetFactory.zeros(DoubleDataset.class, kernelLength, kernelLength);
 		final double kernel[] = kernelSet.getData();
 		final double amax = 4; //By experience. In equation: 1 / ( c * Math.sqrt( 2*Math.PI ) )
 		final double amin = 1;
@@ -131,7 +132,7 @@ public class PHA {
 		else
 			throw new IllegalArgumentException(new StringBuilder(PSF.featureName)
 				.append(" is not implemented for this image containing values of class ")
-				.append(ds.elementClass().toString()).toString() );
+				.append(ds.getElementClass().toString()).toString() );
 		final long t1 = System.nanoTime();
 		System.out.println( "DEBUG: applyPHA took [msec]= " + ( t1 - t0 ) / 1000000 );
 		return result;
@@ -167,7 +168,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (ByteDataset)dataSet.clone();
-				final ByteDataset newDataSet = new ByteDataset(dataSet.getShape());
+				final ByteDataset newDataSet = DatasetFactory.zeros(ByteDataset.class, dataSet.getShape());
 				final byte[] dataSetValues = dataSet.getData();
 				final byte[] newDataSetValues = newDataSet.getData();
 				final byte valueMin = (byte) validValueMin;
@@ -253,7 +254,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (ShortDataset)dataSet.clone();
-				final ShortDataset newDataSet = new ShortDataset(dataSet.getShape());
+				final ShortDataset newDataSet = DatasetFactory.zeros(ShortDataset.class, dataSet.getShape());
 				final short[] dataSetValues = dataSet.getData();
 				final short[] newDataSetValues = newDataSet.getData();
 				final short valueMin = (short) validValueMin;
@@ -339,7 +340,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (IntegerDataset)dataSet.clone();
-				final IntegerDataset newDataSet = new IntegerDataset(dataSet.getShape());
+				final IntegerDataset newDataSet = DatasetFactory.zeros(IntegerDataset.class, dataSet.getShape());
 				final int[] dataSetValues = dataSet.getData();
 				final int[] newDataSetValues = newDataSet.getData();
 				final int valueMin = (int) validValueMin;
@@ -426,7 +427,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (LongDataset)dataSet.clone();
-				final LongDataset newDataSet = new LongDataset(dataSet.getShape());
+				final LongDataset newDataSet = DatasetFactory.zeros(LongDataset.class, dataSet.getShape());
 				final long[] dataSetValues = dataSet.getData();
 				final long[] newDataSetValues = newDataSet.getData();
 				final long valueMin = (long) validValueMin;
@@ -512,7 +513,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (FloatDataset)dataSet.clone();
-				final FloatDataset newDataSet = new FloatDataset(dataSet.getShape());
+				final FloatDataset newDataSet = DatasetFactory.zeros(FloatDataset.class, dataSet.getShape());
 				final float[] dataSetValues = dataSet.getData();
 				final float[] newDataSetValues = newDataSet.getData();
 				final float valueMin = (float) validValueMin;
@@ -598,7 +599,7 @@ public class PHA {
 			synchronized (kernelLock) {
 				if(radius == 0)
 					return (DoubleDataset)dataSet.clone();
-				final DoubleDataset newDataSet = new DoubleDataset(dataSet.getShape());
+				final DoubleDataset newDataSet = DatasetFactory.zeros(DoubleDataset.class, dataSet.getShape());
 				final double[] dataSetValues = dataSet.getData();
 				final double[] newDataSetValues = newDataSet.getData();
 				final double valueMin = (double) validValueMin;
